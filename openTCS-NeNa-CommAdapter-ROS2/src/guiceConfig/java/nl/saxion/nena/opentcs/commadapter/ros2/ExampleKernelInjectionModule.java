@@ -1,6 +1,3 @@
-/**
- * Copyright (c) Fraunhofer IML
- */
 package nl.saxion.nena.opentcs.commadapter.ros2;
 
 import com.google.inject.assistedinject.FactoryModuleBuilder;
@@ -24,8 +21,7 @@ public class ExampleKernelInjectionModule
       LOG.info("Example communication adapter disabled by configuration.");
       return;
     }
-    
-    install(new FactoryModuleBuilder().build(ExampleAdapterComponentsFactory.class));
-    vehicleCommAdaptersBinder().addBinding().to(ExampleCommAdapterFactory.class);
+//    install(new FactoryModuleBuilder().build(ExampleAdapterComponentsFactory.class));
+//    vehicleCommAdaptersBinder().addBinding().to(ExampleCommAdapterFactory.class);
   }
 }
