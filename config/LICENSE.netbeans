@@ -1,0 +1,7 @@
+<#if licenseFirst??>
+${licenseFirst}
+</#if>
+${licensePrefix}Copyright (c) Fraunhofer IML
+<#if licenseLast??>
+${licenseLast}
+</#if>

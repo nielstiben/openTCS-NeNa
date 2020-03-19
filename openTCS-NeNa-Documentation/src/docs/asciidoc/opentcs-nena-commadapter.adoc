@@ -1,0 +1,366 @@
+= openTCS: Example Vehicle Communication Protocol and Vehicle Driver Documentation
+The openTCS developers
+openTCS-Example {project-version} built on {buildDate}
+
+// TIP: Always have the comprehensive http://asciidoctor.org/docs/asciidoc-syntax-quick-reference[QuickReference] handy.
+
+== General communication flow
+
+IMPORTANT: Protocol details heavily depend on use cases.
+This protocol specification serves as a simple example only.
+Customize it to your needs where appropriate, especially when it comes to telegram contents!
+
+Communication between vehicle and control system is performed using a single TCP/IP connection.
+Via this connection, the vehicle receives control telegrams from the control system and sends status telegrams to it.
+The TCP/IP connection is established by the control system; the vehicle functions as the server and awaits initiation of the connection by the control system on a TCP port (2000 by default).
+In case the connection between vehicle and control system is lost, the control system is responsible for re-establishing the connection.
+
+=== Status feedback via polling
+
+Status telegrams (<<State response>>) may be requested by the control system at any given point of time by sending a <<State request>>.
+These requests will usually be sent periodically, e.g. every 500 ms.
+Regardless of its content, a status telegram received by the control system also serves as a vital sign of the vehicle.
+
+=== Movement orders
+
+Order telegrams (<<Order request>>) are sent by the control system to the vehicle when movement orders are to be executed.
+An order telegram contains all information required for the movement itself and the vehicle operations to be performed during and/or after the movement.
+
+In addition to the currently executed movement order, the vehicle can accept/buffer a second order which will be executed following the current one.
+
+== General notes
+
+=== General telegram structure
+
+* Every telegram starts with a start marker (STX, i.e. a byte with value 2).
+* Following this start marker, a size byte indicates how many bytes of payload it contains.
+* After the size, a type byte determines the type of a telegram.
+* Before the actual payload, every telegram contains an identifier.
+For request telegrams this identifier identifies a specific request and has to differ from the one in the previous request.
+For response telegrams the indentifier reflects the identifier of the corresponding request.
+* After the payload, a checksum byte is added to ensure that the byte sequence really is a valid telegram.
+* The telegram ends with an end marker (ETX, i.e. a byte with value 3).
+
+=== Checksums
+
+The checksum in every telegram is computed as a byte-wise XOR of all bytes of the telegram, excluding the fields _STX_, _Size_, _CS_ itself and _ETX_.
+As TCP already ensures correct transmission of the data sent, the checksum primarily serves as a means for the receiver to identify telegrams correctly.
+(The delimiters STX and ETX may also appear in telegram content, so they only provide hints at telegram boundaries.)
+
+[source,java]
+.Example: Implementation in the vehicle driver
+----
+include::{common-javaSrc}/de/fraunhofer/iml/opentcs/example/common/telegrams/Telegram.java[tags=documentation_checksumComp]
+----
+
+=== Processing telegrams in TCP streams
+
+Both sides implementing this protocol must take into account that it is based on TCP, which means that transmitted data is treated as a _stream_ on/above the transport layer.
+This implies the following characteristics, which need to be respected by implementations:
+
+. A single telegram may become _fragmented_ and may thus arrive with the receiver split in two or more parts although it was sent as a whole.
+  (With the small telegram sizes described here, this is unlikely, but theoretically possible, so implementations should be able to merge subsequent telegram fragments, if necessary.)
+. Multiple telegrams sent subsequently may become _merged_ and arrive in a single combined packet with the receiver.
+  (Implementations should not rely on receiving only a single telegram in their incoming buffer.
+  They should be able to split the buffer's contents into multiple telegrams, if necessary.)
+
+== Telegrams sent from control system to vehicle
+
+=== State request
+
+Effect:
+The vehicle controller replies with a <<State response>>.
+
+[cols=">.^1s,^.^1s,^.^1,.^7", options="header"]
+|===
+
+^|Byte index
+|Field
+|Content
+^|Description
+
+|{counter:ByteIndexStateRequest:0}
+|STX
+|2
+|Start marker
+
+|{counter:ByteIndexStateRequest}
+|Size
+|3
+|
+
+|{counter:ByteIndexStateRequest}
+|Type
+|1
+|1 (Indicates this is a state request)
+
+|{counter:ByteIndexStateRequest}
+.2+|ID
+.2+|_uint16_
+.2+|Identifies a specific request.
+Has to differ from the previous request.
+
+|{counter:ByteIndexStateRequest}
+
+|{counter:ByteIndexStateRequest}
+|CS
+|_ubyte_
+|Checksum
+
+|{counter:ByteIndexStateRequest}
+|ETX
+|3
+|End marker
+
+|===
+
+=== Order request
+
+Effect:
+The movement order described in the telegram is executed or buffered in the vehicle's order queue.
+The vehicle replies with an <<Order response>>.
+
+[cols=">.^1s,^.^1s,^.^1,.^7", options="header"]
+|===
+
+^|Byte index
+|Field
+|Content
+^|Description
+
+|{counter:ByteIndexOrderRequest:0}
+|STX
+|2
+|Start marker
+
+|{counter:ByteIndexOrderRequest}
+|Size
+|8
+|
+
+|{counter:ByteIndexOrderRequest}
+|Type
+|2
+|2 (Indicates this is an order request)
+
+|{counter:ByteIndexOrderRequest}
+.2+|ID
+.2+|_uint16_
+.2+|Identifies a specific request.
+Has to differ from the previous request.
+
+|{counter:ByteIndexOrderRequest}
+
+|{counter:ByteIndexOrderRequest}
+.2+|order.id
+.2+|_uint16_
+.2+|ID of this order, to be reflected in the vehicle's status.
+
+|{counter:ByteIndexOrderRequest}
+
+|{counter:ByteIndexOrderRequest}
+.2+|dest.id
+.2+|_unit16_
+.2+|The ID of the destination point.
+
+|{counter:ByteIndexOrderRequest}
+
+|{counter:ByteIndexOrderRequest}
+|dest.action
+|_char_
+|Vehicle action to execute at the destination point: **_N_**one, **_L_**oad, **_U_**nload, **_C_**harge
+
+|{counter:ByteIndexOrderRequest}
+|Checksum
+|_ubyte_
+|Checksum
+
+|{counter:ByteIndexOrderRequest}
+|ETX
+|3
+|End marker
+
+|===
+
+== Telegrams sent from vehicle to control system
+
+=== State response
+
+Effect:
+The control system receives the vehicle's current state, as request with a <<State request>>.
+
+[cols=">.^1s,^.^1s,^.^1,.^7", options="header"]
+|===
+
+^|Byte index
+|Field
+|Content
+^|Description
+
+|{counter:ByteIndexStateResponse:0}
+|STX
+|2
+|Start marker
+
+|{counter:ByteIndexStateResponse}
+|Size
+|13
+|
+
+|{counter:ByteIndexStateResponse}
+|Type
+|1
+|1 (Indicates this is a state response)
+
+|{counter:ByteIndexStateResponse}
+.2+|ID
+.2+|_uint16_
+.2+|Identifies a specific response.
+Reflects the ID of the corresponding request.
+
+|{counter:ByteIndexStateResponse}
+
+|{counter:ByteIndexStateResponse}
+.2+|pos.id
+.2+|_uint16_
+.2+|The ID of the point at the current position, or 0, if unknown.
+
+|{counter:ByteIndexStateResponse}
+
+|{counter:ByteIndexStateResponse}
+|opstate
+|_char_
+|Current operating state: **_I_**dle, **_C_**harging, **_M_**oving, **_A_**cting, **_E_**rror
+
+|{counter:ByteIndexStateResponse}
+|loadstate
+|_char_
+|State of the load handling device: **_E_**mpty, **_F_**ull, **_U_**nknown
+
+|{counter:ByteIndexStateResponse}
+.2+|orderId.lastReceived
+.2+|_uint16_
+.2+|ID of the last order received by the vehicle [1..65.535], or 0, if none were received, yet.
+
+|{counter:ByteIndexStateResponse}
+
+|{counter:ByteIndexStateResponse}
+.2+|orderId.current
+.2+|_uint16_
+.2+|ID of the currently executed order [1..65.535], or 0, if nothing is currently being executed.
+
+|{counter:ByteIndexStateResponse}
+
+|{counter:ByteIndexStateResponse}
+.2+|orderId.lastFinished
+.2+|_uint16_
+.2+|ID of the last finished order [1..65.535], or 0, if none were finished yet.
+
+|{counter:ByteIndexStateResponse}
+
+|{counter:ByteIndexStateResponse}
+|Checksum
+|_ubyte_
+|Checksum
+
+|{counter:ByteIndexStateResponse}
+|ETX
+|3
+|End marker
+
+|===
+
+=== Order response
+
+Effect:
+The vehicle acknowledges reception of an <<Order request>>.
+
+[cols=">.^1s,^.^1s,^.^1,.^7", options="header"]
+|===
+
+^|Byte index
+|Field
+|Content
+^|Description
+
+|{counter:ByteIndexOrderResponse:0}
+|STX
+|2
+|Start marker
+
+|{counter:ByteIndexOrderResponse}
+|Size
+|5
+|
+
+|{counter:ByteIndexOrderResponse}
+|Type
+|2
+|2 (Indicates this is an order response)
+
+|{counter:ByteIndexOrderResponse}
+.2+|ID
+.2+|_uint16_
+.2+|Identifies a specific response.
+Reflects the ID of the corresponding request.
+
+|{counter:ByteIndexOrderResponse}
+
+|{counter:ByteIndexOrderResponse}
+.2+|order.id
+.2+|_uint16_
+.2+|ID of the order received by the vehicle [1..65.535].
+
+|{counter:ByteIndexOrderResponse}
+
+|{counter:ByteIndexOrderResponse}
+|Checksum
+|_ubyte_
+|Checksum
+
+|{counter:ByteIndexOrderResponse}
+|ETX
+|3
+|End marker
+
+|===
+
+== Vehicle operation states
+
+The vehicle may report the following states of operation:
+
+* `MOVING`: The vehicle is currently executing a movement.
+* `ACTING`: The vehicle is currently executing an action.
+* `IDLE`: The vehicle is currently idle and available for an order.
+* `CHARGING`: The vehicle is currently idle and charging its battery.
+  (This is equivalent to `IDLE`, but signalling that the battery is being charged.)
+* `ERROR`: The vehicle is currently not functioning properly, or an erroneous order has been given.
+
+The usual processing of orders works as following:
+
+. When in state `IDLE` or `CHARGING`, the vehicle may be assigned a transport order by the control system.
+  When it is assigned a transport order, it receives a sequence of one or more <<Order request>> telegrams.
+. If given an order while in state `CHARGING`, the vehicle implicitly ends the charging process before processing the order.
+. For every order processed, the vehicle changes its state to `MOVING` while moving to its destination point.
+. If the order requires a load action (loading or unloading cargo), the vehicle changes its state to `ACTING` while executing the action.
+. After processing all given orders, the vehicle changes its state to `IDLE` if it is completely idle, or to `CHARGING`, if it is idle but charging its battery.
+
+At any time, the vehicle may change its state to `ERROR` if it is in a state that does not permit normal operation.
+
+== Information in the plant model
+
+=== Connection parameters
+
+* The vehicle element in the plant model should contain a property with the key `example:vehicleHost`.
+  Its value should be the host name or IP address of the vehicle PLC.
+* The vehicle element in the plant model should contain a property with the key `example:vehiclePort`.
+  Its value should be the port number of the vehicle PLC.
+
+=== Vehicle actions at the destination
+
+The following vehicle actions are understood by the vehicle driver:
+
+* "NOP" (= do nothing)
+* "Load cargo"
+* "Unload cargo"
+* "Charge"

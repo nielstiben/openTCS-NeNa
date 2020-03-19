@@ -1,0 +1,8 @@
+rootProject.name = 'openTCS-NeNa'
+
+include 'openTCS-NeNa-Kernel'
+include 'openTCS-NeNa-KernelControlCenter'
+include 'openTCS-NeNa-PlantOverview'
+include 'openTCS-NeNa-Documentation'
+include 'openTCS-NeNa-Common'
+include 'openTCS-NeNa-CommAdapter-ROS2'
