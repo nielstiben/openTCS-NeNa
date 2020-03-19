@@ -1,5 +1,6 @@
 # Project exclude paths
 /.gradle/
+/.idea/
 /build/
 /openTCS-NeNa-CommAdapter-ROS2/build/
 /openTCS-NeNa-CommAdapter-ROS2/build/classes/java/guiceConfig/
