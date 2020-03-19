@@ -1,4 +1,5 @@
-package de.fraunhofer.iml.opentcs.scripts
+package nl.saxion.nena.opentcs.scripts
+
 
 import java.util.regex.Pattern
 import java.nio.file.Files
