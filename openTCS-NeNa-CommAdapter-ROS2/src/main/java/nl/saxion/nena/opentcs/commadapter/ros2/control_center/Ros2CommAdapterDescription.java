@@ -12,7 +12,7 @@ public class Ros2CommAdapterDescription extends VehicleCommAdapterDescription {
     @Override
     public String getDescription() {
         return ResourceBundle.getBundle(BUNDLE_PATH)
-                .getString("ros2CommunicationAdapterDescription.description");
+                .getString("ros2CommAdapterDescription.description");
     }
 
     @Override

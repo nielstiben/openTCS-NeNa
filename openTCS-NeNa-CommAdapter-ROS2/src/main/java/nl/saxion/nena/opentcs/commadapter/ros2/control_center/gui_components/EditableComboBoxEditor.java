@@ -5,7 +5,7 @@
  * see the licensing information (LICENSE.txt) you should have received with
  * this copy of the software.)
  */
-package nl.saxion.nena.opentcs.commadapter.ros2.control_center.components;
+package nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components;
 
 import javax.swing.*;
 import javax.swing.event.ListDataEvent;
