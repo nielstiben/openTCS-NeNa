@@ -1,4 +1,4 @@
-package nl.saxion.nena.opentcs.commadapter.ros2;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel;
 
 import org.opentcs.drivers.vehicle.BasicVehicleCommAdapter;
 import org.opentcs.drivers.vehicle.MovementCommand;
@@ -9,6 +9,15 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
+/*
+declares methods that every comm adapter must implement.
+These methods are called by components within the kernel,
+for instance to tell a vehicle that it is supposed to move
+to the next position in the driving course. Classes
+implementing this interface are expected to perform the
+actual communication with a vehicle, e.g. via TCP, UDP or
+some field bus.
+ */
 public class Ros2CommAdapter extends BasicVehicleCommAdapter {
 
     /**
@@ -26,7 +35,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
 
     @Override
     public void sendCommand(MovementCommand cmd) throws IllegalArgumentException {
-
+        
     }
 
     @Override
