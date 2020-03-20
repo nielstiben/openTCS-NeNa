@@ -21,7 +21,7 @@ apply plugin: 'groovy'
 
 apply from: "${rootDir}/gradle/versioning.gradle"
 
-group = 'de.fraunhofer.iml.opentcs.example'
+group = 'nl.saxion.nena.opentcs'
 
 repositories {
   jcenter()
@@ -107,7 +107,7 @@ build {
 
 // tag::cloneTask
 task cloneProject(type: JavaExec) {
-  main = 'de.fraunhofer.iml.opentcs.scripts.CloneScript'
+  main = 'nl.saxion.nena.opentcs.scripts.CloneScript'
  
   classpath = sourceSets.main.runtimeClasspath
  

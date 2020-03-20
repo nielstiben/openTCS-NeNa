@@ -32,7 +32,7 @@ distributions {
           
         includeEmptyDirs false
       }
-      from "${sourceSets.main.resources.srcDirs[0]}/de/fraunhofer/iml/opentcs/example/kernelcontrolcenter/distribution"
+      from "${sourceSets.main.resources.srcDirs[0]}/nl/saxion/nena/opentcs/kernelcontrolcenter/distribution"
     }
   }
 }

@@ -11,7 +11,7 @@ apply from: "${rootDir}/gradle/versioning.gradle"
 apply from: "${rootDir}/gradle/opentcs-baseline.gradle"
 apply from: "${rootDir}/gradle/license-headers.gradle"
 
-group = 'de.fraunhofer.iml.opentcs.example'
+group = 'nl.saxion.nena.opentcs'
 
 sourceCompatibility = '1.8'
 archivesBaseName = name.toLowerCase()
