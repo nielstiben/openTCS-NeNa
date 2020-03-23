@@ -632,7 +632,7 @@ public class Ros2CommAdapterPanel
 
     orientationAngleTxt.setEditable(false);
     orientationAngleTxt.setBackground(new java.awt.Color(255, 255, 255));
-    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("i18n/org/opentcs/commadapter/loopback/Bundle"); // NOI18N
+      java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("nl/saxion/nena/opentcs/commadapter/ros2/Bundle"); // NOI18N
     orientationAngleTxt.setText(bundle.getString("ros2CommAdapterPanel.textField_orientationAngle.angleNotSetPlaceholder")); // NOI18N
     orientationAngleTxt.setBorder(javax.swing.BorderFactory.createEtchedBorder());
     orientationAngleTxt.setName("orientationAngleTxt"); // NOI18N
