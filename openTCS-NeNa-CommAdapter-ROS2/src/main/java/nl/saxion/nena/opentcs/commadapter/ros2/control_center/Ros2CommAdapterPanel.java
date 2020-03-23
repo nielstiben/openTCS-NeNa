@@ -36,7 +36,7 @@ import javax.swing.*;
 import java.util.*;
 
 import static java.util.Objects.requireNonNull;
-import static nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.I18nLoopbackCommAdapter.BUNDLE_PATH;
+import static nl.saxion.nena.opentcs.commadapter.ros2.common.I18nLoopbackCommAdapter.BUNDLE_PATH;
 
 /**
  * The panel corresponding to the Ros2CommAdapter.

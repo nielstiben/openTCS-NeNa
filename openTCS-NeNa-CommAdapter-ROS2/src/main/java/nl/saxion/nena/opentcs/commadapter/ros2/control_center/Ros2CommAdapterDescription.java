@@ -4,7 +4,7 @@ import org.opentcs.drivers.vehicle.VehicleCommAdapterDescription;
 
 import java.util.ResourceBundle;
 
-import static nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.I18nLoopbackCommAdapter.BUNDLE_PATH;
+import static nl.saxion.nena.opentcs.commadapter.ros2.common.I18nLoopbackCommAdapter.BUNDLE_PATH;
 
 
 public class Ros2CommAdapterDescription extends VehicleCommAdapterDescription {

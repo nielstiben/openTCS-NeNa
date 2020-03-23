@@ -5,8 +5,10 @@
  * see the licensing information (LICENSE.txt) you should have received with
  * this copy of the software.)
  */
-package nl.saxion.nena.opentcs.commadapter.ros2.control_center;
+package nl.saxion.nena.opentcs.commadapter.ros2.control_center.factory;
 
+import nl.saxion.nena.opentcs.commadapter.ros2.control_center.Ros2CommAdapterDescription;
+import nl.saxion.nena.opentcs.commadapter.ros2.control_center.Ros2CommAdapterPanel;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.Ros2ProcessModelTO;
 import org.opentcs.access.KernelServicePortal;
 import org.opentcs.data.TCSObjectReference;

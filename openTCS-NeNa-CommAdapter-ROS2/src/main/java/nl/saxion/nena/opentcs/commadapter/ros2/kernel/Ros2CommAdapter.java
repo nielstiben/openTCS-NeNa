@@ -2,6 +2,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.inject.assistedinject.Assisted;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2AdapterComponentsFactory;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.Ros2ProcessModelTO;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.VelocityController.WayEntry;
 import org.opentcs.common.LoopbackAdapterConstants;
@@ -66,10 +67,7 @@ public class Ros2CommAdapter
      * This instance's configuration.
      */
     private final Ros2CommAdapterConfiguration configuration;
-    /**
-     * The adapter components factory.
-     */
-    private final Ros2AdapterComponentsFactory componentsFactory;
+
     /**
      * The kernel's executor.
      */
@@ -119,7 +117,6 @@ public class Ros2CommAdapter
 
         this.vehicle = requireNonNull(vehicle, "vehicle");
         this.configuration = requireNonNull(configuration, "configuration");
-        this.componentsFactory = requireNonNull(componentsFactory, "componentsFactory");
         this.kernelExecutor = requireNonNull(kernelExecutor, "kernelExecutor");
     }
 

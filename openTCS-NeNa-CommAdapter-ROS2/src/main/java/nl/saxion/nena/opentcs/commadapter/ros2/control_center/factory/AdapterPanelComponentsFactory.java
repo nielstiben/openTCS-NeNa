@@ -1,5 +1,6 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.control_center;
+package nl.saxion.nena.opentcs.commadapter.ros2.control_center.factory;
 
+import nl.saxion.nena.opentcs.commadapter.ros2.control_center.Ros2CommAdapterPanel;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.Ros2ProcessModelTO;
 import org.opentcs.components.kernel.services.VehicleService;
 
