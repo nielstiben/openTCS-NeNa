@@ -1,18 +1,7 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle;
 
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.Ros2ProcessModel;
-import org.opentcs.data.model.Triple;
-import org.opentcs.data.model.Vehicle;
-import org.opentcs.data.notification.UserNotification;
-import org.opentcs.drivers.vehicle.LoadHandlingDevice;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel;
 import org.opentcs.drivers.vehicle.management.VehicleProcessModelTO;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.Serializable;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
 
 import static java.util.Objects.requireNonNull;
 

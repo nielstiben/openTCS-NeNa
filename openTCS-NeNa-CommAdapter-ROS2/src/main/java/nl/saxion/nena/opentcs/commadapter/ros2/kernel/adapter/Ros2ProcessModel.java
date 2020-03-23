@@ -1,6 +1,6 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.kernel;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter;
 
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.operation.OperationConstants;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConstants;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.Parsers;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.VelocityController;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.VelocityHistory;

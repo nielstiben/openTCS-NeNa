@@ -1,9 +1,9 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.kernel;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.inject.assistedinject.Assisted;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.OperationLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2AdapterComponentsFactory;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.operation.OperationLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.Ros2ProcessModelTO;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.VelocityController.WayEntry;
 import org.opentcs.common.LoopbackAdapterConstants;
@@ -39,27 +39,16 @@ implementing this interface are expected to perform the
 actual communication with a vehicle, e.g. via TCP, UDP or
 some field bus.
  */
-public class Ros2CommAdapter
-        extends BasicVehicleCommAdapter
-        implements SimVehicleCommAdapter {
+public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehicleCommAdapter {
     /**
      * The name of the load handling device set by this adapter.
      */
-    public static final String LHD_NAME = "default2";
+    public static final String LHD_NAME = "ros2";
     /**
      * This class's Logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(Ros2CommAdapter.class);
-    /**
-     * An error code indicating that there's a conflict between a load operation and the vehicle's
-     * current load state.
-     */
-    private static final String LOAD_OPERATION_CONFLICT = "cannotLoadWhenLoaded";
-    /**
-     * An error code indicating that there's a conflict between an unload operation and the vehicle's
-     * current load state.
-     */
-    private static final String UNLOAD_OPERATION_CONFLICT = "cannotUnloadWhenNotLoaded";
+
     /**
      * The time by which to advance the velocity controller per step (in ms).
      */
@@ -98,6 +87,7 @@ public class Ros2CommAdapter
      * Whether the loopback adapter is initialized or not.
      */
     private boolean initialized;
+
     /**
      * Creates a new instance.
      *
@@ -293,10 +283,9 @@ public class Ros2CommAdapter
     }
 
     /**
-     * A task simulating a vehicle's behaviour.
+     * =================================== A task simulating a vehicle's behaviour. ===================================
      */
-    private class VehicleSimulationTask
-            extends CyclicTask {
+    private class VehicleSimulationTask extends CyclicTask {
 
         /**
          * The time that has passed for the velocity controller whenever
@@ -323,7 +312,8 @@ public class Ros2CommAdapter
                 getProcessModel().getVelocityController().advanceTime(simAdvanceTime);
             } else {
                 // If we were told to move somewhere, simulate the journey.
-                LOG.debug("Processing MovementCommand...");
+                LOG.info("Processing MovementCommand...");
+                LOG.info(curCommand.toString());
                 final Route.Step curStep = curCommand.getStep();
                 // Simulate the movement.
                 simulateMovement(curStep);
@@ -331,7 +321,9 @@ public class Ros2CommAdapter
                 if (!curCommand.isWithoutOperation()) {
                     simulateOperation(curCommand.getOperation());
                 }
-                LOG.debug("Processed MovementCommand.");
+                LOG.info("Processed MovementCommand.");
+                LOG.info(curCommand.toString());
+
                 if (!isTerminated()) {
                     // Set the vehicle's state back to IDLE, but only if there aren't
                     // any more movements to be processed.

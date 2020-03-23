@@ -7,7 +7,7 @@
  */
 package nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands;
 
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.Ros2CommAdapter;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter;
 import org.opentcs.drivers.vehicle.AdapterCommand;
 import org.opentcs.drivers.vehicle.VehicleCommAdapter;
 

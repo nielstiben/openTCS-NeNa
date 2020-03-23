@@ -1,4 +1,4 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.kernel;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter;
 
 import org.opentcs.configuration.ConfigurationEntry;
 import org.opentcs.configuration.ConfigurationPrefix;
