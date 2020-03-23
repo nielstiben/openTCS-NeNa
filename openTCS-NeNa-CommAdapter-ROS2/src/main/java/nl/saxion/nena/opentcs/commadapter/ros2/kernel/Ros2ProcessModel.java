@@ -1,5 +1,6 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel;
 
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.operation.OperationConstants;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.Parsers;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.VelocityController;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.VelocityHistory;
@@ -52,6 +53,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
     private final VelocityHistory velocityHistory = new VelocityHistory(100, 10);
 
     public Ros2ProcessModel(Vehicle attachedVehicle) {
+        //TODO: Customize
+
         super(attachedVehicle);
         this.velocityController = new VelocityController(parseDeceleration(attachedVehicle),
                 parseAcceleration(attachedVehicle),
@@ -63,10 +66,14 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
     }
 
     public String getLoadOperation() {
+        //TODO: Customize
+
         return this.loadOperation;
     }
 
     public String getUnloadOperation() {
+        //TODO: Customize
+
         return this.unloadOperation;
     }
 
@@ -77,6 +84,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * otherwise sets this adapter to flow mode.
      */
     public synchronized void setSingleStepModeEnabled(final boolean mode) {
+        //TODO: Customize
+
         boolean oldValue = singleStepModeEnabled;
         singleStepModeEnabled = mode;
 
@@ -92,6 +101,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * single step mode.
      */
     public synchronized boolean isSingleStepModeEnabled() {
+        //TODO: Customize
+
         return singleStepModeEnabled;
     }
 
@@ -101,6 +112,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * @return The default operating time
      */
     public synchronized int getOperatingTime() {
+        //TODO: Customize
+
         return operatingTime;
     }
 
@@ -110,6 +123,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * @param defaultOperatingTime The new default operating time
      */
     public synchronized void setOperatingTime(int defaultOperatingTime) {
+        //TODO: Customize
+
         int oldValue = this.operatingTime;
         this.operatingTime = defaultOperatingTime;
 
@@ -124,6 +139,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * @return The maximum deceleration
      */
     public synchronized int getMaxDecceleration() {
+        //TODO: Customize
+
         return velocityController.getMaxDeceleration();
     }
 
@@ -133,6 +150,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * @param maxDeceleration The new maximum deceleration
      */
     public synchronized void setMaxDeceleration(int maxDeceleration) {
+        //TODO: Customize
+
         int oldValue = velocityController.getMaxDeceleration();
         velocityController.setMaxDeceleration(maxDeceleration);
 
@@ -147,6 +166,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * @return The maximum acceleration
      */
     public synchronized int getMaxAcceleration() {
+        //TODO: Customize
+
         return velocityController.getMaxAcceleration();
     }
 
@@ -156,6 +177,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * @param maxAcceleration The new maximum acceleration
      */
     public synchronized void setMaxAcceleration(int maxAcceleration) {
+        //TODO: Customize
+
         int oldValue = velocityController.getMaxAcceleration();
         velocityController.setMaxAcceleration(maxAcceleration);
 
@@ -170,6 +193,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * @return The maximum reverse velocity.
      */
     public synchronized int getMaxRevVelocity() {
+        //TODO: Customize
+
         return velocityController.getMaxRevVelocity();
     }
 
@@ -179,6 +204,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * @param maxRevVelocity The new maximum reverse velocity
      */
     public synchronized void setMaxRevVelocity(int maxRevVelocity) {
+        //TODO: Customize
+
         int oldValue = velocityController.getMaxRevVelocity();
         velocityController.setMaxRevVelocity(maxRevVelocity);
 
@@ -193,6 +220,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * @return The maximum forward velocity.
      */
     public synchronized int getMaxFwdVelocity() {
+        //TODO: Customize
+
         return velocityController.getMaxFwdVelocity();
     }
 
@@ -202,6 +231,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * @param maxFwdVelocity The new maximum forward velocity.
      */
     public synchronized void setMaxFwdVelocity(int maxFwdVelocity) {
+        //TODO: Customize
+
         int oldValue = velocityController.getMaxFwdVelocity();
         velocityController.setMaxFwdVelocity(maxFwdVelocity);
 
@@ -216,6 +247,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * @return paused
      */
     public synchronized boolean isVehiclePaused() {
+        //TODO: Customize
+
         return velocityController.isVehiclePaused();
     }
 
@@ -225,6 +258,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * @param pause True, if vehicle shall be paused. False, otherwise.
      */
     public synchronized void setVehiclePaused(boolean pause) {
+        //TODO: Customize
+
         boolean oldValue = velocityController.isVehiclePaused();
         velocityController.setVehiclePaused(pause);
 
@@ -240,6 +275,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      */
     @Nonnull
     public VelocityController getVelocityController() {
+        //TODO: Customize
+
         return velocityController;
     }
 
@@ -250,11 +287,14 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      */
     @Nonnull
     public VelocityHistory getVelocityHistory() {
+        //TODO: Customize
         return velocityHistory;
     }
 
     @Override
     public void addVelocityValue(int velocityValue) {
+        //TODO: Customize
+
         // Store the new value in the history...
         velocityHistory.addVelocityValue(velocityValue);
         // ...and let all observers know about it.
@@ -264,6 +304,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
     }
 
     private int parseOperatingTime(Vehicle vehicle) {
+        //TODO: Customize
         String opTime = vehicle.getProperty(LoopbackAdapterConstants.PROPKEY_OPERATING_TIME);
         // Ensure it's a positive value.
         return Math.max(Parsers.tryParseString(opTime, 5000), 1);
@@ -276,6 +317,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * @return the maximum acceleration.
      */
     private int parseAcceleration(Vehicle vehicle) {
+        //TODO: Customize
         String acceleration = vehicle.getProperty(LoopbackAdapterConstants.PROPKEY_ACCELERATION);
         // Ensure it's a positive value.
         return Math.max(Parsers.tryParseString(acceleration, 500), 1);
@@ -288,25 +330,18 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * @return the maximum decceleration.
      */
     private int parseDeceleration(Vehicle vehicle) {
+        //TODO: Customize
         String deceleration = vehicle.getProperty(LoopbackAdapterConstants.PROPKEY_DECELERATION);
         // Ensure it's a negative value.
         return Math.min(Parsers.tryParseString(deceleration, -500), -1);
     }
 
     private static String extractLoadOperation(Vehicle attachedVehicle) {
-        String result = attachedVehicle.getProperty(LoopbackAdapterConstants.PROPKEY_LOAD_OPERATION);
-        if (result == null) {
-            result = LoopbackAdapterConstants.PROPVAL_LOAD_OPERATION_DEFAULT;
-        }
-        return result;
+        return OperationConstants.LOAD_CARGO;
     }
 
     private static String extractUnloadOperation(Vehicle attachedVehicle) {
-        String result = attachedVehicle.getProperty(LoopbackAdapterConstants.PROPKEY_UNLOAD_OPERATION);
-        if (result == null) {
-            result = LoopbackAdapterConstants.PROPVAL_UNLOAD_OPERATION_DEFAULT;
-        }
-        return result;
+        return OperationConstants.UNLOAD_CARGO;
     }
 
     /**

@@ -3,6 +3,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.inject.assistedinject.Assisted;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2AdapterComponentsFactory;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.operation.OperationLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.Ros2ProcessModelTO;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.VelocityController.WayEntry;
 import org.opentcs.common.LoopbackAdapterConstants;
@@ -18,10 +19,10 @@ import org.opentcs.util.ExplainedBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.beans.PropertyChangeEvent;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -84,6 +85,11 @@ public class Ros2CommAdapter
      * The vehicle to this comm adapter instance.
      */
     private final Vehicle vehicle;
+
+    public LoadState getLoadState() {
+        return loadState;
+    }
+
     /**
      * The vehicle's load state.
      */
@@ -92,7 +98,6 @@ public class Ros2CommAdapter
      * Whether the loopback adapter is initialized or not.
      */
     private boolean initialized;
-
     /**
      * Creates a new instance.
      *
@@ -204,16 +209,11 @@ public class Ros2CommAdapter
         return (Ros2ProcessModel) super.getProcessModel();
     }
 
-//    @Override
-//    @Deprecated
-//    protected List<org.opentcs.drivers.vehicle.VehicleCommAdapterPanel> createAdapterPanels() {
-//        return Arrays.asList(componentsFactory.createPanel(this));
-//    }
-
     @Override
     public synchronized void sendCommand(MovementCommand cmd) {
         requireNonNull(cmd, "cmd");
-
+        LOG.info("INCOMING COMMAND:");
+        LOG.info(cmd.toString());
         // Reset the execution flag for single-step mode.
         singleStepExecutionAllowed = false;
         // Don't do anything else - the command will be put into the sentQueue
@@ -223,6 +223,8 @@ public class Ros2CommAdapter
     @Override
     public void processMessage(Object message) {
         // Process LimitSpeeed message which might pause the vehicle.
+        LOG.info("INCOMING MESSAGE:");
+        LOG.info(message.toString());
         if (message instanceof SetSpeedMultiplier) {
             SetSpeedMultiplier lsMessage = (SetSpeedMultiplier) message;
             int multiplier = lsMessage.getMultiplier();
@@ -237,42 +239,17 @@ public class Ros2CommAdapter
         });
     }
 
+    @Nonnull
     @Override
-    public synchronized ExplainedBoolean canProcess(List<String> operations) {
-        requireNonNull(operations, "operations");
+    public synchronized ExplainedBoolean canProcess(@Nonnull List<String> operations) {
+        LOG.info("{}: Checking processability of {}...", getName(), operations);
+        ExplainedBoolean areAllOperationsAllowed = OperationLib.areAllOperationsAllowed(operations, this);
 
-        LOG.debug("{}: Checking processability of {}...", getName(), operations);
-        boolean canProcess = true;
-        String reason = "";
+        if (!areAllOperationsAllowed.getValue()) {
+            LOG.info("{}: Cannot process {}, reason: '{}'", getName(), operations, areAllOperationsAllowed.getReason());
+        }
 
-        // Do NOT require the vehicle to be IDLE or CHARGING here!
-        // That would mean a vehicle moving to a parking position or recharging location would always
-        // have to finish that order first, which would render a transport order's dispensable flag
-        // useless.
-        boolean loaded = loadState == LoadState.FULL;
-        Iterator<String> opIter = operations.iterator();
-        while (canProcess && opIter.hasNext()) {
-            final String nextOp = opIter.next();
-            // If we're loaded, we cannot load another piece, but could unload.
-            if (loaded) {
-                if (nextOp.startsWith(getProcessModel().getLoadOperation())) {
-                    canProcess = false;
-                    reason = LOAD_OPERATION_CONFLICT;
-                } else if (nextOp.startsWith(getProcessModel().getUnloadOperation())) {
-                    loaded = false;
-                }
-            } // If we're not loaded, we could load, but not unload.
-            else if (nextOp.startsWith(getProcessModel().getLoadOperation())) {
-                loaded = true;
-            } else if (nextOp.startsWith(getProcessModel().getUnloadOperation())) {
-                canProcess = false;
-                reason = UNLOAD_OPERATION_CONFLICT;
-            }
-        }
-        if (!canProcess) {
-            LOG.debug("{}: Cannot process {}, reason: '{}'", getName(), operations, reason);
-        }
-        return new ExplainedBoolean(canProcess, reason);
+        return areAllOperationsAllowed;
     }
 
     @Override
@@ -461,7 +438,7 @@ public class Ros2CommAdapter
     /**
      * The vehicle's possible load states.
      */
-    private enum LoadState {
+    public enum LoadState {
         EMPTY,
         FULL;
     }
