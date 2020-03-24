@@ -176,7 +176,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
         }
         getProcessModel().getVelocityController().addVelocityListener(getProcessModel());
         // Create task for vehicle simulation.
-        vehicleSimulationTask = new VehicleSimulationTask();
+        vehicleSimulationTask = new Ros2VehicleTask();
         Thread simThread = new Thread(vehicleSimulationTask, getName() + "-simulationTask");
         simThread.start();
         super.enable();
@@ -285,7 +285,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
     /**
      * =================================== A task simulating a vehicle's behaviour. ===================================
      */
-    private class VehicleSimulationTask extends CyclicTask {
+    private class Ros2VehicleTask extends CyclicTask {
 
         /**
          * The time that has passed for the velocity controller whenever
@@ -296,7 +296,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
         /**
          * Creates a new VehicleSimluationTask.
          */
-        private VehicleSimulationTask() {
+        private Ros2VehicleTask() {
             super(0);
         }
 
@@ -312,7 +312,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
                 getProcessModel().getVelocityController().advanceTime(simAdvanceTime);
             } else {
                 // If we were told to move somewhere, simulate the journey.
-                LOG.info("Processing MovementCommand...");
+                LOG.info("Processing MovementCommand..."); // SIMILAR to ROS2 action!!!
                 LOG.info(curCommand.toString());
                 final Route.Step curStep = curCommand.getStep();
                 // Simulate the movement.
