@@ -1,10 +1,11 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter;
 
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.ConnectionListener;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.ConnectionController;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.ConnectionStatus;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConstants;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.Parsers;
-import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.VelocityController;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.VelocityHistory;
-import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.VelocityListener;
 import org.opentcs.common.LoopbackAdapterConstants;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.drivers.vehicle.VehicleProcessModel;
@@ -21,7 +22,9 @@ vehicle. VehicleProcessModel may be used as it is, as it contains members for al
 itself needs. However, developers may use driver-specific subclasses of VehicleProcessModel to have the comm adapter
 and other components exchange more than the default set of attributes.
  */
-public class Ros2ProcessModel extends VehicleProcessModel implements VelocityListener {
+public class Ros2ProcessModel extends VehicleProcessModel
+        implements ConnectionListener {
+    ConnectionController connectionController;
     /**
      * Indicates whether this communication adapter is in single step mode or not (i.e. in automatic
      * mode).
@@ -39,14 +42,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
      * The time needed for executing operations.
      */
     private int operatingTime;
-    /**
-     * TODO: DEMO VALUE
-     */
-//    private String nickName;
-    /**
-     * The velocity controller for calculating the simulated vehicle's velocity and current position.
-     */
-    private final VelocityController velocityController;
+
     /**
      * Keeps a log of recent velocity values.
      */
@@ -56,32 +52,35 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
         //TODO: Customize
 
         super(attachedVehicle);
-        this.velocityController = new VelocityController(parseDeceleration(attachedVehicle),
-                parseAcceleration(attachedVehicle),
-                attachedVehicle.getMaxReverseVelocity(),
-                attachedVehicle.getMaxVelocity());
+        this.connectionController = new ConnectionController(this);
         this.operatingTime = parseOperatingTime(attachedVehicle);
         this.loadOperation = extractLoadOperation(attachedVehicle);
         this.unloadOperation = extractUnloadOperation(attachedVehicle);
     }
 
-    public String getLoadOperation() {
-        //TODO: Customize
+    @Nonnull
+    public ConnectionController getConnectionController() {
+        return connectionController;
+    }
 
-        return this.loadOperation;
+    public String getLoadOperation() {
+        return loadOperation;
     }
 
     public String getUnloadOperation() {
-        //TODO: Customize
+        return unloadOperation;
+    }
 
-        return this.unloadOperation;
+    public synchronized void setupConnection(int domainId) {
+        connectionController.connect(domainId);
+
     }
 
     /**
      * Sets this communication adapter's <em>single step mode</em> flag.
      *
      * @param mode If <code>true</code>, sets this adapter to single step mode,
-     * otherwise sets this adapter to flow mode.
+     *             otherwise sets this adapter to flow mode.
      */
     public synchronized void setSingleStepModeEnabled(final boolean mode) {
         //TODO: Customize
@@ -133,152 +132,6 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
                 defaultOperatingTime);
     }
 
-    /**
-     * Returns the maximum deceleration.
-     *
-     * @return The maximum deceleration
-     */
-    public synchronized int getMaxDecceleration() {
-        //TODO: Customize
-
-        return velocityController.getMaxDeceleration();
-    }
-
-    /**
-     * Sets the maximum deceleration.
-     *
-     * @param maxDeceleration The new maximum deceleration
-     */
-    public synchronized void setMaxDeceleration(int maxDeceleration) {
-        //TODO: Customize
-
-        int oldValue = velocityController.getMaxDeceleration();
-        velocityController.setMaxDeceleration(maxDeceleration);
-
-        getPropertyChangeSupport().firePropertyChange(Attribute.DECELERATION.name(),
-                oldValue,
-                maxDeceleration);
-    }
-
-    /**
-     * Returns the maximum acceleration.
-     *
-     * @return The maximum acceleration
-     */
-    public synchronized int getMaxAcceleration() {
-        //TODO: Customize
-
-        return velocityController.getMaxAcceleration();
-    }
-
-    /**
-     * Sets the maximum acceleration.
-     *
-     * @param maxAcceleration The new maximum acceleration
-     */
-    public synchronized void setMaxAcceleration(int maxAcceleration) {
-        //TODO: Customize
-
-        int oldValue = velocityController.getMaxAcceleration();
-        velocityController.setMaxAcceleration(maxAcceleration);
-
-        getPropertyChangeSupport().firePropertyChange(Attribute.ACCELERATION.name(),
-                oldValue,
-                maxAcceleration);
-    }
-
-    /**
-     * Returns the maximum reverse velocity.
-     *
-     * @return The maximum reverse velocity.
-     */
-    public synchronized int getMaxRevVelocity() {
-        //TODO: Customize
-
-        return velocityController.getMaxRevVelocity();
-    }
-
-    /**
-     * Sets the maximum reverse velocity.
-     *
-     * @param maxRevVelocity The new maximum reverse velocity
-     */
-    public synchronized void setMaxRevVelocity(int maxRevVelocity) {
-        //TODO: Customize
-
-        int oldValue = velocityController.getMaxRevVelocity();
-        velocityController.setMaxRevVelocity(maxRevVelocity);
-
-        getPropertyChangeSupport().firePropertyChange(Attribute.MAX_REVERSE_VELOCITY.name(),
-                oldValue,
-                maxRevVelocity);
-    }
-
-    /**
-     * Returns the maximum forward velocity.
-     *
-     * @return The maximum forward velocity.
-     */
-    public synchronized int getMaxFwdVelocity() {
-        //TODO: Customize
-
-        return velocityController.getMaxFwdVelocity();
-    }
-
-    /**
-     * Sets the maximum forward velocity.
-     *
-     * @param maxFwdVelocity The new maximum forward velocity.
-     */
-    public synchronized void setMaxFwdVelocity(int maxFwdVelocity) {
-        //TODO: Customize
-
-        int oldValue = velocityController.getMaxFwdVelocity();
-        velocityController.setMaxFwdVelocity(maxFwdVelocity);
-
-        getPropertyChangeSupport().firePropertyChange(Attribute.MAX_FORWARD_VELOCITY.name(),
-                oldValue,
-                maxFwdVelocity);
-    }
-
-    /**
-     * Returns whether the vehicle is paused.
-     *
-     * @return paused
-     */
-    public synchronized boolean isVehiclePaused() {
-        //TODO: Customize
-
-        return velocityController.isVehiclePaused();
-    }
-
-    /**
-     * Pause the vehicle (i.e. set it's velocity to zero).
-     *
-     * @param pause True, if vehicle shall be paused. False, otherwise.
-     */
-    public synchronized void setVehiclePaused(boolean pause) {
-        //TODO: Customize
-
-        boolean oldValue = velocityController.isVehiclePaused();
-        velocityController.setVehiclePaused(pause);
-
-        getPropertyChangeSupport().firePropertyChange(Attribute.VEHICLE_PAUSED.name(),
-                oldValue,
-                pause);
-    }
-
-    /**
-     * Returns the virtual vehicle's velocity controller.
-     *
-     * @return The virtual vehicle's velocity controller.
-     */
-    @Nonnull
-    public VelocityController getVelocityController() {
-        //TODO: Customize
-
-        return velocityController;
-    }
 
     /**
      * Returns a log of recent velocity values of the vehicle.
@@ -289,18 +142,6 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
     public VelocityHistory getVelocityHistory() {
         //TODO: Customize
         return velocityHistory;
-    }
-
-    @Override
-    public void addVelocityValue(int velocityValue) {
-        //TODO: Customize
-
-        // Store the new value in the history...
-        velocityHistory.addVelocityValue(velocityValue);
-        // ...and let all observers know about it.
-        getPropertyChangeSupport().firePropertyChange(Attribute.VELOCITY_HISTORY.name(),
-                null,
-                velocityHistory);
     }
 
     private int parseOperatingTime(Vehicle vehicle) {
@@ -344,10 +185,15 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
         return OperationConstants.UNLOAD_CARGO;
     }
 
+    @Override
+    public void onConnectionStatusChange(ConnectionStatus connectionStatus) {
+        getPropertyChangeSupport().firePropertyChange(Attribute.CONNECTION_STATUS.name(), null, connectionStatus);
+    }
+
     /**
      * Notification arguments to indicate some change.
      */
-    public static enum Attribute {
+    public enum Attribute {
         /**
          * Indicates a change of the virtual vehicle's single step mode setting.
          */
@@ -380,5 +226,6 @@ public class Ros2ProcessModel extends VehicleProcessModel implements VelocityLis
          * Indicates a change of the virtual vehicle's velocity history.
          */
         VELOCITY_HISTORY,
+        CONNECTION_STATUS,
     }
 }

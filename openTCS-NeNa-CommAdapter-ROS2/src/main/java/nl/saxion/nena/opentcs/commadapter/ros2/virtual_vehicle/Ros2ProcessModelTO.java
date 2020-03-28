@@ -11,6 +11,11 @@ import static java.util.Objects.requireNonNull;
 public class Ros2ProcessModelTO extends VehicleProcessModelTO {
 
     /**
+     * ROS2 Connection Status
+     */
+    private String connectionStatus;
+
+    /**
      * Whether this communication adapter is in single step mode or not (i.e. in automatic mode).
      */
     private boolean singleStepModeEnabled;
@@ -46,6 +51,15 @@ public class Ros2ProcessModelTO extends VehicleProcessModelTO {
      * Whether the vehicle is paused or not.
      */
     private boolean vehiclePaused;
+
+    public String getConnectionStatus() {
+        return connectionStatus;
+    }
+
+    public Ros2ProcessModelTO setConnectionStatus(String connectionStatus) {
+        this.connectionStatus = connectionStatus;
+        return this;
+    }
 
     public boolean isSingleStepModeEnabled() {
         return singleStepModeEnabled;

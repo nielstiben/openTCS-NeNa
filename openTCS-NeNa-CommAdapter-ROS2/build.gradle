@@ -1,4 +1,9 @@
 apply from: "${rootDir}/gradle/guice-project.gradle"
+repositories {
+  jcenter{
+    url "https://dl.bintray.com/ihmcrobotics/maven-release"
+  }
+}
 
 dependencies {
   compile project(':openTCS-NeNa-Common')
@@ -14,4 +19,17 @@ dependencies {
   
   compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
   compileOnly group: 'commons-codec', name: 'commons-codec', version: '1.10', classifier: 'sources'
+
+  // ROS2 libraries.
+  compile group: "us.ihmc", name: "ihmc-ros2-library", version: '0.15.3'
+  compile group: "us.ihmc", name: "ros2-common-interfaces", version: '0.15.3' // ROS2 common message library
+  compile group: "us.ihmc", name: "ros2-msg-to-pubsub-generator", version: '0.15.3' // generator for .msg -> .java
+
+  // Lombok
+  compileOnly 'org.projectlombok:lombok:1.18.12'
+  annotationProcessor 'org.projectlombok:lombok:1.18.12'
+
+  testCompileOnly 'org.projectlombok:lombok:1.18.12'
+  testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
 }
+

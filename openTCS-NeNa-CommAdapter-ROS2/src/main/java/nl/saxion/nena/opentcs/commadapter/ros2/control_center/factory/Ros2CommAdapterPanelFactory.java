@@ -62,7 +62,7 @@ public class Ros2CommAdapterPanelFactory
                                      AdapterPanelComponentsFactory componentsFactory) {
     this.servicePortal = requireNonNull(servicePortal, "servicePortal");
     this.componentsFactory = requireNonNull(componentsFactory, "componentsFactory");
-    LOG.warn("====================== ROS2 Panel injected ======================");
+    LOG.info("====================== ROS2 Panel injected ======================");
   }
 
   @Override

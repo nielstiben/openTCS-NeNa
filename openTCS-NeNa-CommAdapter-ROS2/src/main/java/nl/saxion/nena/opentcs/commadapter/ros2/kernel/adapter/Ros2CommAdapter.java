@@ -30,15 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.requireNonNull;
 
-/*
-declares methods that every comm adapter must implement.
-These methods are called by components within the kernel,
-for instance to tell a vehicle that it is supposed to move
-to the next position in the driving course. Classes
-implementing this interface are expected to perform the
-actual communication with a vehicle, e.g. via TCP, UDP or
-some field bus.
- */
+
 public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehicleCommAdapter {
     /**
      * The name of the load handling device set by this adapter.
@@ -62,10 +54,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
      * The kernel's executor.
      */
     private final ExecutorService kernelExecutor;
-    /**
-     * The task simulating the virtual vehicle's behaviour.
-     */
-    private CyclicTask vehicleSimulationTask; // TODO: Replace with real behaviour
+
     /**
      * The boolean flag to check if execution of the next command is allowed.
      */
@@ -174,11 +163,6 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
         if (isEnabled()) {
             return;
         }
-        getProcessModel().getVelocityController().addVelocityListener(getProcessModel());
-        // Create task for vehicle simulation.
-        vehicleSimulationTask = new Ros2VehicleTask();
-        Thread simThread = new Thread(vehicleSimulationTask, getName() + "-simulationTask");
-        simThread.start();
         super.enable();
     }
 
@@ -187,13 +171,11 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
         if (!isEnabled()) {
             return;
         }
-        // Disable vehicle simulation.
-        vehicleSimulationTask.terminate();
-        vehicleSimulationTask = null;
-        getProcessModel().getVelocityController().removeVelocityListener(getProcessModel());
+
         super.disable();
     }
 
+    @Nonnull
     @Override
     public Ros2ProcessModel getProcessModel() {
         return (Ros2ProcessModel) super.getProcessModel();
@@ -218,7 +200,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
         if (message instanceof SetSpeedMultiplier) {
             SetSpeedMultiplier lsMessage = (SetSpeedMultiplier) message;
             int multiplier = lsMessage.getMultiplier();
-            getProcessModel().setVehiclePaused(multiplier == 0);
+//            getProcessModel().setVehiclePaused(multiplier == 0);
         }
     }
 
@@ -263,168 +245,13 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
 
     @Override
     protected VehicleProcessModelTO createCustomTransferableProcessModel() {
+        LOG.error(getProcessModel().getConnectionController().getConnectionStatus().toString());
         return new Ros2ProcessModelTO()
+                .setConnectionStatus(getProcessModel().getConnectionController().getConnectionStatus().name())
                 .setLoadOperation(getProcessModel().getLoadOperation())
-                .setMaxAcceleration(getProcessModel().getMaxAcceleration())
-                .setMaxDeceleration(getProcessModel().getMaxDecceleration())
-                .setMaxFwdVelocity(getProcessModel().getMaxFwdVelocity())
-                .setMaxRevVelocity(getProcessModel().getMaxRevVelocity())
                 .setOperatingTime(getProcessModel().getOperatingTime())
                 .setSingleStepModeEnabled(getProcessModel().isSingleStepModeEnabled())
-                .setUnloadOperation(getProcessModel().getUnloadOperation())
-                .setVehiclePaused(getProcessModel().isVehiclePaused());
-    }
-
-    /**
-     * Triggers a step in single step mode.
-     */
-    public synchronized void trigger() {
-        singleStepExecutionAllowed = true;
-    }
-
-    /**
-     * =================================== A task simulating a vehicle's behaviour. ===================================
-     */
-    private class Ros2VehicleTask extends CyclicTask {
-
-        /**
-         * The time that has passed for the velocity controller whenever
-         * <em>advanceTime</em> has passed for real.
-         */
-        private int simAdvanceTime;
-
-        /**
-         * Creates a new VehicleSimluationTask.
-         */
-        private Ros2VehicleTask() {
-            super(0);
-        }
-
-        @Override
-        protected void runActualTask() {
-            final MovementCommand curCommand;
-            synchronized (Ros2CommAdapter.this) {
-                curCommand = getSentQueue().peek();
-            }
-            simAdvanceTime = (int) (ADVANCE_TIME * configuration.simulationTimeFactor());
-            if (curCommand == null) {
-                Uninterruptibles.sleepUninterruptibly(ADVANCE_TIME, TimeUnit.MILLISECONDS);
-                getProcessModel().getVelocityController().advanceTime(simAdvanceTime);
-            } else {
-                // If we were told to move somewhere, simulate the journey.
-                LOG.info("Processing MovementCommand..."); // SIMILAR to ROS2 action!!!
-                LOG.info(curCommand.toString());
-                final Route.Step curStep = curCommand.getStep();
-                // Simulate the movement.
-                simulateMovement(curStep);
-                // Simulate processing of an operation.
-                if (!curCommand.isWithoutOperation()) {
-                    simulateOperation(curCommand.getOperation());
-                }
-                LOG.info("Processed MovementCommand.");
-                LOG.info(curCommand.toString());
-
-                if (!isTerminated()) {
-                    // Set the vehicle's state back to IDLE, but only if there aren't
-                    // any more movements to be processed.
-                    if (getSentQueue().size() <= 1 && getCommandQueue().isEmpty()) {
-                        getProcessModel().setVehicleState(Vehicle.State.IDLE);
-                    }
-                    // Update GUI.
-                    synchronized (Ros2CommAdapter.this) {
-                        MovementCommand sentCmd = getSentQueue().poll();
-                        // If the command queue was cleared in the meantime, the kernel
-                        // might be surprised to hear we executed a command we shouldn't
-                        // have, so we only peek() at the beginning of this method and
-                        // poll() here. If sentCmd is null, the queue was probably cleared
-                        // and we shouldn't report anything back.
-                        if (sentCmd != null && sentCmd.equals(curCommand)) {
-                            // Let the vehicle manager know we've finished this command.
-                            getProcessModel().commandExecuted(curCommand);
-                            Ros2CommAdapter.this.notify();
-                        }
-                    }
-                }
-            }
-        }
-
-        /**
-         * Simulates the vehicle's movement. If the method parameter is null,
-         * then the vehicle's state is failure and some false movement
-         * must be simulated. In the other case normal step
-         * movement will be simulated.
-         *
-         * @param step A step
-         * @throws InterruptedException If an exception occured while sumulating
-         */
-        private void simulateMovement(Route.Step step) {
-            if (step.getPath() == null) {
-                return;
-            }
-
-            Vehicle.Orientation orientation = step.getVehicleOrientation();
-            long pathLength = step.getPath().getLength();
-            int maxVelocity;
-            switch (orientation) {
-                case BACKWARD:
-                    maxVelocity = step.getPath().getMaxReverseVelocity();
-                    break;
-                default:
-                    maxVelocity = step.getPath().getMaxVelocity();
-                    break;
-            }
-            String pointName = step.getDestinationPoint().getName();
-
-            getProcessModel().setVehicleState(Vehicle.State.EXECUTING);
-            getProcessModel().getVelocityController().addWayEntry(new WayEntry(pathLength,
-                    maxVelocity,
-                    pointName,
-                    orientation));
-            // Advance the velocity controller by small steps until the
-            // controller has processed all way entries.
-            while (getProcessModel().getVelocityController().hasWayEntries() && !isTerminated()) {
-                WayEntry wayEntry = getProcessModel().getVelocityController().getCurrentWayEntry();
-                Uninterruptibles.sleepUninterruptibly(ADVANCE_TIME, TimeUnit.MILLISECONDS);
-                getProcessModel().getVelocityController().advanceTime(simAdvanceTime);
-                WayEntry nextWayEntry = getProcessModel().getVelocityController().getCurrentWayEntry();
-                if (wayEntry != nextWayEntry) {
-                    // Let the vehicle manager know that the vehicle has reached
-                    // the way entry's destination point.
-                    getProcessModel().setVehiclePosition(wayEntry.getDestPointName());
-                }
-            }
-        }
-
-        /**
-         * Simulates an operation.
-         *
-         * @param operation A operation
-         * @throws InterruptedException If an exception occured while simulating
-         */
-        private void simulateOperation(String operation) {
-            requireNonNull(operation, "operation");
-
-            if (isTerminated()) {
-                return;
-            }
-
-            LOG.debug("Operating...");
-            final int operatingTime = getProcessModel().getOperatingTime();
-            getProcessModel().setVehicleState(Vehicle.State.EXECUTING);
-            for (int timePassed = 0; timePassed < operatingTime && !isTerminated();
-                 timePassed += simAdvanceTime) {
-                Uninterruptibles.sleepUninterruptibly(ADVANCE_TIME, TimeUnit.MILLISECONDS);
-                getProcessModel().getVelocityController().advanceTime(simAdvanceTime);
-            }
-            if (operation.equals(getProcessModel().getLoadOperation())) {
-                // Update load handling devices as defined by this operation
-                getProcessModel().setVehicleLoadHandlingDevices(
-                        Arrays.asList(new LoadHandlingDevice(LHD_NAME, true)));
-            } else if (operation.equals(getProcessModel().getUnloadOperation())) {
-                getProcessModel().setVehicleLoadHandlingDevices(
-                        Arrays.asList(new LoadHandlingDevice(LHD_NAME, false)));
-            }
-        }
+                .setUnloadOperation(getProcessModel().getUnloadOperation());
     }
 
     /**

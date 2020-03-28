@@ -3,57 +3,48 @@
  */
 package nl.saxion.nena.opentcs.commadapter.ros2;
 
-import nl.saxion.nena.opentcs.common.VehicleProperties;
-import org.junit.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.ConnectionController;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.ConnectionListener;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.ConnectionStatus;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2AdapterComponentsFactory;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2CommAdapterFactory;
+import org.junit.Before;
+import org.junit.Test;
 import org.opentcs.data.model.Vehicle;
+import org.opentcs.drivers.vehicle.VehicleCommAdapter;
+
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 /**
- *
  * @author Stefan Walter (Fraunhofer IML)
  */
 public class ExampleCommAdapterFactoryTest {
 
-  private ExampleCommAdapterFactory commAdapterFactory;
+    private Ros2CommAdapterFactory ros2AdapterFactory;
 
-  @Before
-  public void setUp() {
-    commAdapterFactory = new ExampleCommAdapterFactory(mock(ExampleAdapterComponentsFactory.class));
-  }
+    @Before
+    public void setUp() {
+        ros2AdapterFactory = new Ros2CommAdapterFactory(mock(Ros2AdapterComponentsFactory.class));
+    }
 
-  @Test
-  public void provideAdapterForVehicleWithAllProperties() {
-    assertTrue(commAdapterFactory.providesAdapterFor(
-        new Vehicle("Some vehicle")
-            .withProperty(VehicleProperties.PROPKEY_VEHICLE_HOST, "127.0.0.1")
-            .withProperty(VehicleProperties.PROPKEY_VEHICLE_PORT, "8888")
-    ));
-  }
+    @Test
+    public void provideAdapterForVehicleWithoutProperties() {
+        assertTrue(ros2AdapterFactory.providesAdapterFor(new Vehicle("Some vehicle")));
+    }
 
-  @Test
-  public void provideAdapterForVehicleMissingPort() {
-    assertFalse(commAdapterFactory.providesAdapterFor(
-        new Vehicle("Some vehicle")
-            .withProperty(VehicleProperties.PROPKEY_VEHICLE_HOST, "127.0.0.1")
-    ));
-  }
-
-  @Test
-  public void provideAdapterForVehicleMissingHost() {
-    assertFalse(commAdapterFactory.providesAdapterFor(
-        new Vehicle("Some vehicle")
-            .withProperty(VehicleProperties.PROPKEY_VEHICLE_PORT, "8888")
-    ));
-  }
-
-  @Test
-  public void provideAdapterForVehicleWithUnparsablePort() {
-    assertFalse(commAdapterFactory.providesAdapterFor(
-        new Vehicle("Some vehicle")
-            .withProperty(VehicleProperties.PROPKEY_VEHICLE_HOST, "127.0.0.1")
-            .withProperty(VehicleProperties.PROPKEY_VEHICLE_PORT, "xyz")
-    ));
-  }
+//    @Test
+//    public void setupConnection() {
+//        ConnectionListener listener = new ConnectionListener() {
+//            @Override
+//            public void onConnectionStatusChange(ConnectionStatus connectionStatus) {
+//                // Do nothing
+//            }
+//        };
+//        ConnectionController connectionController = new ConnectionController(listener);
+//        connectionController.connect(1);
+//
+//    }
 
 }
