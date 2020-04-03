@@ -5,9 +5,6 @@ import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-import java.io.IOException;
-
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.ConnectionStatus.*;
 
 public class ConnectionController {
@@ -31,11 +28,11 @@ public class ConnectionController {
 
         setConnectionStatus(ESTABLISHING_CONNECTION);
 
-//        try {
-//            PublisherLambda.main(null);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            OpenTcsPublisher.main(null);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         setConnectionStatus(CONNECTED);
     }
 
