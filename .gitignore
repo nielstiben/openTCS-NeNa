@@ -16,3 +16,7 @@
 /openTCS-NeNa-KernelControlCenter/build/
 /openTCS-NeNa-PlantOverview/src/dist/
 /openTCS-NeNa-PlantOverview/build/
+
+# java_ros2 exclusions
+/openTCS-NeNa-ROS2-Java/ament_ws/build_isolated/
+/openTCS-NeNa-ROS2-Java/ament_ws/install_isolated/
