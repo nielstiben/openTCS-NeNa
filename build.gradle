@@ -104,23 +104,3 @@ build {
   dependsOn subprojects*.build
   dependsOn installDist
 }
-
-// tag::cloneTask
-task cloneProject(type: JavaExec) {
-  main = 'nl.saxion.nena.opentcs.scripts.CloneScript'
- 
-  classpath = sourceSets.main.runtimeClasspath
- 
-  def integrationName = 'MyCustomProject'
-  def classPrefix = 'Custom'
-  if (project.hasProperty('integrationName')) {
-    integrationName = project.getProperty('integrationName')
-  }
-  if (project.hasProperty('classPrefix')) {
-    classPrefix = project.getProperty('classPrefix')
-  }
-  
-  // Pass command-line argument to script, if any.
-  args integrationName, classPrefix
-}
-// tag::cloneTask

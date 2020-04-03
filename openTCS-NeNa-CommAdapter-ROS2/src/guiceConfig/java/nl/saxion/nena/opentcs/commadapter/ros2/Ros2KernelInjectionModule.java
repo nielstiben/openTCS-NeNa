@@ -22,7 +22,7 @@ public class Ros2KernelInjectionModule extends KernelInjectionModule {
             return;
         }
 
-        LOG.info("ROS2 communication adapter ENABLED");
+        LOG.info("NeNa ROS2 communication adapter ENABLED");
 
         bind(Ros2CommAdapterConfiguration.class).toInstance(configuration); // Similar to LoopBackAdapter.
 

@@ -6,6 +6,7 @@ import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.Operatio
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2AdapterComponentsFactory;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.Ros2ProcessModelTO;
 import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.VelocityController.WayEntry;
+import nl.saxion.nena.opentcs.common.telegrams.BoundedCounter;
 import org.opentcs.common.LoopbackAdapterConstants;
 import org.opentcs.customizations.kernel.KernelExecutor;
 import org.opentcs.data.ObjectPropConstants;
