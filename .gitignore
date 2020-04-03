@@ -10,9 +10,9 @@
 /openTCS-NeNa-Common/build/classes/java/main/
 /openTCS-NeNa-Common/build/classes/java/test/
 /openTCS-NeNa-Documentation/build/
-/openTCS-NeNa-Kernel/src/build
+/openTCS-NeNa-Kernel/src/dist/
 /openTCS-NeNa-Kernel/build/
-/openTCS-NeNa-KernelControlCenter/src/build
+/openTCS-NeNa-KernelControlCenter/src/dist/
 /openTCS-NeNa-KernelControlCenter/build/
-/openTCS-NeNa-PlantOverview/src/build
+/openTCS-NeNa-PlantOverview/src/dist/
 /openTCS-NeNa-PlantOverview/build/
