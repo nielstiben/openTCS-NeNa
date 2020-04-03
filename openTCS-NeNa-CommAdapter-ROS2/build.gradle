@@ -1,10 +1,32 @@
+// ================== Set HERE your Ros2-Java workspace path. ==================
+String ros2JavaPath = '/opt/ros2-java/ros2_java_ws/'
+// =============================================================================
+
 apply from: "${rootDir}/gradle/guice-project.gradle"
 
+String dir_rcljava = ros2JavaPath + 'install_isolated/rcljava/share/rcljava/java/'
+String dir_rcljava_common = ros2JavaPath + 'install_isolated/rcljava_common/share/rcljava_common/java/'
+String dir_std_msgs_messages = ros2JavaPath + 'install_isolated/std_msgs/share/std_msgs/java/'
+
 repositories {
-//    flatDir { dirs 'libs' }
+    flatDir {
+        dirs dir_rcljava, dir_rcljava_common
+    }
+}
+
+task checkRos2JavaPath {
+    if (!new File(ros2JavaPath + 'install_isolated/local_setup.sh').exists())
+        throw new Exception("Ros2-Java not found OR not build. Specify the path in build.gradle.")
 }
 
 dependencies {
+    // Include 'local' ROS2-Java dependencies
+    checkRos2JavaPath
+    compile fileTree(include: ['*.jar'], dir: dir_rcljava )
+    compile fileTree(include: ['*.jar'], dir: dir_rcljava_common)
+    compile fileTree(include: ['*.jar'], dir: dir_std_msgs_messages)
+
+    // OpenTCS
     compile project(':openTCS-NeNa-Common')
 
     compile group: 'org.opentcs', name: 'opentcs-api-injection', version: openTcsBaselineVersion
@@ -19,9 +41,6 @@ dependencies {
     compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
     compileOnly group: 'commons-codec', name: 'commons-codec', version: '1.10', classifier: 'sources'
 
-    // ROS2 libraries.
-//    compile fileTree(include: ['*.jar'], dir: 'libs')
-
     // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
@@ -29,4 +48,3 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok:1.18.12'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
 }
-
