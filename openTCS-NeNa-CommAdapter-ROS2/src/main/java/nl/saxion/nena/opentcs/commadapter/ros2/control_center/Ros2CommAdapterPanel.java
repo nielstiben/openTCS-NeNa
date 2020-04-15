@@ -98,29 +98,6 @@ public class Ros2CommAdapterPanel
         if (attributeChanged.equals(CONNECTION_STATUS.name())) {
             updateConnectionStatus(processModel.getConnectionStatus());
         }
-
-        if (Objects.equals(attributeChanged,
-                Ros2ProcessModel.Attribute.OPERATING_TIME.name())) {
-//      updateOperatingTime(processModel.getOperatingTime());
-        } else if (Objects.equals(attributeChanged,
-                Ros2ProcessModel.Attribute.ACCELERATION.name())) {
-//      updateMaxAcceleration(processModel.getMaxAcceleration());
-        } else if (Objects.equals(attributeChanged,
-                Ros2ProcessModel.Attribute.DECELERATION.name())) {
-//      updateMaxDeceleration(processModel.getMaxDeceleration());
-        } else if (Objects.equals(attributeChanged,
-                Ros2ProcessModel.Attribute.MAX_FORWARD_VELOCITY.name())) {
-//      updateMaxForwardVelocity(processModel.getMaxFwdVelocity());
-        } else if (Objects.equals(attributeChanged,
-                Ros2ProcessModel.Attribute.MAX_REVERSE_VELOCITY.name())) {
-//      updateMaxReverseVelocity(processModel.getMaxRevVelocity());
-        } else if (Objects.equals(attributeChanged,
-                Ros2ProcessModel.Attribute.SINGLE_STEP_MODE.name())) {
-//      updateSingleStepMode(processModel.isSingleStepModeEnabled());
-        } else if (Objects.equals(attributeChanged,
-                Ros2ProcessModel.Attribute.VEHICLE_PAUSED.name())) {
-//      updateVehiclePaused(processModel.isVehiclePaused());
-        }
     }
 
     private void updateConnectionStatus(String connectionStatus) {
@@ -132,21 +109,6 @@ public class Ros2CommAdapterPanel
         if (Objects.equals(attributeChanged,
                 VehicleProcessModel.Attribute.COMM_ADAPTER_ENABLED.name())) {
             updateCommAdapterEnabled(processModel.isCommAdapterEnabled());
-        } else if (Objects.equals(attributeChanged,
-                VehicleProcessModel.Attribute.POSITION.name())) {
-//      updatePosition(processModel.getVehiclePosition());
-        } else if (Objects.equals(attributeChanged,
-                VehicleProcessModel.Attribute.STATE.name())) {
-//      updateVehicleState(processModel.getVehicleState());
-        } else if (Objects.equals(attributeChanged,
-                VehicleProcessModel.Attribute.PRECISE_POSITION.name())) {
-//      updatePrecisePosition(processModel.getPrecisePosition());
-        } else if (Objects.equals(attributeChanged,
-                VehicleProcessModel.Attribute.ORIENTATION_ANGLE.name())) {
-//      updateOrientationAngle(processModel.getOrientationAngle());
-        } else if (Objects.equals(attributeChanged,
-                VehicleProcessModel.Attribute.ENERGY_LEVEL.name())) {
-//      updateEnergyLevel(processModel.getEnergyLevel());
         } else if (Objects.equals(attributeChanged,
                 VehicleProcessModel.Attribute.LOAD_HANDLING_DEVICES.name())) {
             updateVehicleLoadHandlingDevice(processModel.getLoadHandlingDevices());

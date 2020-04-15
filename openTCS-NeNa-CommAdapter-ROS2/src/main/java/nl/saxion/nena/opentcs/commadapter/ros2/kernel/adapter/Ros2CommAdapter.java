@@ -43,10 +43,6 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
     private static final Logger LOG = LoggerFactory.getLogger(Ros2CommAdapter.class);
 
     /**
-     * The time by which to advance the velocity controller per step (in ms).
-     */
-    private static final int ADVANCE_TIME = 100;
-    /**
      * This instance's configuration.
      */
     private final Ros2CommAdapterConfiguration configuration;
@@ -56,10 +52,6 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
      */
     private final ExecutorService kernelExecutor;
 
-    /**
-     * The boolean flag to check if execution of the next command is allowed.
-     */
-    private boolean singleStepExecutionAllowed;
     /**
      * The vehicle to this comm adapter instance.
      */
@@ -187,10 +179,6 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
         requireNonNull(cmd, "cmd");
         LOG.info("INCOMING COMMAND:");
         LOG.info(cmd.toString());
-        // Reset the execution flag for single-step mode.
-        singleStepExecutionAllowed = false;
-        // Don't do anything else - the command will be put into the sentQueue
-        // automatically, where it will be picked up by the simulation task.
     }
 
     @Override
@@ -227,8 +215,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
 
     @Override
     protected synchronized boolean canSendNextCommand() {
-        return super.canSendNextCommand()
-                && (!getProcessModel().isSingleStepModeEnabled() || singleStepExecutionAllowed);
+        return super.canSendNextCommand();
     }
 
     @Override
@@ -251,7 +238,6 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
                 .setConnectionStatus(getProcessModel().getConnectionController().getConnectionStatus().name())
                 .setLoadOperation(getProcessModel().getLoadOperation())
                 .setOperatingTime(getProcessModel().getOperatingTime())
-                .setSingleStepModeEnabled(getProcessModel().isSingleStepModeEnabled())
                 .setUnloadOperation(getProcessModel().getUnloadOperation());
     }
 
