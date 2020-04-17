@@ -11,14 +11,6 @@ String dir_geometry_msgs = ros2JavaPath + 'install_isolated/geometry_msgs/share/
 String dir_builtin_interfaces = ros2JavaPath + 'install_isolated/builtin_interfaces/share/builtin_interfaces/java/'
 String dir_action_msgs = ros2JavaPath + 'install_isolated/action_msgs/share/action_msgs/java/'
 String dir_unique_identifier_msgs = ros2JavaPath + 'install_isolated/unique_identifier_msgs/share/unique_identifier_msgs/java/'
-String dir_actionlib_msgs = ros2JavaPath + 'install_isolated/actionlib_msgs/share/actionlib_msgs/java/'
-String dir_move_base_msgs = ros2JavaPath + 'install_isolated/move_base_msgs/share/move_base_msgs/java/'
-
-repositories {
-    flatDir {
-        dirs dir_rcljava, dir_rcljava_common
-    }
-}
 
 task checkRos2JavaPath {
     if (!new File(ros2JavaPath + 'install_isolated/local_setup.sh').exists())
@@ -28,16 +20,18 @@ task checkRos2JavaPath {
 dependencies {
     // Include 'local' ROS2-Java dependencies
     checkRos2JavaPath
-    compile fileTree(include: ['*.jar'], dir: dir_rcljava )
-    compile fileTree(include: ['*.jar'], dir: dir_rcljava_common)
+    compile fileTree(include: ['*.jar'], dir: dir_rcljava)
+//    compile fileTree(include: ['rcljava_common.jar', 'commons-lang3-3.7.jar','log4j-1.2.17.jar','slf4j-api-1.7.21.jar'], dir: dir_rcljava_common)
+    compile fileTree(include: ['rcljava_common.jar', 'commons-lang3-3.7.jar','log4j-1.2.17.jar','slf4j-api-1.7.21.jar','slf4j-jdk14-1.7.21.jar'], dir: dir_rcljava_common)
     compile fileTree(include: ['*.jar'], dir: dir_std_msgs)
     compile fileTree(include: ['*.jar'], dir: dir_geometry_msgs)
     compile fileTree(include: ['*.jar'], dir: dir_builtin_interfaces)
     compile fileTree(include: ['*.jar'], dir: dir_action_msgs)
     compile fileTree(include: ['*.jar'], dir: dir_unique_identifier_msgs)
-//    compile fileTree(include: ['*.jar'], dir: dir_actionlib_msgs)
-//    compile fileTree(include: ['*.jar'], dir: dir_move_base_msgs)
-//    compile fileTree(include: ['*.jar'], dir: "/home/nielstiben/Downloads/tmp")
+
+    // Fixes Log4j error
+//    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.13.1'
+
 
     // OpenTCS
     compile project(':openTCS-NeNa-Common')
@@ -54,10 +48,11 @@ dependencies {
     compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
     compileOnly group: 'commons-codec', name: 'commons-codec', version: '1.10', classifier: 'sources'
 
-    // Lombok
+    // Lombok todo: Handle Lombok related warning "warning: No processor claimed any of these annotations: javax.inject.Inject,com.google.inject.assistedinject.Assisted,org.opentcs.customizations.kernel.KernelExecutor,org.opentcs.configuration.ConfigurationEntry,org.opentcs.configuration.ConfigurationPrefix,javax.annotation.Nonnull,javax.annotation.Nullable,org.opentcs.customizations.ServiceCallWrapper"
     compileOnly 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
 
     testCompileOnly 'org.projectlombok:lombok:1.18.12'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+
 }

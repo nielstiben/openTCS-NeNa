@@ -27,7 +27,7 @@ public class Ros2KernelInjectionModule extends KernelInjectionModule {
         bind(Ros2CommAdapterConfiguration.class).toInstance(configuration); // Similar to LoopBackAdapter.
 
 
-    install(new FactoryModuleBuilder().build(Ros2AdapterComponentsFactory.class));
-    vehicleCommAdaptersBinder().addBinding().to(Ros2CommAdapterFactory.class);
+        install(new FactoryModuleBuilder().build(Ros2AdapterComponentsFactory.class));
+        vehicleCommAdaptersBinder().addBinding().to(Ros2CommAdapterFactory.class);
     }
 }

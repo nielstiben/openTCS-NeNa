@@ -5,20 +5,31 @@ import geometry_msgs.msg.Point;
 import geometry_msgs.msg.Pose;
 import geometry_msgs.msg.PoseStamped;
 
-public class NodeTesterApplication implements NodeListener {
-    Node node;
-
-    public static void main(String[] args) throws InterruptedException {
+public class NodeTesterApplication implements NodeStatusChangeListener, NodeListener {
+    NodeManager nodeManager;
+    int cnt = 0;
+    public static void main(String[] args) {
         new NodeTesterApplication().run();
     }
 
-    private void run() throws InterruptedException {
-        NodeStarter nodeStarter = new NodeStarter(this);
-        this.node = nodeStarter.start();
-        sleep();
+    private void run() {
+        this.nodeManager = new NodeManager();
+        this.nodeManager.start(this, this, 0);
+    }
 
-        sendGoal(3,1);
-        System.out.println("hooray!");
+    @Override
+    public void onNodeStatusChange(NodeStatus nodeStatus) {
+        if (nodeStatus == NodeStatus.ACTIVE){
+//            sendGoal(this.nodeManager.getNode(), 3, 1);
+            nodeManager.stop();
+            System.out.println("Stopped");
+
+            if(cnt != 2){
+                nodeManager.start(this, this, 0);
+                System.out.println("Started");
+                cnt++;
+            }
+        }
     }
 
     /**
@@ -27,7 +38,7 @@ public class NodeTesterApplication implements NodeListener {
      * @param x X coordinate
      * @param y Y coordinate
      */
-    public void sendGoal(double x, double y) {
+    public void sendGoal(Node node, double x, double y) {
         // 1. Set Position
         Point position = new Point()
                 .setX(x)
@@ -50,20 +61,5 @@ public class NodeTesterApplication implements NodeListener {
     public void onNewGoalStatusArray(GoalStatusArray goalStatusArray) {
         System.out.println("NEW Message:");
         System.out.println(goalStatusArray.toString());
-    }
-
-    private void sleep() throws InterruptedException {
-        System.out.println("Start counting ...");
-        Thread.sleep(5000);
-        System.out.println("... stop counting!");
-    }
-
-    public void stop() {
-        node.stop();
-        node = null;
-    }
-
-    private boolean isNodeStarted(){
-        return node != null;
     }
 }

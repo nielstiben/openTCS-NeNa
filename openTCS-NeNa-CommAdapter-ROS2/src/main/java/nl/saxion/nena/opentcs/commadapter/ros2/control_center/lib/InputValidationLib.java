@@ -10,12 +10,20 @@ public class InputValidationLib {
         }
 
         int domainId = Integer.parseInt(domainIdString);
-        if (domainId < 0 || domainId >= 300) {
-            return false;
-        }
+        return domainId >= 0 && domainId < 300;
 
-        return true;
+    }
 
+    public static boolean isValidCoordinate(String x, String y) {
+        return isDouble(x) && isDouble(y);
+    }
+
+    private static boolean isDouble(String str) {
+        return str.matches(getIsDoubleRegex());
+    }
+
+    public static String getIsDoubleRegex(){
+        return "[-+]?[0-9]*\\.?[0-9]+";
     }
 
     private static boolean isInteger(String str) {

@@ -1,49 +1,49 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter;
 
 import action_msgs.msg.GoalStatusArray;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.ConnectionListener;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.ConnectionController;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.ConnectionStatus;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeListener;
+import geometry_msgs.msg.PoseStamped;
+import lombok.Getter;
+import lombok.Setter;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.*;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalTracker;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConstants;
-import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.Parsers;
-import org.opentcs.common.LoopbackAdapterConstants;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.drivers.vehicle.VehicleProcessModel;
 
-import javax.annotation.Nonnull;
-
-public class Ros2ProcessModel extends VehicleProcessModel
-        implements ConnectionListener, NodeListener {
-    ConnectionController connectionController;
-    GoalStatusArray goalStatusArray;
-
-    /**
-     * Indicates which operation is a loading operation.
-     */
+public class Ros2ProcessModel extends VehicleProcessModel implements NodeStatusChangeListener, NodeListener {
     private final String loadOperation;
-
-    /**
-     * Indicates which operation is an unloading operation.
-     */
     private final String unloadOperation;
-    /**
-     * The time needed for executing operations.
-     */
+    @Getter
+    private final NavigationGoalTracker navigationGoalTracker;
+    @Setter
+    private int domainId = 0;
+    @Getter
+    private NodeManager nodeManager;
+
+    @Getter
     private int operatingTime;
 
     public Ros2ProcessModel(Vehicle attachedVehicle) {
         super(attachedVehicle);
-        this.connectionController = new ConnectionController(this, this);
-        this.operatingTime = parseOperatingTime(attachedVehicle);
         this.loadOperation = extractLoadOperation(attachedVehicle);
         this.unloadOperation = extractUnloadOperation(attachedVehicle);
+        this.navigationGoalTracker = new NavigationGoalTracker();
+        this.operatingTime = parseOperatingTime(attachedVehicle);
+        this.nodeManager = new NodeManager();
     }
 
-    @Nonnull
-    public ConnectionController getConnectionController() {
-        return connectionController;
+    public void startNode() {
+        nodeManager.start(this, this, domainId);
     }
+
+    /* --------------- Navigation ---------------*/
+    public void dispatchToCoordinate(double x, double y) {
+        PoseStamped message = MessageLib.generatePoseStampedByCoordinate(x,y);
+        nodeManager.getNode().getGoalPublisher().publish(message);
+    }
+
+    /* --------------- Operation ---------------*/
+
 
     public String getLoadOperation() {
         return loadOperation;
@@ -53,25 +53,10 @@ public class Ros2ProcessModel extends VehicleProcessModel
         return unloadOperation;
     }
 
-    public synchronized void setupConnection(int domainId) {
-        connectionController.connect(domainId);
-    }
-
-    /**
-     * Returns the default operating time.
-     *
-     * @return The default operating time
-     */
-    public synchronized int getOperatingTime() {
-        //TODO: Customize
-
-        return operatingTime;
-    }
-
     /**
      * Sets the default operating time.
-     *        goalStatusArray.get
-
+     * goalStatusArray.get
+     *
      * @param defaultOperatingTime The new default operating time
      */
     public synchronized void setOperatingTime(int defaultOperatingTime) {
@@ -80,6 +65,7 @@ public class Ros2ProcessModel extends VehicleProcessModel
         int oldValue = this.operatingTime;
         this.operatingTime = defaultOperatingTime;
 
+
         getPropertyChangeSupport().firePropertyChange(Attribute.OPERATING_TIME.name(),
                 oldValue,
                 defaultOperatingTime);
@@ -87,9 +73,7 @@ public class Ros2ProcessModel extends VehicleProcessModel
 
     private int parseOperatingTime(Vehicle vehicle) {
         //TODO: Customize
-        String opTime = vehicle.getProperty(LoopbackAdapterConstants.PROPKEY_OPERATING_TIME);
-        // Ensure it's a positive value.
-        return Math.max(Parsers.tryParseString(opTime, 5000), 1);
+        return 1;
     }
 
     private static String extractLoadOperation(Vehicle attachedVehicle) {
@@ -100,14 +84,19 @@ public class Ros2ProcessModel extends VehicleProcessModel
         return OperationConstants.UNLOAD_CARGO;
     }
 
-    @Override
-    public void onConnectionStatusChange(ConnectionStatus connectionStatus) {
-        getPropertyChangeSupport().firePropertyChange(Attribute.CONNECTION_STATUS.name(), null, connectionStatus);
-    }
 
     @Override
     public void onNewGoalStatusArray(GoalStatusArray goalStatusArray) {
-        this.goalStatusArray = goalStatusArray;
+        Object[][] oldValue = navigationGoalTracker.generateStringMatrix();
+        navigationGoalTracker.updateByGoalStatusArray(goalStatusArray);
+        Object[][] newValue = navigationGoalTracker.generateStringMatrix();
+
+        getPropertyChangeSupport().firePropertyChange(Attribute.NAVIGATION_GOALS.name(), oldValue, newValue);
+    }
+
+    @Override
+    public void onNodeStatusChange(NodeStatus newNodeStatus) {
+        getPropertyChangeSupport().firePropertyChange(Attribute.NODE_STATUS.name(), null, newNodeStatus);
     }
 
     /**
@@ -115,6 +104,7 @@ public class Ros2ProcessModel extends VehicleProcessModel
      */
     public enum Attribute {
         OPERATING_TIME,
-        CONNECTION_STATUS,
+        NODE_STATUS,
+        NAVIGATION_GOALS
     }
 }

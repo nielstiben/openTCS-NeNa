@@ -1,21 +1,16 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter;
 
-import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.inject.assistedinject.Assisted;
+import lombok.Getter;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.OperationLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2AdapterComponentsFactory;
-import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.Ros2ProcessModelTO;
-import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.VelocityController.WayEntry;
-import nl.saxion.nena.opentcs.common.telegrams.BoundedCounter;
 import org.opentcs.common.LoopbackAdapterConstants;
 import org.opentcs.customizations.kernel.KernelExecutor;
 import org.opentcs.data.ObjectPropConstants;
 import org.opentcs.data.model.Vehicle;
-import org.opentcs.data.order.Route;
 import org.opentcs.drivers.vehicle.*;
 import org.opentcs.drivers.vehicle.management.VehicleProcessModelTO;
 import org.opentcs.drivers.vehicle.messages.SetSpeedMultiplier;
-import org.opentcs.util.CyclicTask;
 import org.opentcs.util.ExplainedBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,47 +18,21 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.beans.PropertyChangeEvent;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.requireNonNull;
 
 
-public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehicleCommAdapter {
-    /**
-     * The name of the load handling device set by this adapter.
-     */
+public class Ros2CommAdapter extends BasicVehicleCommAdapter {
     public static final String LHD_NAME = "ros2";
-    /**
-     * This class's Logger.
-     */
     private static final Logger LOG = LoggerFactory.getLogger(Ros2CommAdapter.class);
-
-    /**
-     * This instance's configuration.
-     */
     private final Ros2CommAdapterConfiguration configuration;
-
-    /**
-     * The kernel's executor.
-     */
     private final ExecutorService kernelExecutor;
-
-    /**
-     * The vehicle to this comm adapter instance.
-     */
     private final Vehicle vehicle;
 
-    public LoadState getLoadState() {
-        return loadState;
-    }
-
-    /**
-     * The vehicle's load state.
-     */
+    @Getter
     private LoadState loadState = LoadState.EMPTY;
     /**
      * Whether the loopback adapter is initialized or not.
@@ -112,9 +81,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
                     = vehicle.getProperties().get(ObjectPropConstants.VEHICLE_INITIAL_POSITION);
             initialPos = deprecatedInitialPos;
         }
-        if (initialPos != null) {
-            initVehiclePosition(initialPos);
-        }
+
         getProcessModel().setVehicleState(Vehicle.State.IDLE);
         initialized = true;
     }
@@ -157,6 +124,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
             return;
         }
         super.enable();
+        getProcessModel().startNode();
     }
 
     @Override
@@ -164,8 +132,8 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
         if (!isEnabled()) {
             return;
         }
-
         super.disable();
+        getProcessModel().getNodeManager().stop();
     }
 
     @Nonnull
@@ -191,13 +159,6 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
             int multiplier = lsMessage.getMultiplier();
 //            getProcessModel().setVehiclePaused(multiplier == 0);
         }
-    }
-
-    @Override
-    public synchronized void initVehiclePosition(String newPos) {
-        kernelExecutor.submit(() -> {
-            getProcessModel().setVehiclePosition(newPos);
-        });
     }
 
     @Nonnull
@@ -233,12 +194,15 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter implements SimVehic
 
     @Override
     protected VehicleProcessModelTO createCustomTransferableProcessModel() {
-        LOG.error(getProcessModel().getConnectionController().getConnectionStatus().toString());
-        return new Ros2ProcessModelTO()
-                .setConnectionStatus(getProcessModel().getConnectionController().getConnectionStatus().name())
-                .setLoadOperation(getProcessModel().getLoadOperation())
-                .setOperatingTime(getProcessModel().getOperatingTime())
-                .setUnloadOperation(getProcessModel().getUnloadOperation());
+        Ros2ProcessModelTO ros2ProcessModelTO = new Ros2ProcessModelTO();
+
+        ros2ProcessModelTO.setNodeStatus(getProcessModel().getNodeManager().getNodeStatus().name());
+        ros2ProcessModelTO.setLoadOperation(getProcessModel().getLoadOperation());
+        ros2ProcessModelTO.setOperatingTime(getProcessModel().getOperatingTime());
+        ros2ProcessModelTO.setUnloadOperation(getProcessModel().getUnloadOperation());
+        ros2ProcessModelTO.setNavigationGoalTable(getProcessModel().getNavigationGoalTracker().generateStringMatrix());
+
+        return ros2ProcessModelTO;
     }
 
     /**
