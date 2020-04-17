@@ -10,7 +10,7 @@ import nl.saxion.nena.opentcs.commadapter.ros2.control_center.lib.InputValidatio
 import java.util.ResourceBundle;
 
 import static javax.swing.JOptionPane.showMessageDialog;
-import static nl.saxion.nena.opentcs.commadapter.ros2.common.I18nLoopbackCommAdapter.BUNDLE_PATH;
+import static nl.saxion.nena.opentcs.commadapter.ros2.common.I18nROS2CommAdapter.BUNDLE_PATH;
 
 /**
  * @author nielstiben

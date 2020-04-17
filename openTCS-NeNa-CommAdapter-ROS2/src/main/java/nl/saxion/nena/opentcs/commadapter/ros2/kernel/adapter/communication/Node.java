@@ -4,35 +4,35 @@ import action_msgs.msg.GoalStatusArray;
 import geometry_msgs.msg.Point;
 import geometry_msgs.msg.Pose;
 import geometry_msgs.msg.PoseStamped;
+import geometry_msgs.msg.PoseWithCovarianceStamped;
 import lombok.Getter;
 import org.ros2.rcljava.RCLJava;
 import org.ros2.rcljava.executors.SingleThreadedExecutor;
 import org.ros2.rcljava.node.BaseComposableNode;
 import org.ros2.rcljava.publisher.Publisher;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Class that holds an an instances of node and of all its publishers and subscriptions.
+ * Class that holds an an instances of a node and of all its publishers and subscriptions.
  */
+@Getter
 public class Node extends BaseComposableNode {
-    @Getter
+    private Publisher<PoseWithCovarianceStamped> initialPosePublisher;
     private Publisher<PoseStamped> goalPublisher;
 
-    public Node(NodeListener nodeListener) {
+    public Node(@Nonnull NodeListener nodeListener) {
         super("opentcs"); // Node Name
-
+        /* --------------- Publishers ---------------*/
+        // Publisher for setting the initial pose
+        this.initialPosePublisher = node.createPublisher(PoseWithCovarianceStamped.class, "/initialpose");
         // Publisher for sending a navigation goal
-        this.goalPublisher = node.createPublisher(
-                PoseStamped.class,
-                "/move_base_simple/goal"
-        );
-        SingleThreadedExecutor hoi = new SingleThreadedExecutor();
+        this.goalPublisher = node.createPublisher(PoseStamped.class, "/move_base_simple/goal");
 
+        /* --------------- Subscriptions ---------------*/
         // Subscriber for navigation status
-        node.createSubscription(
-                GoalStatusArray.class,
-                "/NavigateToPose/_action/status",
+        node.createSubscription(GoalStatusArray.class, "/NavigateToPose/_action/status",
                 nodeListener::onNewGoalStatusArray);
 
         // Subscription for current location
@@ -43,7 +43,7 @@ public class Node extends BaseComposableNode {
     }
 
     /**
-     * Stop the node
+     * Stop the node.
      */
     public void stop() {
         RCLJava.shutdown();

@@ -36,7 +36,7 @@ import java.util.ResourceBundle;
 
 import static java.util.Objects.requireNonNull;
 import static javax.swing.JOptionPane.showMessageDialog;
-import static nl.saxion.nena.opentcs.commadapter.ros2.common.I18nLoopbackCommAdapter.BUNDLE_PATH;
+import static nl.saxion.nena.opentcs.commadapter.ros2.common.I18nROS2CommAdapter.BUNDLE_PATH;
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel.Attribute.NAVIGATION_GOALS;
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel.Attribute.NODE_STATUS;
 
@@ -179,6 +179,7 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
 
         // Navigation goals pane
         SwingUtilities.invokeLater(() -> newGoalButton.setEnabled(enabled));
+        SwingUtilities.invokeLater(() -> navigationGoalTable.setEnabled(enabled));
 
     }
 
