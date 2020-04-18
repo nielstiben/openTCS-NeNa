@@ -14,20 +14,22 @@ import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Triple;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.drivers.vehicle.VehicleProcessModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Niels Tiben <nielstiben@outlook.com>
  */
 public class Ros2ProcessModel extends VehicleProcessModel implements NodeStatusChangeListener, NodeListener {
+    private static final Logger LOG = LoggerFactory.getLogger(Ros2CommAdapter.class);
     private final String loadOperation;
     private final String unloadOperation;
-    @Getter
-    private final NavigationGoalTracker navigationGoalTracker;
     @Setter
     private int domainId = 0;
     @Getter
+    private final NavigationGoalTracker navigationGoalTracker;
+    @Getter
     private NodeManager nodeManager;
-
     @Getter
     private int operatingTime;
 
@@ -61,12 +63,16 @@ public class Ros2ProcessModel extends VehicleProcessModel implements NodeStatusC
     /**
      * Dispatches the connected ROS2 node to the given coordinates.
      *
-     * @param x The X coordinate in meters.
-     * @param y The Y coordinate in meters.
+     * @param coordinate The coordinates.
      */
-    public void dispatchToCoordinate(double x, double y) {
-        PoseStamped message = MessageLib.generateNavigationMessageByCoordinate(x, y);
-        nodeManager.getNode().getGoalPublisher().publish(message);
+    public void dispatchToCoordinate(Triple coordinate) {
+        // Create point
+        String pointName = String.format("Coordinate (%d, %d)", coordinate.getX(), coordinate.getY());
+        Point coordinatePoint = new Point(pointName);
+        coordinatePoint.setPosition(coordinate);
+
+        // Dispatch to point
+        dispatchToPoint(coordinatePoint);
     }
 
     /**
@@ -75,10 +81,10 @@ public class Ros2ProcessModel extends VehicleProcessModel implements NodeStatusC
      * @param point The point containing the physical location of the destination.
      */
     public void dispatchToPoint(Point point) {
-        Triple position = point.getPosition();
-        double x = UnitConverterLib.convertMilimetersToMeters(position.getX());
-        double y = UnitConverterLib.convertMilimetersToMeters(position.getY());
-        dispatchToCoordinate(x, y);
+        LOG.info("Dispatching vehicle to point '{}'", point.getName());
+        PoseStamped message = MessageLib.generateNavigationMessageByPoint(point);
+        navigationGoalTracker.setDestinationPointIncomingGoal(point); // Notify NavigationGoalTracker that we expect a new goal
+        nodeManager.getNode().getGoalPublisher().publish(message);
     }
 
     /* --------------- Operation ---------------*/
@@ -117,12 +123,18 @@ public class Ros2ProcessModel extends VehicleProcessModel implements NodeStatusC
         return 1;
     }
 
+    public void onDriverDisable() {
+        this.nodeManager.stop();
+        this.navigationGoalTracker.reset();
+        getPropertyChangeSupport().firePropertyChange(Attribute.NAVIGATION_GOALS.name(), null, null);
+    }
+
     /* --------------- Override methods ---------------*/
     @Override
     public void onNewGoalStatusArray(GoalStatusArray goalStatusArray) {
-        Object[][] oldValue = navigationGoalTracker.generateStringMatrix();
+        Object[][] oldValue = navigationGoalTracker.toStringTable();
         navigationGoalTracker.updateByGoalStatusArray(goalStatusArray);
-        Object[][] newValue = navigationGoalTracker.generateStringMatrix();
+        Object[][] newValue = navigationGoalTracker.toStringTable();
 
         getPropertyChangeSupport().firePropertyChange(Attribute.NAVIGATION_GOALS.name(), oldValue, newValue);
     }

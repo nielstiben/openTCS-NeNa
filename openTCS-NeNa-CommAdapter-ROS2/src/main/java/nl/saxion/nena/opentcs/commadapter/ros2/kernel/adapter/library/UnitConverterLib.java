@@ -9,4 +9,10 @@ public class UnitConverterLib {
 
         return milimetersDouble / 1000;
     }
+
+    public static long convertMetersToMillimeters(double meters) {
+        double milimeters = meters * 1000;
+
+        return Math.round(milimeters);
+    }
 }

@@ -7,12 +7,10 @@ import geometry_msgs.msg.PoseStamped;
 import geometry_msgs.msg.PoseWithCovarianceStamped;
 import lombok.Getter;
 import org.ros2.rcljava.RCLJava;
-import org.ros2.rcljava.executors.SingleThreadedExecutor;
 import org.ros2.rcljava.node.BaseComposableNode;
 import org.ros2.rcljava.publisher.Publisher;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Class that holds an an instances of a node and of all its publishers and subscriptions.

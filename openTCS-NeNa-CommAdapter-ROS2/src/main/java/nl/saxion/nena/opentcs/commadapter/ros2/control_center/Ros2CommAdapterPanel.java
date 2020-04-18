@@ -2,19 +2,21 @@ package nl.saxion.nena.opentcs.commadapter.ros2.control_center;
 
 import com.google.inject.assistedinject.Assisted;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.DispatchToCoordinateCommand;
+import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.DispatchToPointCommand;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.SetDomainIdCommand;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.SetLoadHandlingDevicesCommand;
-import nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components.InputDialog;
-import nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components.InputPanel;
-import nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components.NewGoalInputPanel;
+import nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components.*;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.lib.InputValidationLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModelTO;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeStatus;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.UnitConverterLib;
 import org.opentcs.components.kernel.services.VehicleService;
 import org.opentcs.customizations.ServiceCallWrapper;
 import org.opentcs.data.TCSObjectReference;
+import org.opentcs.data.model.Point;
+import org.opentcs.data.model.Triple;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.drivers.vehicle.AdapterCommand;
 import org.opentcs.drivers.vehicle.LoadHandlingDevice;
@@ -22,6 +24,8 @@ import org.opentcs.drivers.vehicle.VehicleProcessModel;
 import org.opentcs.drivers.vehicle.management.VehicleCommAdapterPanel;
 import org.opentcs.drivers.vehicle.management.VehicleProcessModelTO;
 import org.opentcs.util.CallWrapper;
+import org.opentcs.util.Comparators;
+import org.opentcs.util.gui.StringListCellRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,10 +33,8 @@ import javax.inject.Inject;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
-import java.util.ResourceBundle;
 
 import static java.util.Objects.requireNonNull;
 import static javax.swing.JOptionPane.showMessageDialog;
@@ -54,7 +56,6 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
     private final VehicleService vehicleService;
     private Ros2ProcessModelTO processModel;
     private final CallWrapper callWrapper;
-    private final String[] navigationGoalColumnNames = {"UUID", "Status", "Date"};
 
 
     /**
@@ -139,6 +140,12 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
     }
 
     private void updateNavigationGoalsTable(Object[][] navigationGoalData) {
+        final String[] navigationGoalColumnNames = {
+                bundle.getString("ros2CommAdapterPanel.navigation_goal_table_column_uuid.text"),
+                bundle.getString("ros2CommAdapterPanel.navigation_goal_table_column_last_updated.text"),
+                bundle.getString("ros2CommAdapterPanel.navigation_goal_table_column_destination.text"),
+                bundle.getString("ros2CommAdapterPanel.navigation_goal_table_column_status.text")
+        };
         DefaultTableModel tableModel = new DefaultTableModel(navigationGoalData, navigationGoalColumnNames) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -178,7 +185,8 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         SwingUtilities.invokeLater(() -> setEnableButtonTextByEnabledBoolean(enabled));
 
         // Navigation goals pane
-        SwingUtilities.invokeLater(() -> newGoalButton.setEnabled(enabled));
+        SwingUtilities.invokeLater(() -> dispatchToCoordinateButton.setEnabled(enabled));
+        SwingUtilities.invokeLater(() -> dispatchToPointButton.setEnabled(enabled));
         SwingUtilities.invokeLater(() -> navigationGoalTable.setEnabled(enabled));
 
     }
@@ -234,11 +242,13 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         bottomPanel = new javax.swing.JPanel();
         loadDevicePanel = new javax.swing.JPanel();
         lHDCheckbox = new javax.swing.JCheckBox();
-        connectionPropertiesPanel = new javax.swing.JPanel();
+        vehiclePropertiesPanel = new javax.swing.JPanel();
         testPanel = new javax.swing.JPanel();
         navigationGoalTableScrollPane = new javax.swing.JScrollPane();
         navigationGoalTable = new javax.swing.JTable();
-        newGoalButton = new javax.swing.JButton();
+        dispatchPanel = new javax.swing.JPanel();
+        dispatchToPointButton = new javax.swing.JButton();
+        dispatchToCoordinateButton = new javax.swing.JButton();
 
         jMenu1.setText("File");
         jMenuBar1.add(jMenu1);
@@ -329,41 +339,53 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
 
         bottomPanel.add(loadDevicePanel, java.awt.BorderLayout.PAGE_END);
 
-        connectionPropertiesPanel.setBackground(new java.awt.Color(254, 254, 254));
-        connectionPropertiesPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(bundle.getString("ros2CommAdapterPanel.panel_connection.border.title"))); // NOI18N
-        connectionPropertiesPanel.setMinimumSize(new java.awt.Dimension(500, 200));
-        connectionPropertiesPanel.setName(""); // NOI18N
-        connectionPropertiesPanel.setPreferredSize(new java.awt.Dimension(500, 93));
-        connectionPropertiesPanel.setLayout(new java.awt.BorderLayout());
-        bottomPanel.add(connectionPropertiesPanel, java.awt.BorderLayout.NORTH);
+        vehiclePropertiesPanel.setBackground(new java.awt.Color(254, 254, 254));
+        vehiclePropertiesPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(bundle.getString("ros2CommAdapterPanel.panel_vehicle.border.title"))); // NOI18N
+        vehiclePropertiesPanel.setName(""); // NOI18N
+        vehiclePropertiesPanel.setPreferredSize(new java.awt.Dimension(500, 150));
+        vehiclePropertiesPanel.setLayout(new java.awt.BorderLayout());
+        bottomPanel.add(vehiclePropertiesPanel, java.awt.BorderLayout.NORTH);
 
         testPanel.setBackground(new java.awt.Color(254, 254, 254));
         testPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(bundle.getString("ros2CommAdapterPanel.panel_navigationGoals.border.title"))); // NOI18N
         testPanel.setLayout(new java.awt.BorderLayout());
 
         navigationGoalTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
+                new Object[][]{
+                        {null, null, null, null},
+                        {null, null, null, null},
+                        {null, null, null, null},
+                        {null, null, null, null}
+                },
+                new String[]{
+                        "Title 1", "Title 2", "Title 3", "Title 4"
+                }
         ));
         navigationGoalTable.setShowGrid(true);
         navigationGoalTableScrollPane.setViewportView(navigationGoalTable);
 
         testPanel.add(navigationGoalTableScrollPane, java.awt.BorderLayout.CENTER);
 
-        newGoalButton.setText(bundle.getString("ros2CommAdapterPanel.button_new_goal.text")); // NOI18N
-        newGoalButton.addActionListener(new java.awt.event.ActionListener() {
+        dispatchPanel.setBackground(new java.awt.Color(255, 255, 255));
+        dispatchPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+
+        dispatchToPointButton.setText(bundle.getString("ros2CommAdapterPanel.button_dispatch_to_point.text")); // NOI18N
+        dispatchToPointButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                newGoalButtonActionPerformed(evt);
+                dispatchToPointButtonActionPerformed(evt);
             }
         });
-        testPanel.add(newGoalButton, java.awt.BorderLayout.PAGE_START);
+        dispatchPanel.add(dispatchToPointButton);
+
+        dispatchToCoordinateButton.setText(bundle.getString("ros2CommAdapterPanel.button_dispatch_to_coordinate.text")); // NOI18N
+        dispatchToCoordinateButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dispatchToCoordinateButtonActionPerformed(evt);
+            }
+        });
+        dispatchPanel.add(dispatchToCoordinateButton);
+
+        testPanel.add(dispatchPanel, java.awt.BorderLayout.PAGE_START);
 
         bottomPanel.add(testPanel, java.awt.BorderLayout.CENTER);
 
@@ -410,33 +432,110 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
 
     }//GEN-LAST:event_enableButtonActionPerformed
 
-    private void newGoalButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newGoalButtonActionPerformed
-        // TODO add your handling code here:
-        if(!newGoalButton.isEnabled()){
+    private void dispatchToCoordinateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dispatchToCoordinateButtonActionPerformed
+        if (!dispatchToCoordinateButton.isEnabled()) {
             return; // Button is not enabled.
         }
 
-        // Create panel and dialog
-        InputPanel panel = new NewGoalInputPanel.Builder<>(bundle.getString("ros2CommAdapterPanel.dialog_newGoal.title"))
-                .build();
+        InputPanel panel = new CoordinateInputPanel.Builder(bundle.getString("ros2CommAdapterPanel.dialog_dispatchVehicleToCoordinate.title")).build();
         InputDialog dialog = new InputDialog(panel);
         dialog.setVisible(true);
 
-        // Get results from dialog
-        if(dialog.getReturnStatus() == InputDialog.ReturnStatus.ACCEPTED) {
-            double[] coordinates = (double[]) dialog.getInput();
-            // Todo: better input validation
-            if(coordinates != null){
-                DispatchToCoordinateCommand command = new DispatchToCoordinateCommand(coordinates[0], coordinates[1]);
-                sendCommand(command);
+        // Get dialog result and set vehicle precise position
+        if (dialog.getReturnStatus() == InputDialog.ReturnStatus.ACCEPTED) {
+            // Set new precise position
+            long x, y, z;
+            String[] newPos = (String[]) dialog.getInput();
+            try {
+                x = UnitConverterLib.convertMetersToMillimeters(Double.parseDouble(newPos[0]));
+                y = UnitConverterLib.convertMetersToMillimeters(Double.parseDouble(newPos[1]));
+                z = UnitConverterLib.convertMetersToMillimeters(Double.parseDouble(newPos[2]));
+            } catch (NumberFormatException | NullPointerException e) {
+                return;
             }
+            sendCommand(new DispatchToCoordinateCommand(new Triple(x, y, z)));
+
         }
 
-    }//GEN-LAST:event_newGoalButtonActionPerformed
+//        CoordinateInputPanel.Builder builder  = new CoordinateInputPanel.Builder(bundle.getString("ros2CommAdapterPanel.dialog_dispatchVehicleToCoordinate.title"));
+//        builder.enableResetButton(null);
+//        InputPanel panel = builder.build();
+//        InputDialog dialog = new InputDialog(panel);
+//        dialog.setVisible(true);
+//
+//        // Get dialog result and set vehicle precise position
+//        if (dialog.getReturnStatus() == InputDialog.ReturnStatus.ACCEPTED) {
+//            double x, y, z;
+//            String[] coordinateString = (String[]) dialog.getInput();
+//            try {
+//                x = Double.parseDouble(coordinateString[0]);
+//                y = Double.parseDouble(coordinateString[1]);
+//                z = Double.parseDouble(coordinateString[2]);
+//            } catch (NumberFormatException | NullPointerException e){
+//                return;
+//            }
+//
+//            // Convert units
+//            long xInMillimeter = UnitConverterLib.convertMetersToMillimeters(x);
+//            long yInMillimeter = UnitConverterLib.convertMetersToMillimeters(y);
+//            long zInMillimeter = UnitConverterLib.convertMetersToMillimeters(z);
+//            Triple coordinatePosition = new Triple(xInMillimeter, yInMillimeter, zInMillimeter);
+//            DispatchToCoordinateCommand command = new DispatchToCoordinateCommand(coordinatePosition);
+//            sendCommand(command);
+
+//        }
+
+    }//GEN-LAST:event_dispatchToCoordinateButtonActionPerformed
+
+    private void dispatchToPointButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dispatchToPointButtonActionPerformed
+        // Prepare list of model points
+        Set<org.opentcs.data.model.Point> pointSet;
+        try {
+            pointSet = callWrapper.call(() -> vehicleService.fetchObjects(org.opentcs.data.model.Point.class));
+        } catch (Exception ex) {
+            LOG.warn("Error fetching points", ex);
+            return;
+        }
+
+        List<org.opentcs.data.model.Point> pointList = new ArrayList<>(pointSet);
+        pointList.sort(Comparators.objectsByName());
+        pointList.add(0, null);
+        // Get currently selected point
+        // TODO is there a better way to do this?
+        Point currentPoint = null;
+        String currentPointName = processModel.getVehiclePosition();
+        for (org.opentcs.data.model.Point p : pointList) {
+            if (p != null && p.getName().equals(currentPointName)) {
+                currentPoint = p;
+                break;
+            }
+        }
+        // Create panel and dialog
+        InputPanel panel = new DropdownListInputPanel.Builder<>(bundle.getString("ros2CommAdapterPanel.dialog_dispatchToPoint.title"), pointList)
+                .setSelectionRepresenter(x -> x == null ? "" : x.getName())
+                .setLabel(bundle.getString("ros2CommAdapterPanel.label_position.text"))
+                .setEditable(true)
+                .setInitialSelection(currentPoint)
+                .setRenderer(new StringListCellRenderer<>(x -> x == null ? "" : x.getName()))
+                .build();
+        InputDialog dialog = new InputDialog(panel);
+        dialog.setVisible(true);
+        // Get result from dialog and set vehicle position
+        if (dialog.getReturnStatus() == InputDialog.ReturnStatus.ACCEPTED) {
+            Object item = dialog.getInput();
+            if (item == null) {
+                // Do nothing
+            } else {
+                sendCommand(new DispatchToPointCommand(((Point) item)));
+            }
+        }
+    }//GEN-LAST:event_dispatchToPointButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel bottomPanel;
-    private javax.swing.JPanel connectionPropertiesPanel;
+    private javax.swing.JPanel dispatchPanel;
+    private javax.swing.JButton dispatchToCoordinateButton;
+    private javax.swing.JButton dispatchToPointButton;
     private javax.swing.JLabel domainIdLabel;
     private javax.swing.JPanel domainIdPanel;
     private javax.swing.JTextField domainIdTextField;
@@ -451,13 +550,13 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
     private javax.swing.JPanel mainPanel;
     private javax.swing.JTable navigationGoalTable;
     private javax.swing.JScrollPane navigationGoalTableScrollPane;
-    private javax.swing.JButton newGoalButton;
     private javax.swing.JLabel nodeStatusLabel;
     private javax.swing.JLabel saxionLogoLabel;
     private javax.swing.JPanel testPanel;
     private javax.swing.JPanel topPanel;
     private javax.swing.JPanel topPanelLeft;
     private javax.swing.JPanel topPanelRight;
+    private javax.swing.JPanel vehiclePropertiesPanel;
     // End of variables declaration//GEN-END:variables
     // CHECKSTYLE:ON
 }

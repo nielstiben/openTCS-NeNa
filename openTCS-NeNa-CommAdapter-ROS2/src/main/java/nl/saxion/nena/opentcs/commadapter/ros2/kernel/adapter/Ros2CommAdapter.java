@@ -133,7 +133,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
             return;
         }
         super.disable();
-        getProcessModel().getNodeManager().stop();
+        getProcessModel().onDriverDisable();
     }
 
     @Nonnull
@@ -200,7 +200,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
         ros2ProcessModelTO.setLoadOperation(getProcessModel().getLoadOperation());
         ros2ProcessModelTO.setOperatingTime(getProcessModel().getOperatingTime());
         ros2ProcessModelTO.setUnloadOperation(getProcessModel().getUnloadOperation());
-        ros2ProcessModelTO.setNavigationGoalTable(getProcessModel().getNavigationGoalTracker().generateStringMatrix());
+        ros2ProcessModelTO.setNavigationGoalTable(getProcessModel().getNavigationGoalTracker().toStringTable());
 
         return ros2ProcessModelTO;
     }

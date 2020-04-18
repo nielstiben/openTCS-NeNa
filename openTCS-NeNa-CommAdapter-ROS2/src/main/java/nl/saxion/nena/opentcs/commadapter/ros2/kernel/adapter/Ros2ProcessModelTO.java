@@ -32,7 +32,7 @@ public class Ros2ProcessModelTO extends VehicleProcessModelTO {
     /**
      * List of navigation goals
      */
-    private Object[][] navigationGoalTable;
+    private String[][] navigationGoalTable;
 
 
 }
