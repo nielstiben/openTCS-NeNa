@@ -6,11 +6,12 @@ import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constant
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConstants;
 import org.opentcs.util.ExplainedBoolean;
 
+import javax.annotation.Nonnull;
 import java.util.Iterator;
 import java.util.List;
 
 /**
- * Library for validation operations.
+ * Library for meant validating incoming operations.
  */
 public class OperationLib {
     private static LoadState lastKnownLoadState = null;
@@ -22,7 +23,10 @@ public class OperationLib {
      * @param adapterInstance An instance of the current adapter.
      * @return Whether all operations in the list are allowed.
      */
-    public static ExplainedBoolean areAllOperationsAllowed(List<String> operations, Ros2CommAdapter adapterInstance) {
+    public static ExplainedBoolean areAllOperationsAllowed(
+            @Nonnull List<String> operations,
+            @Nonnull Ros2CommAdapter adapterInstance
+    ) {
         lastKnownLoadState = adapterInstance.getLoadState();
 
         ExplainedBoolean isLastOperationAllowed = allowed();
@@ -43,7 +47,7 @@ public class OperationLib {
      * @param operation the operation.
      * @return Whether the operation is allowed.
      */
-    public static ExplainedBoolean isOperationAllowed(String operation) {
+    public static ExplainedBoolean isOperationAllowed(@Nonnull String operation) {
         switch (operation) {
             case OperationConstants.LOAD_CARGO:
                 return isLoadCargoAllowed();
