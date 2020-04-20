@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Library for meant validating incoming operations.
  */
-public class OperationLib {
+public class OperationAllowedLib {
     private static LoadState lastKnownLoadState = null;
 
     /**

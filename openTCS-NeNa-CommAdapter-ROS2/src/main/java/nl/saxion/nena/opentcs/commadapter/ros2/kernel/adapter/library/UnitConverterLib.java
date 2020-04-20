@@ -8,10 +8,10 @@ import javax.annotation.Nonnull;
  * @author Niels Tiben <nielstiben@outlook.com>
  */
 public class UnitConverterLib {
-    public static double convertMilimetersToMeters(long milimeters) {
-        double milimetersDouble = (double) milimeters;
+    public static double convertMilimetersToMeters(long millimeters) {
+        double millimetersDouble = (double) millimeters;
 
-        return milimetersDouble / 1000;
+        return millimetersDouble / 1000;
     }
 
     @Nonnull
@@ -33,8 +33,8 @@ public class UnitConverterLib {
     }
 
     private static long convertMetersToMillimeters(double meters) {
-        double milimeters = meters * 1000;
+        double millimeters = meters * 1000;
 
-        return Math.round(milimeters);
+        return Math.round(millimeters);
     }
 }

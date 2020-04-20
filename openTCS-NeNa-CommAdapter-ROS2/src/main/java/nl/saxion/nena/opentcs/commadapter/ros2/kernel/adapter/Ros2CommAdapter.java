@@ -2,7 +2,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter;
 
 import com.google.inject.assistedinject.Assisted;
 import lombok.Getter;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.OperationLib;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.OperationAllowedLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2AdapterComponentsFactory;
 import org.opentcs.common.LoopbackAdapterConstants;
 import org.opentcs.customizations.kernel.KernelExecutor;
@@ -10,7 +10,6 @@ import org.opentcs.data.ObjectPropConstants;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.drivers.vehicle.*;
 import org.opentcs.drivers.vehicle.management.VehicleProcessModelTO;
-import org.opentcs.drivers.vehicle.messages.SetSpeedMultiplier;
 import org.opentcs.util.ExplainedBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,17 +72,15 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
         }
         super.initialize();
 
-        String initialPos
-                = vehicle.getProperties().get(LoopbackAdapterConstants.PROPKEY_INITIAL_POSITION);
+        String initialPos = vehicle.getProperties().get(LoopbackAdapterConstants.PROPKEY_INITIAL_POSITION);
         if (initialPos == null) {
             @SuppressWarnings("deprecation")
-            String deprecatedInitialPos
-                    = vehicle.getProperties().get(ObjectPropConstants.VEHICLE_INITIAL_POSITION);
+            String deprecatedInitialPos = vehicle.getProperties().get(ObjectPropConstants.VEHICLE_INITIAL_POSITION);
             initialPos = deprecatedInitialPos;
         }
 
         getProcessModel().setVehicleState(Vehicle.State.IDLE);
-        initialized = true;
+        this.initialized = true;
     }
 
     @Override
@@ -143,8 +140,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
     }
 
     @Override
-    public synchronized void sendCommand(MovementCommand cmd) {
-        requireNonNull(cmd, "cmd");
+    public synchronized void sendCommand(@Nonnull MovementCommand cmd) {
         LOG.info("INCOMING COMMAND:");
         LOG.info(cmd.toString());
     }
@@ -154,21 +150,24 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
         // Process LimitSpeeed message which might pause the vehicle.
         LOG.info("INCOMING MESSAGE:");
         LOG.info(message.toString());
-        if (message instanceof SetSpeedMultiplier) {
-            SetSpeedMultiplier lsMessage = (SetSpeedMultiplier) message;
-            int multiplier = lsMessage.getMultiplier();
+
+//        if (message instanceof SetSpeedMultiplier) {
+//            SetSpeedMultiplier lsMessage = (SetSpeedMultiplier) message;
+//            int multiplier = lsMessage.getMultiplier();
 //            getProcessModel().setVehiclePaused(multiplier == 0);
-        }
+//        }
     }
 
     @Nonnull
     @Override
     public synchronized ExplainedBoolean canProcess(@Nonnull List<String> operations) {
         LOG.info("{}: Checking processability of {}...", getName(), operations);
-        ExplainedBoolean areAllOperationsAllowed = OperationLib.areAllOperationsAllowed(operations, this);
+        ExplainedBoolean areAllOperationsAllowed = OperationAllowedLib.areAllOperationsAllowed(operations, this);
 
         if (!areAllOperationsAllowed.getValue()) {
             LOG.info("{}: Cannot process {}, reason: '{}'", getName(), operations, areAllOperationsAllowed.getReason());
+        } else {
+            LOG.info("We can process all operations, let's proceed.");
         }
 
         return areAllOperationsAllowed;
