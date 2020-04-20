@@ -7,7 +7,7 @@ import lombok.SneakyThrows;
 import org.ros2.rcljava.RCLJava;
 import org.ros2.rcljava.executors.SingleThreadedExecutor;
 
-import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeStatus.*;
+import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatus.*;
 
 /**
  * Helper class to start a new ROS2 node in a separate thread.
@@ -18,28 +18,28 @@ import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communicati
  */
 @NoArgsConstructor
 public class NodeManager implements NodeStarterListener {
-    private NodeStatusChangeListener nodeStatusChangeListener;
+    private NodeRunningStatusListener nodeRunningStatusListener;
 
     @Getter
     private Node node;
 
     @Getter
-    private NodeStatus nodeStatus = NOT_ACTIVE;
+    private NodeRunningStatus nodeRunningStatus = NOT_ACTIVE;
 
-    public void start(NodeStatusChangeListener nodeStatusChangeListener, NodeListener nodeListener, int domainId) {
-        assert this.nodeStatus == NodeStatus.NOT_ACTIVE;
+    public void start(NodeRunningStatusListener nodeRunningStatusListener, NodeMessageListener nodeMessageListener, int domainId) {
+        assert this.nodeRunningStatus == NodeRunningStatus.NOT_ACTIVE;
 
-        this.nodeStatusChangeListener = nodeStatusChangeListener;
+        this.nodeRunningStatusListener = nodeRunningStatusListener;
         changeNodeStatus(INITIATING);
 
-        NodeRunnable nodeRunnable = new NodeRunnable(nodeListener);
+        NodeRunnable nodeRunnable = new NodeRunnable(nodeMessageListener);
         NodeWatcher nodeWatcher = new NodeWatcher(nodeRunnable, this);
 
         new Thread(nodeWatcher).start();
     }
 
     public void stop() {
-        assert this.nodeStatus == ACTIVE; // Only stopping active nodes can be stopped.
+        assert this.nodeRunningStatus == ACTIVE; // Only stopping active nodes can be stopped.
         changeNodeStatus(NOT_ACTIVE);
         this.node.stop();
         this.node = null;
@@ -78,24 +78,24 @@ public class NodeManager implements NodeStarterListener {
     private static class NodeRunnable implements Runnable {
         @Getter
         private Node node;
-        private NodeListener nodeListener;
+        private NodeMessageListener nodeMessageListener;
 
-        public NodeRunnable(NodeListener nodeListener) {
-            this.nodeListener = nodeListener;
+        public NodeRunnable(NodeMessageListener nodeMessageListener) {
+            this.nodeMessageListener = nodeMessageListener;
         }
 
         @Override
         public void run() {
             RCLJava.rclJavaInit();
             SingleThreadedExecutor exec = new SingleThreadedExecutor();
-            this.node = new Node(nodeListener);
+            this.node = new Node(nodeMessageListener);
             exec.addNode(node);
             exec.spin();
         }
     }
 
-    private void changeNodeStatus(NodeStatus newNodeStatus) {
-        this.nodeStatus = newNodeStatus;
-        nodeStatusChangeListener.onNodeStatusChange(newNodeStatus);
+    private void changeNodeStatus(NodeRunningStatus newNodeRunningStatus) {
+        this.nodeRunningStatus = newNodeRunningStatus;
+        nodeRunningStatusListener.onNodeStatusChange(newNodeRunningStatus);
     }
 }

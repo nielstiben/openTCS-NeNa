@@ -1,8 +1,6 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication;
 
 import action_msgs.msg.GoalStatusArray;
-import geometry_msgs.msg.Point;
-import geometry_msgs.msg.Pose;
 import geometry_msgs.msg.PoseStamped;
 import geometry_msgs.msg.PoseWithCovarianceStamped;
 import lombok.Getter;
@@ -20,7 +18,7 @@ public class Node extends BaseComposableNode {
     private Publisher<PoseWithCovarianceStamped> initialPosePublisher;
     private Publisher<PoseStamped> goalPublisher;
 
-    public Node(@Nonnull NodeListener nodeListener) {
+    public Node(@Nonnull NodeMessageListener nodeMessageListener) {
         super("opentcs"); // Node Name
         /* --------------- Publishers ---------------*/
         // Publisher for setting the initial pose
@@ -31,10 +29,11 @@ public class Node extends BaseComposableNode {
         /* --------------- Subscriptions ---------------*/
         // Subscriber for navigation status
         node.createSubscription(GoalStatusArray.class, "/NavigateToPose/_action/status",
-                nodeListener::onNewGoalStatusArray);
+                nodeMessageListener::onNewGoalStatusArray);
 
         // Subscription for current location
-        // TODO, see: topic /amclpose
+        node.createSubscription(PoseWithCovarianceStamped.class, "/amcl_pose",
+                nodeMessageListener::onNewAmclPose);
 
         // Subscription for battery data (TurtleBot3 specific)
         // TODO, see: http://docs.ros.org/api/turtlebot3_msgs/html/msg/SensorState.html

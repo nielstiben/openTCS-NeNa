@@ -10,7 +10,7 @@ import nl.saxion.nena.opentcs.commadapter.ros2.control_center.lib.InputValidatio
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModelTO;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeStatus;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatus;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.UnitConverterLib;
 import org.opentcs.components.kernel.services.VehicleService;
 import org.opentcs.customizations.ServiceCallWrapper;
@@ -39,8 +39,7 @@ import java.util.List;
 import static java.util.Objects.requireNonNull;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static nl.saxion.nena.opentcs.commadapter.ros2.common.I18nROS2CommAdapter.BUNDLE_PATH;
-import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel.Attribute.NAVIGATION_GOALS;
-import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel.Attribute.NODE_STATUS;
+import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel.Attribute.*;
 
 /**
  * The panel corresponding to the Ros2CommAdapter.
@@ -110,17 +109,19 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
             updateNodeStatus(processModel.getNodeStatus());
         } else if (attributeChanged.equals(NAVIGATION_GOALS.name())) {
             updateNavigationGoalsTable(processModel.getNavigationGoalTable());
+        }else if (attributeChanged.equals(POSITION_ESTIMATE.name())) {
+            updatePositionEstimateValueLabel(processModel.getEstimatePosition());
         }
     }
 
     private void updateNodeStatus(String nodeStatus) {
-        if (nodeStatus.equals(NodeStatus.NOT_ACTIVE.name())) {
+        if (nodeStatus.equals(NodeRunningStatus.NOT_ACTIVE.name())) {
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node is not active"));
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.BLACK));
-        } else if (nodeStatus.equals(NodeStatus.INITIATING.name())) {
+        } else if (nodeStatus.equals(NodeRunningStatus.INITIATING.name())) {
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node is initiating"));
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.ORANGE));
-        } else if (nodeStatus.equals(NodeStatus.ACTIVE.name())) {
+        } else if (nodeStatus.equals(NodeRunningStatus.ACTIVE.name())) {
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node is active"));
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.GREEN));
         } else {
@@ -130,12 +131,28 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
     }
 
     private void updateVehicleProcessModelData(String attributeChanged, VehicleProcessModelTO processModel) {
-        if (Objects.equals(attributeChanged,
-                VehicleProcessModel.Attribute.COMM_ADAPTER_ENABLED.name())) {
+        if (attributeChanged.equals(VehicleProcessModel.Attribute.COMM_ADAPTER_ENABLED.name())) {
             updateIsAdapterEnabled(processModel.isCommAdapterEnabled());
-        } else if (Objects.equals(attributeChanged,
-                VehicleProcessModel.Attribute.LOAD_HANDLING_DEVICES.name())) {
+        } else if(attributeChanged.equals(VehicleProcessModel.Attribute.POSITION.name())){
+            updatePositionPointValueLabel(processModel.getVehiclePosition());
+        } else if(attributeChanged.equals(VehicleProcessModel.Attribute.PRECISE_POSITION.name())){
+            updatePositionCoordinateValueLabel(processModel.getPrecisePosition());
+        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.LOAD_HANDLING_DEVICES.name())) {
             updateVehicleLoadHandlingDevice(processModel.getLoadHandlingDevices());
+        }
+    }
+
+    private void updatePositionPointValueLabel(String updatedPointName){
+        if (updatedPointName != null && !updatedPointName.isEmpty()){
+            SwingUtilities.invokeLater(() -> positionPointValueLabel.setText(updatedPointName));
+        }
+    }
+
+    private void updatePositionCoordinateValueLabel(Triple updatedCoordinate){
+        if(updatedCoordinate != null){
+            double[] xyz = UnitConverterLib.convertTripleToCoordinatesInMeter(updatedCoordinate);
+            String coordinateText = String.format("%.2f, %.2f, %.2f", xyz[0], xyz[1], xyz[2]); // Print as two-decimal numbers
+            SwingUtilities.invokeLater(() -> positionCoordinateValueLabel.setText(coordinateText));
         }
     }
 
@@ -153,6 +170,14 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
             }
         };
         SwingUtilities.invokeLater(() -> navigationGoalTable.setModel(tableModel));
+    }
+
+    private void updatePositionEstimateValueLabel(Triple updatedEstimate){
+        if(updatedEstimate != null){
+            double[] xyz = UnitConverterLib.convertTripleToCoordinatesInMeter(updatedEstimate);
+            String coordinateText = String.format("%.2f, %.2f, %.2f", xyz[0], xyz[1], xyz[2]); // Print as two-decimal numbers
+            SwingUtilities.invokeLater(() -> positionEstimateValueLabel.setText(coordinateText));
+        }
     }
 
     private void updateVehicleLoadHandlingDevice(List<LoadHandlingDevice> devices) {
@@ -243,6 +268,15 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         loadDevicePanel = new javax.swing.JPanel();
         lHDCheckbox = new javax.swing.JCheckBox();
         vehiclePropertiesPanel = new javax.swing.JPanel();
+        vehiclePropertiesLeftPanel = new javax.swing.JPanel();
+        vehiclePropertiesLabelsPanel = new javax.swing.JPanel();
+        positionPointLabelLabel = new javax.swing.JLabel();
+        positionCoordinateLabelLabel = new javax.swing.JLabel();
+        positionEstimateLabelLabel = new javax.swing.JLabel();
+        vehiclePropertiesValuesPanel = new javax.swing.JPanel();
+        positionPointValueLabel = new javax.swing.JLabel();
+        positionCoordinateValueLabel = new javax.swing.JLabel();
+        positionEstimateValueLabel = new javax.swing.JLabel();
         testPanel = new javax.swing.JPanel();
         navigationGoalTableScrollPane = new javax.swing.JScrollPane();
         navigationGoalTable = new javax.swing.JTable();
@@ -344,6 +378,49 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         vehiclePropertiesPanel.setName(""); // NOI18N
         vehiclePropertiesPanel.setPreferredSize(new java.awt.Dimension(500, 150));
         vehiclePropertiesPanel.setLayout(new java.awt.BorderLayout());
+
+        vehiclePropertiesLeftPanel.setBackground(new java.awt.Color(255, 255, 255));
+        vehiclePropertiesLeftPanel.setPreferredSize(new java.awt.Dimension(340, 100));
+        vehiclePropertiesLeftPanel.setLayout(new java.awt.BorderLayout());
+
+        vehiclePropertiesLabelsPanel.setBackground(new java.awt.Color(255, 255, 255));
+        vehiclePropertiesLabelsPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        vehiclePropertiesLabelsPanel.setPreferredSize(new java.awt.Dimension(170, 100));
+        vehiclePropertiesLabelsPanel.setLayout(new javax.swing.BoxLayout(vehiclePropertiesLabelsPanel, javax.swing.BoxLayout.PAGE_AXIS));
+
+        positionPointLabelLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        positionPointLabelLabel.setText(bundle.getString("ros2CommAdapterPanel.label_position_point.text")); // NOI18N
+        vehiclePropertiesLabelsPanel.add(positionPointLabelLabel);
+
+        positionCoordinateLabelLabel.setText(bundle.getString("ros2CommAdapterPanel.label_position_coordinate.text")); // NOI18N
+        vehiclePropertiesLabelsPanel.add(positionCoordinateLabelLabel);
+
+        positionEstimateLabelLabel.setText(bundle.getString("ros2CommAdapterPanel.label_position_estimate.text")); // NOI18N
+        vehiclePropertiesLabelsPanel.add(positionEstimateLabelLabel);
+
+        vehiclePropertiesLeftPanel.add(vehiclePropertiesLabelsPanel, java.awt.BorderLayout.WEST);
+
+        vehiclePropertiesValuesPanel.setBackground(new java.awt.Color(255, 255, 255));
+        vehiclePropertiesValuesPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        vehiclePropertiesValuesPanel.setPreferredSize(new java.awt.Dimension(170, 100));
+        vehiclePropertiesValuesPanel.setLayout(new javax.swing.BoxLayout(vehiclePropertiesValuesPanel, javax.swing.BoxLayout.PAGE_AXIS));
+
+        positionPointValueLabel.setFont(new java.awt.Font("Ubuntu", 2, 15)); // NOI18N
+        positionPointValueLabel.setText(" ");
+        vehiclePropertiesValuesPanel.add(positionPointValueLabel);
+
+        positionCoordinateValueLabel.setFont(new java.awt.Font("Ubuntu", 2, 15)); // NOI18N
+        positionCoordinateValueLabel.setText(" ");
+        vehiclePropertiesValuesPanel.add(positionCoordinateValueLabel);
+
+        positionEstimateValueLabel.setFont(new java.awt.Font("Ubuntu", 2, 15)); // NOI18N
+        positionEstimateValueLabel.setText(" ");
+        vehiclePropertiesValuesPanel.add(positionEstimateValueLabel);
+
+        vehiclePropertiesLeftPanel.add(vehiclePropertiesValuesPanel, java.awt.BorderLayout.LINE_END);
+
+        vehiclePropertiesPanel.add(vehiclePropertiesLeftPanel, java.awt.BorderLayout.WEST);
+
         bottomPanel.add(vehiclePropertiesPanel, java.awt.BorderLayout.NORTH);
 
         testPanel.setBackground(new java.awt.Color(254, 254, 254));
@@ -351,15 +428,15 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         testPanel.setLayout(new java.awt.BorderLayout());
 
         navigationGoalTable.setModel(new javax.swing.table.DefaultTableModel(
-                new Object[][]{
-                        {null, null, null, null},
-                        {null, null, null, null},
-                        {null, null, null, null},
-                        {null, null, null, null}
-                },
-                new String[]{
-                        "Title 1", "Title 2", "Title 3", "Title 4"
-                }
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
         ));
         navigationGoalTable.setShowGrid(true);
         navigationGoalTableScrollPane.setViewportView(navigationGoalTable);
@@ -444,46 +521,19 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         // Get dialog result and set vehicle precise position
         if (dialog.getReturnStatus() == InputDialog.ReturnStatus.ACCEPTED) {
             // Set new precise position
-            long x, y, z;
+            Triple triple;
             String[] newPos = (String[]) dialog.getInput();
             try {
-                x = UnitConverterLib.convertMetersToMillimeters(Double.parseDouble(newPos[0]));
-                y = UnitConverterLib.convertMetersToMillimeters(Double.parseDouble(newPos[1]));
-                z = UnitConverterLib.convertMetersToMillimeters(Double.parseDouble(newPos[2]));
+                triple = UnitConverterLib.convertCoordinatesInMeterToTriple(
+                        Double.parseDouble(newPos[0]),
+                        Double.parseDouble(newPos[1]),
+                        Double.parseDouble(newPos[2])
+                );
             } catch (NumberFormatException | NullPointerException e) {
                 return;
             }
-            sendCommand(new DispatchToCoordinateCommand(new Triple(x, y, z)));
-
+            sendCommand(new DispatchToCoordinateCommand(triple));
         }
-
-//        CoordinateInputPanel.Builder builder  = new CoordinateInputPanel.Builder(bundle.getString("ros2CommAdapterPanel.dialog_dispatchVehicleToCoordinate.title"));
-//        builder.enableResetButton(null);
-//        InputPanel panel = builder.build();
-//        InputDialog dialog = new InputDialog(panel);
-//        dialog.setVisible(true);
-//
-//        // Get dialog result and set vehicle precise position
-//        if (dialog.getReturnStatus() == InputDialog.ReturnStatus.ACCEPTED) {
-//            double x, y, z;
-//            String[] coordinateString = (String[]) dialog.getInput();
-//            try {
-//                x = Double.parseDouble(coordinateString[0]);
-//                y = Double.parseDouble(coordinateString[1]);
-//                z = Double.parseDouble(coordinateString[2]);
-//            } catch (NumberFormatException | NullPointerException e){
-//                return;
-//            }
-//
-//            // Convert units
-//            long xInMillimeter = UnitConverterLib.convertMetersToMillimeters(x);
-//            long yInMillimeter = UnitConverterLib.convertMetersToMillimeters(y);
-//            long zInMillimeter = UnitConverterLib.convertMetersToMillimeters(z);
-//            Triple coordinatePosition = new Triple(xInMillimeter, yInMillimeter, zInMillimeter);
-//            DispatchToCoordinateCommand command = new DispatchToCoordinateCommand(coordinatePosition);
-//            sendCommand(command);
-
-//        }
 
     }//GEN-LAST:event_dispatchToCoordinateButtonActionPerformed
 
@@ -551,12 +601,21 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
     private javax.swing.JTable navigationGoalTable;
     private javax.swing.JScrollPane navigationGoalTableScrollPane;
     private javax.swing.JLabel nodeStatusLabel;
+    private javax.swing.JLabel positionCoordinateLabelLabel;
+    private javax.swing.JLabel positionCoordinateValueLabel;
+    private javax.swing.JLabel positionEstimateLabelLabel;
+    private javax.swing.JLabel positionEstimateValueLabel;
+    private javax.swing.JLabel positionPointLabelLabel;
+    private javax.swing.JLabel positionPointValueLabel;
     private javax.swing.JLabel saxionLogoLabel;
     private javax.swing.JPanel testPanel;
     private javax.swing.JPanel topPanel;
     private javax.swing.JPanel topPanelLeft;
     private javax.swing.JPanel topPanelRight;
+    private javax.swing.JPanel vehiclePropertiesLabelsPanel;
+    private javax.swing.JPanel vehiclePropertiesLeftPanel;
     private javax.swing.JPanel vehiclePropertiesPanel;
+    private javax.swing.JPanel vehiclePropertiesValuesPanel;
     // End of variables declaration//GEN-END:variables
     // CHECKSTYLE:ON
 }

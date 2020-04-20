@@ -8,6 +8,8 @@ import lombok.Setter;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.*;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.MessageLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.UnitConverterLib;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.point.CoordinatePoint;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalTracker;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConstants;
 import org.opentcs.data.model.Point;
@@ -17,13 +19,19 @@ import org.opentcs.drivers.vehicle.VehicleProcessModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Niels Tiben <nielstiben@outlook.com>
  */
-public class Ros2ProcessModel extends VehicleProcessModel implements NodeStatusChangeListener, NodeListener {
+public class Ros2ProcessModel extends VehicleProcessModel implements
+        NodeRunningStatusListener,
+        NodeMessageListener,
+        NavigationGoalListener {
     private static final Logger LOG = LoggerFactory.getLogger(Ros2CommAdapter.class);
     private final String loadOperation;
     private final String unloadOperation;
+
     @Setter
     private int domainId = 0;
     @Getter
@@ -32,12 +40,14 @@ public class Ros2ProcessModel extends VehicleProcessModel implements NodeStatusC
     private NodeManager nodeManager;
     @Getter
     private int operatingTime;
+    @Getter
+    private Triple estimatePosition;
 
     public Ros2ProcessModel(Vehicle attachedVehicle) {
         super(attachedVehicle);
         this.loadOperation = extractLoadOperation(attachedVehicle);
         this.unloadOperation = extractUnloadOperation(attachedVehicle);
-        this.navigationGoalTracker = new NavigationGoalTracker();
+        this.navigationGoalTracker = new NavigationGoalTracker(this);
         this.operatingTime = parseOperatingTime(attachedVehicle);
         this.nodeManager = new NodeManager();
     }
@@ -65,13 +75,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements NodeStatusC
      *
      * @param coordinate The coordinates.
      */
-    public void dispatchToCoordinate(Triple coordinate) {
-        // Create point
-        String pointName = String.format("Coordinate (%d, %d)", coordinate.getX(), coordinate.getY());
-        Point coordinatePoint = new Point(pointName);
-        coordinatePoint.setPosition(coordinate);
-
-        // Dispatch to point
+    public void dispatchToCoordinate(@Nonnull Triple coordinate) {
+        CoordinatePoint coordinatePoint = new CoordinatePoint(coordinate);
         dispatchToPoint(coordinatePoint);
     }
 
@@ -80,7 +85,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements NodeStatusC
      *
      * @param point The point containing the physical location of the destination.
      */
-    public void dispatchToPoint(Point point) {
+    public void dispatchToPoint(@Nonnull Point point) {
         LOG.info("Dispatching vehicle to point '{}'", point.getName());
         PoseStamped message = MessageLib.generateNavigationMessageByPoint(point);
         navigationGoalTracker.setDestinationPointIncomingGoal(point); // Notify NavigationGoalTracker that we expect a new goal
@@ -139,9 +144,39 @@ public class Ros2ProcessModel extends VehicleProcessModel implements NodeStatusC
         getPropertyChangeSupport().firePropertyChange(Attribute.NAVIGATION_GOALS.name(), oldValue, newValue);
     }
 
+    /**
+     * Update Estimate Position
+     * @param amclPose
+     */
     @Override
-    public void onNodeStatusChange(NodeStatus newNodeStatus) {
-        getPropertyChangeSupport().firePropertyChange(Attribute.NODE_STATUS.name(), null, newNodeStatus);
+    public void onNewAmclPose(PoseWithCovarianceStamped amclPose) {
+        Triple oldEstimatePosition = this.estimatePosition;
+
+        geometry_msgs.msg.Point amclPosePoint = amclPose.getPose().getPose().getPosition();
+        this.estimatePosition = UnitConverterLib.convertCoordinatesInMeterToTriple(
+                amclPosePoint.getX(),
+                amclPosePoint.getY(),
+                amclPosePoint.getZ()
+        );
+
+        getPropertyChangeSupport().firePropertyChange(Attribute.POSITION_ESTIMATE.name(), oldEstimatePosition, this.estimatePosition);
+    }
+
+    @Override
+    public void onNodeStatusChange(NodeRunningStatus newNodeRunningStatus) {
+        getPropertyChangeSupport().firePropertyChange(Attribute.NODE_STATUS.name(), null, newNodeRunningStatus);
+    }
+
+    /**
+     * Update Precise position
+     * @param point
+     */
+    @Override
+    public void onNavigationGoalSucceeded(Point point) {
+        if (!(point instanceof CoordinatePoint)) {
+            setVehiclePosition(point.getName());
+            setVehiclePrecisePosition(point.getPosition());
+        }
     }
 
     /**
@@ -150,6 +185,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements NodeStatusC
     public enum Attribute {
         OPERATING_TIME,
         NODE_STATUS,
-        NAVIGATION_GOALS
+        NAVIGATION_GOALS,
+        POSITION_ESTIMATE,
     }
 }

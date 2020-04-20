@@ -196,11 +196,12 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
     protected VehicleProcessModelTO createCustomTransferableProcessModel() {
         Ros2ProcessModelTO ros2ProcessModelTO = new Ros2ProcessModelTO();
 
-        ros2ProcessModelTO.setNodeStatus(getProcessModel().getNodeManager().getNodeStatus().name());
+        ros2ProcessModelTO.setNodeStatus(getProcessModel().getNodeManager().getNodeRunningStatus().name());
         ros2ProcessModelTO.setLoadOperation(getProcessModel().getLoadOperation());
         ros2ProcessModelTO.setOperatingTime(getProcessModel().getOperatingTime());
         ros2ProcessModelTO.setUnloadOperation(getProcessModel().getUnloadOperation());
         ros2ProcessModelTO.setNavigationGoalTable(getProcessModel().getNavigationGoalTracker().toStringTable());
+        ros2ProcessModelTO.setEstimatePosition(getProcessModel().getEstimatePosition());
 
         return ros2ProcessModelTO;
     }

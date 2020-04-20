@@ -31,6 +31,7 @@ dependencies {
   compile localGroovy()
   compile group: 'commons-io', name: 'commons-io', version: '2.5'
   compileOnly group: 'commons-io', name: 'commons-io', version: '2.5', classifier: 'sources'
+    implementation 'org.jetbrains:annotations:15.0'
 }
 
 subprojects {

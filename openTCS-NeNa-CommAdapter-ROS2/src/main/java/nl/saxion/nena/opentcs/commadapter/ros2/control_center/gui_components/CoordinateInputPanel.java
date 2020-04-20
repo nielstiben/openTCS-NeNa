@@ -137,7 +137,6 @@ public final class CoordinateInputPanel
         xInputField.setText("initial_value");
         xInputField.setName("xInputField"); // NOI18N
         xInputField.setPreferredSize(new java.awt.Dimension(60, 30));
-        xInputField.setRequestFocusEnabled(false);
         xInputField.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 xInputFieldFocusGained(evt);

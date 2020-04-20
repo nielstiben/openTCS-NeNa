@@ -2,6 +2,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.opentcs.data.model.Triple;
 import org.opentcs.drivers.vehicle.management.VehicleProcessModelTO;
 
 import static java.util.Objects.requireNonNull;
@@ -29,6 +30,7 @@ public class Ros2ProcessModelTO extends VehicleProcessModelTO {
 
     private int operatingTime;
 
+    private Triple estimatePosition;
     /**
      * List of navigation goals
      */
