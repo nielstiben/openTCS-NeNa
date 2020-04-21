@@ -29,6 +29,7 @@ public class CommandExecutor implements NavigationGoalListener {
     private boolean isCommandExecutorActive = false;
 
     /* --------------- 0: Construct and enable ---------------*/
+
     public CommandExecutor(
             @Nonnull Ros2ProcessModel processModelInstance,
             @Nonnull Queue<MovementCommand> movementSentQueue,
@@ -43,11 +44,10 @@ public class CommandExecutor implements NavigationGoalListener {
         NavigationGoalTracker goalTracker = processModelInstance.getNavigationGoalTracker();
         assert goalTracker != null;
         goalTracker.setCommandExecutorListener(this);
-
-
     }
 
     /* --------------- 1: Create Movement Command ---------------*/
+
     public void executeMovementCommand(@Nonnull MovementCommand movementCommand) {
         // Set active label
         this.currentMovementCommand = movementCommand;
