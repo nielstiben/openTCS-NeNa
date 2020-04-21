@@ -15,12 +15,18 @@ import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_
 public class NavigationGoalTracker {
     private static final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_PATH);
     private HashMap<List<Byte>, NavigationGoal> navigationGoalMap = new HashMap<>(); // Pair UUID - Navigation Goal
-    private final NavigationGoalListener navigationGoalListener;
+    private final NavigationGoalListener processModelListener;
+
+    @Setter
+    private NavigationGoalListener commandExecutorListener = null;
+
     @Setter
     private Point destinationPointIncomingGoal = null;
 
-    public NavigationGoalTracker(NavigationGoalListener navigationGoalListener) {
-        this.navigationGoalListener = navigationGoalListener;
+    public NavigationGoalTracker(
+            NavigationGoalListener processModelListener
+    ) {
+        this.processModelListener = processModelListener;
     }
 
     public void updateByGoalStatusArray(@Nonnull GoalStatusArray goalStatusArray) {
@@ -45,10 +51,18 @@ public class NavigationGoalTracker {
 
     private void addNewNavigationGoal(GoalStatus goalStatusToProcess) {
         if (isNavigationGoalInitiatedByOpenTCS(goalStatusToProcess)) {
+
             // Navigation goal initiated by OpenTCS => include the known destination.
             NavigationGoal navigationGoal = new NavigationGoal(goalStatusToProcess, destinationPointIncomingGoal);
             this.navigationGoalMap.put(navigationGoal.getUuid(), navigationGoal);
+
+            // Notify listeners
+            this.processModelListener.onNavigationGoalActive(destinationPointIncomingGoal);
+            this.commandExecutorListener.onNavigationGoalActive(destinationPointIncomingGoal);
+
+            // Reset destination point for new incoming navigation goals.
             resetDestinationPoint();
+
         } else {
             // Navigation goal not initiated by OpenTCS => destination is not known.
             NavigationGoal navigationGoal = new NavigationGoal(goalStatusToProcess, null);
@@ -81,7 +95,7 @@ public class NavigationGoalTracker {
         List<Byte> goalStatusToProcessUuid = goalStatusToProcess.getGoalInfo().getGoalId().getUuid();
 
         // Get navigation goal
-        NavigationGoal navigationGoalToUpdate = navigationGoalMap.get(goalStatusToProcessUuid);
+        NavigationGoal navigationGoalToUpdate = this.navigationGoalMap.get(goalStatusToProcessUuid);
 
         // Update navigation goal
         navigationGoalToUpdate.setNavigationGoalStatusByGoalStatus(goalStatusToProcess);
@@ -91,10 +105,13 @@ public class NavigationGoalTracker {
         notifyListenerIfNeeded(navigationGoalToUpdate);
     }
 
-    private void notifyListenerIfNeeded(NavigationGoal navigationGoal) {
+    private void notifyListenerIfNeeded(@Nonnull NavigationGoal navigationGoal) {
         if (navigationGoal.getNavigationGoalStatus().equals(NavigationGoalStatus.SUCCEEDED)) {
-            if (navigationGoal.getDestinationPoint() != null) {
-                navigationGoalListener.onNavigationGoalSucceeded(navigationGoal.getDestinationPoint());
+            Point destinationPoint = navigationGoal.getDestinationPoint();
+            if (destinationPoint != null) {
+                this.processModelListener.onNavigationGoalSucceeded(destinationPoint);
+                this.commandExecutorListener.onNavigationGoalSucceeded(destinationPoint);
+
             }
         }
     }
@@ -148,10 +165,5 @@ public class NavigationGoalTracker {
         } else {
             return bundle.getString("ros2CommAdapterPanel.navigation_goal_unknown_destination.text");
         }
-    }
-
-    public void reset() {
-        this.destinationPointIncomingGoal = null;
-        this.navigationGoalMap = new HashMap<>();
     }
 }

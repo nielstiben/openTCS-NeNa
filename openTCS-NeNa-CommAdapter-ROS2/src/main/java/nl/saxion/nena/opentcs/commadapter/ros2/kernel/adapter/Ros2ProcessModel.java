@@ -5,13 +5,16 @@ import geometry_msgs.msg.PoseStamped;
 import geometry_msgs.msg.PoseWithCovarianceStamped;
 import lombok.Getter;
 import lombok.Setter;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.*;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeManager;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeMessageListener;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatus;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatusListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.MessageLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.UnitConverterLib;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.point.CoordinatePoint;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalTracker;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConstants;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.point.CoordinatePoint;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Triple;
 import org.opentcs.data.model.Vehicle;
@@ -35,7 +38,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     @Setter
     private int domainId = 0;
     @Getter
-    private final NavigationGoalTracker navigationGoalTracker;
+    private NavigationGoalTracker navigationGoalTracker;
     @Getter
     private NodeManager nodeManager;
     @Getter
@@ -47,13 +50,11 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
         super(attachedVehicle);
         this.loadOperation = extractLoadOperation(attachedVehicle);
         this.unloadOperation = extractUnloadOperation(attachedVehicle);
-        this.navigationGoalTracker = new NavigationGoalTracker(this);
         this.operatingTime = parseOperatingTime(attachedVehicle);
-        this.nodeManager = new NodeManager();
-    }
+        this.navigationGoalTracker = new NavigationGoalTracker(this); // TODO: do we want to construct here??
 
-    public void startNode() {
-        nodeManager.start(this, this, domainId);
+
+        this.nodeManager = new NodeManager();
     }
 
     /* --------------- Navigation ---------------*/
@@ -65,7 +66,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
      * @param y The Y coordinate in meters.
      */
     public void setInitialPosition(double x, double y) {
-        PoseWithCovarianceStamped message = MessageLib.generateInitialPoseMessageByCoordinate(x, y);
+        final PoseWithCovarianceStamped message = MessageLib.generateInitialPoseMessageByCoordinate(x, y);
         // Todo: set current location too.
         nodeManager.getNode().getInitialPosePublisher().publish(message);
     }
@@ -76,7 +77,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
      * @param coordinate The coordinates.
      */
     public void dispatchToCoordinate(@Nonnull Triple coordinate) {
-        CoordinatePoint coordinatePoint = new CoordinatePoint(coordinate);
+        final CoordinatePoint coordinatePoint = new CoordinatePoint(coordinate);
         dispatchToPoint(coordinatePoint);
     }
 
@@ -88,8 +89,9 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     public void dispatchToPoint(@Nonnull Point point) {
         LOG.info("Dispatching vehicle to point '{}'", point.getName());
         PoseStamped message = MessageLib.generateNavigationMessageByPoint(point);
-        navigationGoalTracker.setDestinationPointIncomingGoal(point); // Notify NavigationGoalTracker that we expect a new goal
-        nodeManager.getNode().getGoalPublisher().publish(message);
+
+        this.navigationGoalTracker.setDestinationPointIncomingGoal(point); // Notify NavigationGoalTracker that we expect a new goal
+        this.nodeManager.getNode().getGoalPublisher().publish(message);
     }
 
     /* --------------- Operation ---------------*/
@@ -128,9 +130,16 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
         return 1;
     }
 
+    /* --------------- Enable / Disable ---------------*/
+    public void onDriverEnable() {
+        nodeManager.start(this, this, domainId);
+//        this.navigationGoalTracker = new NavigationGoalTracker(this);
+
+    }
+
     public void onDriverDisable() {
         this.nodeManager.stop();
-        this.navigationGoalTracker.reset();
+        this.navigationGoalTracker = null;
         getPropertyChangeSupport().firePropertyChange(Attribute.NAVIGATION_GOALS.name(), null, null);
     }
 
@@ -146,6 +155,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
 
     /**
      * Update Estimate Position
+     *
      * @param amclPose
      */
     @Override
@@ -169,14 +179,24 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
 
     /**
      * Update Precise position
+     *
      * @param point
      */
     @Override
     public void onNavigationGoalSucceeded(Point point) {
-        if (!(point instanceof CoordinatePoint)) {
+        if (point instanceof CoordinatePoint) {
+            LOG.info("FOUND CoordinatePoint");
+            // Do nothing
+        } else {
+            LOG.info("FOUND Point");
             setVehiclePosition(point.getName());
             setVehiclePrecisePosition(point.getPosition());
         }
+    }
+
+    @Override
+    public void onNavigationGoalActive(Point point) {
+        // Todo:
     }
 
     /**

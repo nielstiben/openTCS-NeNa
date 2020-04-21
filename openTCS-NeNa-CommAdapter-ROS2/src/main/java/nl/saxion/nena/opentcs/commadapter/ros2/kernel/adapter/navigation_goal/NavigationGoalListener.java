@@ -7,4 +7,5 @@ import org.opentcs.data.model.Point;
  */
 public interface NavigationGoalListener {
     void onNavigationGoalSucceeded(Point point);
+    void onNavigationGoalActive(Point point);
 }

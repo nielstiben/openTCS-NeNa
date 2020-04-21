@@ -3,6 +3,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter;
 import com.google.inject.assistedinject.Assisted;
 import lombok.Getter;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.OperationAllowedLib;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.task.CommandExecutor;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2AdapterComponentsFactory;
 import org.opentcs.common.LoopbackAdapterConstants;
 import org.opentcs.customizations.kernel.KernelExecutor;
@@ -29,6 +30,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
     private static final Logger LOG = LoggerFactory.getLogger(Ros2CommAdapter.class);
     private final Ros2CommAdapterConfiguration configuration;
     private final ExecutorService kernelExecutor;
+
     private final Vehicle vehicle;
 
     @Getter
@@ -37,6 +39,8 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
      * Whether the loopback adapter is initialized or not.
      */
     private boolean initialized;
+    private CommandExecutor commandExecutor; // Only initiated when driver is enabled.
+
 
     /**
      * Creates a new instance.
@@ -48,10 +52,10 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
      */
     @Inject
     public Ros2CommAdapter(
-            Ros2AdapterComponentsFactory componentsFactory,
-            Ros2CommAdapterConfiguration configuration,
-            @Assisted Vehicle vehicle,
-            @KernelExecutor ExecutorService kernelExecutor
+            @Nonnull Ros2AdapterComponentsFactory componentsFactory,
+            @Nonnull Ros2CommAdapterConfiguration configuration,
+            @Nonnull @Assisted Vehicle vehicle,
+            @Nonnull @KernelExecutor ExecutorService kernelExecutor
     ) {
         super(
                 new Ros2ProcessModel(vehicle),
@@ -60,9 +64,9 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
                 configuration.rechargeOperation()
         );
 
-        this.vehicle = requireNonNull(vehicle, "vehicle");
-        this.configuration = requireNonNull(configuration, "configuration");
-        this.kernelExecutor = requireNonNull(kernelExecutor, "kernelExecutor");
+        this.vehicle = vehicle;
+        this.configuration = configuration;
+        this.kernelExecutor = kernelExecutor;
     }
 
     @Override
@@ -115,13 +119,19 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
         }
     }
 
+    /* --------------- Enable / Disable ---------------*/
+
     @Override
     public synchronized void enable() {
         if (isEnabled()) {
             return;
         }
+        Ros2ProcessModel processModel = getProcessModel();
+        processModel.onDriverEnable();
+        this.commandExecutor = new CommandExecutor(processModel, getSentQueue(), getCommandQueue());
+        this.commandExecutor.enableNavigationGoalListener();
+
         super.enable();
-        getProcessModel().startNode();
     }
 
     @Override
@@ -129,9 +139,14 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
         if (!isEnabled()) {
             return;
         }
+
+        getProcessModel().onDriverDisable(); // Vehicle instance
+        this.commandExecutor = null; // Cyclic task for picking up tasks
+
         super.disable();
-        getProcessModel().onDriverDisable();
     }
+
+    /* --------------- Misc ---------------*/
 
     @Nonnull
     @Override
@@ -143,6 +158,9 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
     public synchronized void sendCommand(@Nonnull MovementCommand cmd) {
         LOG.info("INCOMING COMMAND:");
         LOG.info(cmd.toString());
+
+        // Forward to commandExecutor
+        commandExecutor.executeMovementCommand(cmd);
     }
 
     @Override
