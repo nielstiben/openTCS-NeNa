@@ -37,6 +37,10 @@ public class Node extends BaseComposableNode {
 
         // Subscription for battery data (TurtleBot3 specific)
         // TODO, see: http://docs.ros.org/api/turtlebot3_msgs/html/msg/SensorState.html
+
+        // TODO: Implement publisher and subscriber for LOAD CARGO operation.
+
+        // TODO: Implement publisher and subscriber for UNLOAD CARGO operation.
     }
 
     /**

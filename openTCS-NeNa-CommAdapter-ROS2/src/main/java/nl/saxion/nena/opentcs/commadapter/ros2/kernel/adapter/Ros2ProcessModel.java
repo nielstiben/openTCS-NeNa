@@ -5,6 +5,7 @@ import geometry_msgs.msg.PoseStamped;
 import geometry_msgs.msg.PoseWithCovarianceStamped;
 import lombok.Getter;
 import lombok.Setter;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.OperationExecutor;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeManager;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeMessageListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatus;
@@ -45,6 +46,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     private int operatingTime;
     @Getter
     private Triple estimatePosition;
+    @Setter
+    private OperationExecutor operationExecutor;
 
     public Ros2ProcessModel(Vehicle attachedVehicle) {
         super(attachedVehicle);
@@ -152,7 +155,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
         getPropertyChangeSupport().firePropertyChange(Attribute.NAVIGATION_GOALS.name(), null, null);
     }
 
-    /* --------------- Override methods ---------------*/
+    /* --------------- Node message callback methods ---------------*/
     @Override
     public void onNewGoalStatusArray(GoalStatusArray goalStatusArray) {
         Object[][] oldValue = navigationGoalTracker.toStringTable();
@@ -179,6 +182,17 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
         );
 
         getPropertyChangeSupport().firePropertyChange(Attribute.POSITION_ESTIMATE.name(), oldEstimatePosition, this.estimatePosition);
+    }
+
+    /* Operations */
+    @Override
+    public void onOperationLoadCargoFeedback(String feedback) {
+        this.operationExecutor.onExecuteLoadCargoFeedback();
+    }
+
+    @Override
+    public void onOperationUnloadCargoFeedback(String feedback) {
+        this.operationExecutor.onExecuteUnloadCargoFeedback();
     }
 
     @Override

@@ -6,4 +6,6 @@ import geometry_msgs.msg.PoseWithCovarianceStamped;
 public interface NodeMessageListener {
     void onNewGoalStatusArray(GoalStatusArray goalStatusArray);
     void onNewAmclPose(PoseWithCovarianceStamped amclPose);
+    void onOperationLoadCargoFeedback(String feedback);
+    void onOperationUnloadCargoFeedback(String feedback);
 }

@@ -3,16 +3,11 @@
  */
 package nl.saxion.nena.opentcs.commadapter.ros2;
 
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.ConnectionController;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.ConnectionListener;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.ConnectionStatus;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2AdapterComponentsFactory;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2CommAdapterFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.opentcs.data.model.Vehicle;
-import org.opentcs.drivers.vehicle.VehicleCommAdapter;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;

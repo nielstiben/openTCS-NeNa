@@ -1,13 +1,16 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.task;
 
 import geometry_msgs.msg.PoseStamped;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.OperationExecutor;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.OperationExecutorListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.MessageLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalTracker;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConstants;
 import org.opentcs.data.model.Point;
+import org.opentcs.data.model.Vehicle;
 import org.opentcs.drivers.vehicle.MovementCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,18 +21,21 @@ import java.util.Queue;
 /**
  * @author Niels Tiben <nielstiben@outlook.com>
  */
-public class ProcessCommandWorkflow implements NavigationGoalListener {
-    private static final Logger LOG = LoggerFactory.getLogger(ProcessCommandWorkflow.class);
+public class CommandWorkflow implements NavigationGoalListener, OperationExecutorListener {
+    private static final Logger LOG = LoggerFactory.getLogger(CommandWorkflow.class);
     private final Ros2ProcessModel processModelInstance;
     private final Queue<MovementCommand> sentQueue;
     private final Queue<MovementCommand> commandsQueue;
+
+    @Getter
+    private final OperationExecutor operationExecutor;
 
     private MovementCommand currentCommand;
     private boolean isCommandExecutorActive = false;
 
     /* --------------- 0: Construct and enable ---------------*/
 
-    public ProcessCommandWorkflow(
+    public CommandWorkflow(
             @Nonnull Ros2ProcessModel processModelInstance,
             @Nonnull Queue<MovementCommand> sentQueue,
             @Nonnull Queue<MovementCommand> commandsQueue
@@ -37,6 +43,7 @@ public class ProcessCommandWorkflow implements NavigationGoalListener {
         this.processModelInstance = processModelInstance;
         this.sentQueue = sentQueue;
         this.commandsQueue = commandsQueue;
+        this.operationExecutor = new OperationExecutor(this.processModelInstance, this);
     }
 
     public void enableNavigationGoalListener() {
@@ -46,23 +53,17 @@ public class ProcessCommandWorkflow implements NavigationGoalListener {
         goalTracker.setCommandExecutorListener(this);
     }
 
-    /* --------------- 0: Workflow validation ---------------*/
+    /* --------------- 1: Create Movement Command ---------------*/
 
-    public void processMovementCommandFromMovementCommand(MovementCommand movementCommand) {
+    public void processMovementCommand(MovementCommand movementCommand) {
         assert !this.isCommandExecutorActive;
         this.currentCommand = movementCommand;
-        processMovementCommand();
-    }
 
-    /* --------------- 1: Create Movement Command ---------------*/
-//    private void processMovementCommandFromQueue(){
-//        this.currentCommand = this.sentQueue.peek();
-//        processMovementCommand();
-//    }
-
-    private void processMovementCommand(){
         // Set active label
         this.isCommandExecutorActive = true;
+
+        // Set vehicle state
+        processModelInstance.setVehicleState(Vehicle.State.EXECUTING);
 
         // Get Destination
         assert this.currentCommand != null;
@@ -79,6 +80,10 @@ public class ProcessCommandWorkflow implements NavigationGoalListener {
         processModelInstance.getNodeManager().getNode().getGoalPublisher().publish(message);
 
         // Next step (2: Current Movement Command Active) is activated by callback.
+    }
+
+    private void processMovementCommand1(){
+
     }
 
     /* --------------- 2: Current Movement Command Active ---------------*/
@@ -129,72 +134,64 @@ public class ProcessCommandWorkflow implements NavigationGoalListener {
     @SneakyThrows
     private void executeOperationIfNeeded() {
         if (this.currentCommand.isWithoutOperation()) {
-            // No operation in this command => do nothing.
+            // No operation in this command => skip this step.
+            setCommandWorkflowSucceeded();
         } else {
-            String operation = this.currentCommand.getOperation();
-            switch (operation) {
-                case OperationConstants.LOAD_CARGO:
-                    LOG.info("CommandExecutor: Task Load Cargo not yet implemented");
-                    break;
-                case OperationConstants.UNLOAD_CARGO:
-                    LOG.info("CommandExecutor: Task Unload Cargo not yet implemented");
-                    break;
-                default:
-                    // TODO: Command Failed:
-//                    this.processModelInstance.commandFailed(this.currentCommand);
-                    throw new TaskNotImplementedException(operation);
-            }
+            this.operationExecutor.executeActionByName(this.currentCommand.getOperation());
         }
+    }
 
-        processNewCommandIfNeeded();
+    /* --------------- 4a: Operation has finished ---------------*/
+
+    @Override
+    public void onOperationExecutionSucceeded() {
+        LOG.info("Operation succeeded!");
+        setCommandWorkflowSucceeded();
+    }
+
+    /* --------------- 4b: Operation has failed ---------------*/
+
+    @Override
+    public void onOperationExecutionFailed(String reason) {
+        LOG.info(String.format("Operation failed: %s", reason));
+        setCommandWorkflowFailed();
     }
 
     /* --------------- 5: Check if there are already new ---------------*/
-    private void processNewCommandIfNeeded() {
-        LOG.info("2 Sent queue: " + this.sentQueue.toString());
-        LOG.info("2 Comm queue: " + this.commandsQueue.toString());
+    private void setCommandWorkflowSucceeded() {
+        removeExecutedCommandFromSentQueueAndSetWorkflowInactive();
 
-        // Remove it from the queue
-        MovementCommand movementCommandOnQueue = sentQueue.poll();
-        assert movementCommandOnQueue != null && movementCommandOnQueue.equals(currentCommand);
-
-        this.isCommandExecutorActive = false;
-        // Notify the vehicle manager that current command has finished.
         this.processModelInstance.commandExecuted(this.currentCommand);
 
-        LOG.info("3 Sent queue: " + this.sentQueue.toString());
-        LOG.info("3 Comm queue: " + this.commandsQueue.toString());
-
-        // TODO:
-        // If vehicle reached its final destination
-//        this.currentCommand.getFinalDestination().equals(currentPosition);
-
-        // Then set vehicle state to IDLE, because we don't expect a new task.
-//        this.processModelInstance.setVehicleState(Vehicle.State.IDLE);
-
-
-
-//        // If the command queue was cleared in the meantime, the kernel
-//        // might be surprised to hear we executed a command we shouldn't
-//        // have, so we only peek() at the beginning of this method and
-//        // poll() here. If sentCmd is null, the queue was probably cleared
-//        // and we shouldn't report anything back.
-//        this.sentQueue.poll();
-//
-//        if (isCommandQueueEmpty()) {
-//            // Finish: there is nothing left to process.
-//            System.out.println("No more commands found");
-//            this.processModelInstance.setVehicleState(Vehicle.State.IDLE);
-//        } else {
-//            // There are more commands: repeat steps 1 till 5.
-//            System.out.println("More commands found:");
-//            System.out.println(sentQueue.toString());
-//            System.out.println(commandsQueue.toString());
-//            processMovementCommandFromQueue();
-//        }
+        if (hasVehicleReachedFinalDestination()){
+            // We reached our final destination and executed all operations.
+            this.processModelInstance.setVehicleState(Vehicle.State.IDLE);
+        } else {
+            // We are expecting more commands to come, so let's keep the state on EXECUTING.
+            assert this.processModelInstance.getVehicleState().equals(Vehicle.State.EXECUTING);
+        }
     }
 
-//    private boolean isCommandQueueEmpty() {
-//        return this.sentQueue.size() <= 1 && this.commandsQueue.isEmpty();
-//    }
+    private void setCommandWorkflowFailed(){
+        removeExecutedCommandFromSentQueueAndSetWorkflowInactive();
+
+        this.processModelInstance.commandFailed(this.currentCommand);
+        this.processModelInstance.setVehicleState(Vehicle.State.ERROR);
+    }
+
+    private boolean hasVehicleReachedFinalDestination(){
+        Point finalDestination = this.currentCommand.getFinalDestination();
+        Point currentStepDestination = this.currentCommand.getStep().getDestinationPoint();
+
+        return currentStepDestination.equals(finalDestination);
+    }
+
+    private void removeExecutedCommandFromSentQueueAndSetWorkflowInactive(){
+        // Remove current command from the queue
+        MovementCommand movementCommandOnQueue = this.sentQueue.poll();
+        assert movementCommandOnQueue != null && movementCommandOnQueue.equals(this.currentCommand);
+
+        // Release the workflow for other commands.
+        this.isCommandExecutorActive = false;
+    }
 }
