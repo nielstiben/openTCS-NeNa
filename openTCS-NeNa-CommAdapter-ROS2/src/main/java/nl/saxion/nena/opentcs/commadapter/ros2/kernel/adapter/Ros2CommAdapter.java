@@ -3,7 +3,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter;
 import com.google.inject.assistedinject.Assisted;
 import lombok.Getter;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.OperationAllowedLib;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.task.CommandExecutor;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.task.ProcessCommandWorkflow;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2AdapterComponentsFactory;
 import org.opentcs.common.LoopbackAdapterConstants;
 import org.opentcs.customizations.kernel.KernelExecutor;
@@ -39,7 +39,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
      * Whether the loopback adapter is initialized or not.
      */
     private boolean initialized;
-    private CommandExecutor commandExecutor; // Only initiated when driver is enabled.
+    private ProcessCommandWorkflow processCommandWorkflow; // Only initiated when driver is enabled.
 
 
     /**
@@ -128,8 +128,8 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
         }
         Ros2ProcessModel processModel = getProcessModel();
         processModel.onDriverEnable();
-        this.commandExecutor = new CommandExecutor(processModel, getSentQueue(), getCommandQueue());
-        this.commandExecutor.enableNavigationGoalListener();
+        this.processCommandWorkflow = new ProcessCommandWorkflow(processModel, getSentQueue(), getCommandQueue());
+        this.processCommandWorkflow.enableNavigationGoalListener();
 
         super.enable();
     }
@@ -141,7 +141,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
         }
 
         getProcessModel().onDriverDisable(); // Vehicle instance
-        this.commandExecutor = null; // Cyclic task for picking up tasks
+        this.processCommandWorkflow = null; // Cyclic task for picking up tasks
 
         super.disable();
     }
@@ -159,8 +159,11 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
         LOG.info("INCOMING COMMAND:");
         LOG.info(cmd.toString());
 
+        LOG.info("1 Sent queue: " + getSentQueue().toString());
+        LOG.info("1 Comm queue: " + getCommandQueue().toString());
+
         // Forward to commandExecutor
-        commandExecutor.executeMovementCommand(cmd);
+        processCommandWorkflow.processMovementCommandFromMovementCommand(cmd);
     }
 
     @Override
@@ -217,7 +220,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
         ros2ProcessModelTO.setLoadOperation(getProcessModel().getLoadOperation());
         ros2ProcessModelTO.setOperatingTime(getProcessModel().getOperatingTime());
         ros2ProcessModelTO.setUnloadOperation(getProcessModel().getUnloadOperation());
-        ros2ProcessModelTO.setNavigationGoalTable(getProcessModel().getNavigationGoalTracker().toStringTable());
+        ros2ProcessModelTO.setNavigationGoalTable(getProcessModel().parseNavigationGoalTable());
         ros2ProcessModelTO.setEstimatePosition(getProcessModel().getEstimatePosition());
 
         return ros2ProcessModelTO;

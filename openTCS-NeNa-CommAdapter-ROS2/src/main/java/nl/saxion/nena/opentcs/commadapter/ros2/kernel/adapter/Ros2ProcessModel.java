@@ -51,7 +51,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
         this.loadOperation = extractLoadOperation(attachedVehicle);
         this.unloadOperation = extractUnloadOperation(attachedVehicle);
         this.operatingTime = parseOperatingTime(attachedVehicle);
-        this.navigationGoalTracker = new NavigationGoalTracker(this); // TODO: do we want to construct here??
+//        this.navigationGoalTracker = new NavigationGoalTracker(this); // TODO: do we want to construct here??
 
 
         this.nodeManager = new NodeManager();
@@ -130,10 +130,19 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
         return 1;
     }
 
+    public String[][]parseNavigationGoalTable(){
+        // todo: fix code smell
+        if (navigationGoalTracker == null){
+            return null;
+        } else {
+            return navigationGoalTracker.toStringTable();
+        }
+    }
+
     /* --------------- Enable / Disable ---------------*/
     public void onDriverEnable() {
         nodeManager.start(this, this, domainId);
-//        this.navigationGoalTracker = new NavigationGoalTracker(this);
+        this.navigationGoalTracker = new NavigationGoalTracker(this); // Start navigation goal tracker
 
     }
 
@@ -185,10 +194,9 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     @Override
     public void onNavigationGoalSucceeded(Point point) {
         if (point instanceof CoordinatePoint) {
-            LOG.info("FOUND CoordinatePoint");
-            // Do nothing
+            // The vehicle reached a coordinate point.
+            // Since this is a fictional point, the vehicle position should not be modified.
         } else {
-            LOG.info("FOUND Point");
             setVehiclePosition(point.getName());
             setVehiclePrecisePosition(point.getPosition());
         }

@@ -19,6 +19,7 @@ import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communicati
 @NoArgsConstructor
 public class NodeManager implements NodeStarterListener {
     private NodeRunningStatusListener nodeRunningStatusListener;
+    private NodeRunnable nodeRunnable;
 
     @Getter
     private Node node;
@@ -41,13 +42,16 @@ public class NodeManager implements NodeStarterListener {
     public void stop() {
         assert this.nodeRunningStatus == ACTIVE; // Only stopping active nodes can be stopped.
         changeNodeStatus(NOT_ACTIVE);
-        this.node.stop();
+
+        this.nodeRunnable.stop();
+        this.nodeRunnable = null;
         this.node = null;
     }
 
     @Override
-    public void onNodeInitiated(Node initialisedNode) {
-        this.node = initialisedNode;
+    public void onNodeInitiated(NodeRunnable initialisedNodeRunnable) {
+        this.nodeRunnable = initialisedNodeRunnable;
+        this.node = initialisedNodeRunnable.getNode();
         changeNodeStatus(ACTIVE);
     }
 
@@ -68,17 +72,18 @@ public class NodeManager implements NodeStarterListener {
                 // Waiting for node to initiate...
                 Thread.sleep(500);
             }
-            nodeStarterListener.onNodeInitiated(nodeRunnable.node);
+            nodeStarterListener.onNodeInitiated(nodeRunnable);
         }
     }
 
     /**
      * Runnable for the node instance.
      */
-    private static class NodeRunnable implements Runnable {
+    protected static class NodeRunnable implements Runnable {
         @Getter
         private Node node;
         private NodeMessageListener nodeMessageListener;
+        private SingleThreadedExecutor executor;
 
         public NodeRunnable(NodeMessageListener nodeMessageListener) {
             this.nodeMessageListener = nodeMessageListener;
@@ -87,10 +92,20 @@ public class NodeManager implements NodeStarterListener {
         @Override
         public void run() {
             RCLJava.rclJavaInit();
-            SingleThreadedExecutor exec = new SingleThreadedExecutor();
+            executor = new SingleThreadedExecutor();
             this.node = new Node(nodeMessageListener);
-            exec.addNode(node);
-            exec.spin();
+
+            executor.addNode(node);
+            executor.spin();
+        }
+
+        public void stop(){
+            this.node.stop();
+            this.executor.removeNode(node); // Remove the (stopped) node, otherwise it is still shown in the node list.
+
+            this.node = null;
+            this.executor = null;
+
         }
     }
 

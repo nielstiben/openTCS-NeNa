@@ -35,6 +35,10 @@ public class NavigationGoalTracker {
         }
 
         this.navigationGoalMap = sortByNewestDate(navigationGoalMap);
+
+        // Notify other instances if needed.
+        Optional<List<Byte>> firstNavigationGoalKey = navigationGoalMap.keySet().stream().findFirst();
+        firstNavigationGoalKey.ifPresent(key -> notifyListenersIfNeeded(navigationGoalMap.get((key))));
     }
 
     private void processNavigationGoal(@Nonnull GoalStatus goalStatusToProcess) {
@@ -100,12 +104,9 @@ public class NavigationGoalTracker {
         // Update navigation goal
         navigationGoalToUpdate.setNavigationGoalStatusByGoalStatus(goalStatusToProcess);
         navigationGoalToUpdate.setLastUpdatedByGoalStatus(goalStatusToProcess);
-
-        // Notify other instances if needed.
-        notifyListenerIfNeeded(navigationGoalToUpdate);
     }
 
-    private void notifyListenerIfNeeded(@Nonnull NavigationGoal navigationGoal) {
+    private void notifyListenersIfNeeded(@Nonnull NavigationGoal navigationGoal) {
         if (navigationGoal.getNavigationGoalStatus().equals(NavigationGoalStatus.SUCCEEDED)) {
             Point destinationPoint = navigationGoal.getDestinationPoint();
             if (destinationPoint != null) {
