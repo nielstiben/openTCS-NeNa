@@ -4,7 +4,7 @@ import geometry_msgs.msg.PoseStamped;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.OperationExecutor;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.ExecuteOperationWorkflow;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.OperationExecutorListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.MessageLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalListener;
@@ -21,29 +21,26 @@ import java.util.Queue;
 /**
  * @author Niels Tiben <nielstiben@outlook.com>
  */
-public class CommandWorkflow implements NavigationGoalListener, OperationExecutorListener {
-    private static final Logger LOG = LoggerFactory.getLogger(CommandWorkflow.class);
+public class ExecuteCommandWorkflow implements NavigationGoalListener, OperationExecutorListener {
+    private static final Logger LOG = LoggerFactory.getLogger(ExecuteCommandWorkflow.class);
     private final Ros2ProcessModel processModelInstance;
     private final Queue<MovementCommand> sentQueue;
-    private final Queue<MovementCommand> commandsQueue;
 
     @Getter
-    private final OperationExecutor operationExecutor;
+    private final ExecuteOperationWorkflow executeOperationWorkflow;
 
     private MovementCommand currentCommand;
     private boolean isCommandExecutorActive = false;
 
     /* --------------- 0: Construct and enable ---------------*/
 
-    public CommandWorkflow(
+    public ExecuteCommandWorkflow(
             @Nonnull Ros2ProcessModel processModelInstance,
-            @Nonnull Queue<MovementCommand> sentQueue,
-            @Nonnull Queue<MovementCommand> commandsQueue
+            @Nonnull Queue<MovementCommand> sentQueue
     ) {
         this.processModelInstance = processModelInstance;
         this.sentQueue = sentQueue;
-        this.commandsQueue = commandsQueue;
-        this.operationExecutor = new OperationExecutor(this.processModelInstance, this);
+        this.executeOperationWorkflow = new ExecuteOperationWorkflow(this.processModelInstance, this);
     }
 
     public void enableNavigationGoalListener() {
@@ -137,7 +134,7 @@ public class CommandWorkflow implements NavigationGoalListener, OperationExecuto
             // No operation in this command => skip this step.
             setCommandWorkflowSucceeded();
         } else {
-            this.operationExecutor.executeActionByName(this.currentCommand.getOperation());
+            this.executeOperationWorkflow.executeActionByName(this.currentCommand.getOperation());
         }
     }
 

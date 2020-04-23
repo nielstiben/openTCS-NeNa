@@ -13,6 +13,12 @@ public interface Ros2CommAdapterConfiguration {
             description = "Whether to register/enable the ROS2 communication adapter.",
             orderKey = "0_enable")
     boolean enable();
+    @ConfigurationEntry(
+            type = "Double",
+            description = "The scale of the plant model. Provide a small number for little plants. 1:x where x is the input.",
+            orderKey = "plantModelScale")
+    double plantModelScale();
+
 
     // TODO: Define the need for the config params below:
     @ConfigurationEntry(

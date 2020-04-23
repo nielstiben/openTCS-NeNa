@@ -4,6 +4,7 @@ import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter.LoadState;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConflictConstants;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConstants;
+import org.opentcs.data.model.Vehicle;
 import org.opentcs.util.ExplainedBoolean;
 
 import javax.annotation.Nonnull;
@@ -35,7 +36,7 @@ public class OperationAllowedLib {
         while (operationIterator.hasNext() && isLastOperationAllowed.getValue()) {
             final String nextOperation = operationIterator.next();
 
-            isLastOperationAllowed = isOperationAllowed(nextOperation);
+            isLastOperationAllowed = isOperationAllowed(nextOperation, adapterInstance);
         }
 
         // All operations are checked, thus allowed.
@@ -47,8 +48,12 @@ public class OperationAllowedLib {
      * @param operation the operation.
      * @return Whether the operation is allowed.
      */
-    public static ExplainedBoolean isOperationAllowed(@Nonnull String operation) {
+    public static ExplainedBoolean isOperationAllowed(@Nonnull String operation, Ros2CommAdapter adapterInstance) {
         switch (operation) {
+            case OperationConstants.MOVE:
+                return isMoveAllowed(adapterInstance);
+            case OperationConstants.NOP:
+                return isNopAllowed(adapterInstance);
             case OperationConstants.LOAD_CARGO:
                 return isLoadCargoAllowed();
             case OperationConstants.UNLOAD_CARGO:
@@ -84,8 +89,22 @@ public class OperationAllowedLib {
         }
     }
 
+    private static ExplainedBoolean isMoveAllowed(@Nonnull Ros2CommAdapter adapterInstance){
+        Vehicle.State currentVehicleState = adapterInstance.getProcessModel().getVehicleState();
+
+        if (currentVehicleState.equals(Vehicle.State.IDLE)) {
+            return new ExplainedBoolean(true, "");
+        } else {
+            return new ExplainedBoolean(false, "Vehicle is not in idle state");
+        }
+    }
+
+    private static ExplainedBoolean isNopAllowed(@Nonnull Ros2CommAdapter adapterInstance) {
+        return isMoveAllowed(adapterInstance);
+    }
+
     private static ExplainedBoolean getUnkownOperation() {
-        return new ExplainedBoolean(false, "unknownOperation");
+        return new ExplainedBoolean(false, "unknown operation");
     }
 
     private static boolean isVehicleLoadedByLoadState(LoadState loadState) {

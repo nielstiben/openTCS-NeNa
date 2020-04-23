@@ -5,7 +5,8 @@ import geometry_msgs.msg.PoseStamped;
 import geometry_msgs.msg.PoseWithCovarianceStamped;
 import lombok.Getter;
 import lombok.Setter;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.OperationExecutor;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.ScaleCorrector;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.ExecuteOperationWorkflow;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeManager;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeMessageListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatus;
@@ -47,7 +48,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     @Getter
     private Triple estimatePosition;
     @Setter
-    private OperationExecutor operationExecutor;
+    private ExecuteOperationWorkflow executeOperationWorkflow;
 
     public Ros2ProcessModel(Vehicle attachedVehicle) {
         super(attachedVehicle);
@@ -133,9 +134,9 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
         return 1;
     }
 
-    public String[][]parseNavigationGoalTable(){
+    public String[][] parseNavigationGoalTable() {
         // todo: fix code smell
-        if (navigationGoalTracker == null){
+        if (navigationGoalTracker == null) {
             return null;
         } else {
             return navigationGoalTracker.toStringTable();
@@ -175,24 +176,35 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
         Triple oldEstimatePosition = this.estimatePosition;
 
         geometry_msgs.msg.Point amclPosePoint = amclPose.getPose().getPose().getPosition();
-        this.estimatePosition = UnitConverterLib.convertCoordinatesInMeterToTriple(
+        Triple estimatePositionUnscaled = UnitConverterLib.convertCoordinatesInMeterToTriple(
                 amclPosePoint.getX(),
                 amclPosePoint.getY(),
                 amclPosePoint.getZ()
         );
+        // Scale triple
+        this.estimatePosition = ScaleCorrector.getInstance().scaleTripleForFleetManager(estimatePositionUnscaled);
 
         getPropertyChangeSupport().firePropertyChange(Attribute.POSITION_ESTIMATE.name(), oldEstimatePosition, this.estimatePosition);
+        setVehiclePrecisePosition(this.estimatePosition);
+
+        // W minus Z
+        amclPose.getPose().getPose().getOrientation();
+
+        System.out.println("ORIENTATION: ");
+        System.out.println(getVehicleOrientationAngle());
+
+
     }
 
     /* Operations */
     @Override
     public void onOperationLoadCargoFeedback(String feedback) {
-        this.operationExecutor.onExecuteLoadCargoFeedback();
+        this.executeOperationWorkflow.onExecuteLoadCargoFeedback();
     }
 
     @Override
     public void onOperationUnloadCargoFeedback(String feedback) {
-        this.operationExecutor.onExecuteUnloadCargoFeedback();
+        this.executeOperationWorkflow.onExecuteUnloadCargoFeedback();
     }
 
     @Override

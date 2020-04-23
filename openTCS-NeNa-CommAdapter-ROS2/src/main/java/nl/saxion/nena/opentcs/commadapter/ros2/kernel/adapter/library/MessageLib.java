@@ -26,12 +26,15 @@ public class MessageLib {
 
     public static PoseStamped generateNavigationMessageByPoint(Point point){
         Triple triple = point.getPosition();
-        double[] xyz = UnitConverterLib.convertTripleToCoordinatesInMeter(triple);
+        double[] xyzUnscaled = UnitConverterLib.convertTripleToCoordinatesInMeter(triple);
+
+        // Scale
+        double[] xyzScaled = ScaleCorrector.getInstance().scaleCoordinatesForDevice(xyzUnscaled);
 
         geometry_msgs.msg.Point position = new geometry_msgs.msg.Point();
-        position.setX(xyz[0]);
-        position.setY(xyz[1]);
-        position.setZ(xyz[2]);
+        position.setX(xyzScaled[0]);
+        position.setY(xyzScaled[1]);
+        position.setZ(xyzScaled[2]);
 
         geometry_msgs.msg.Pose pose = new geometry_msgs.msg.Pose();
         pose.setPosition(position);

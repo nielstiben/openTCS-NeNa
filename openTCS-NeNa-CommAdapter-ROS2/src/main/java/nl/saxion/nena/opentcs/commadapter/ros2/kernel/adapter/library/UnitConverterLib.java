@@ -1,5 +1,6 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library;
 
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapterConfiguration;
 import org.opentcs.data.model.Triple;
 
 import javax.annotation.Nonnull;

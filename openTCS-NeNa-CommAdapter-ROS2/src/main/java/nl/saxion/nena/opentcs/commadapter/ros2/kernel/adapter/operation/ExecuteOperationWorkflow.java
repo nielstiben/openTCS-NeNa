@@ -10,7 +10,7 @@ import javax.annotation.Nonnull;
 /**
  * @author Niels Tiben <nielstiben@outlook.com>
  */
-public class OperationExecutor {
+public class ExecuteOperationWorkflow {
     private boolean isActionBeingExecuted = false;
 
     private final Ros2ProcessModel processModel;
@@ -18,7 +18,7 @@ public class OperationExecutor {
 
     /* --------------- 1: Construct / Start ---------------*/
 
-    public OperationExecutor(Ros2ProcessModel processModel, OperationExecutorListener operationExecutorListener) {
+    public ExecuteOperationWorkflow(Ros2ProcessModel processModel, OperationExecutorListener operationExecutorListener) {
         this.processModel = processModel;
         this.operationExecutorListener = operationExecutorListener;
     }

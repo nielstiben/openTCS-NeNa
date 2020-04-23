@@ -2,8 +2,9 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter;
 
 import com.google.inject.assistedinject.Assisted;
 import lombok.Getter;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.ScaleCorrector;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.OperationAllowedLib;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.task.CommandWorkflow;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.task.ExecuteCommandWorkflow;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2AdapterComponentsFactory;
 import org.opentcs.common.LoopbackAdapterConstants;
 import org.opentcs.customizations.kernel.KernelExecutor;
@@ -39,7 +40,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
      * Whether the loopback adapter is initialized or not.
      */
     private boolean initialized;
-    private CommandWorkflow commandWorkflow; // Only initiated when driver is enabled.
+    private ExecuteCommandWorkflow executeCommandWorkflow; // Only initiated when driver is enabled.
 
 
     /**
@@ -82,6 +83,9 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
             String deprecatedInitialPos = vehicle.getProperties().get(ObjectPropConstants.VEHICLE_INITIAL_POSITION);
             initialPos = deprecatedInitialPos;
         }
+
+        // Set scale
+        ScaleCorrector.getInstance().setScale(configuration.plantModelScale());
 
         getProcessModel().setVehicleState(Vehicle.State.IDLE);
         this.initialized = true;
@@ -128,9 +132,9 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
         }
         Ros2ProcessModel processModel = getProcessModel();
         processModel.onDriverEnable();
-        this.commandWorkflow = new CommandWorkflow(processModel, getSentQueue(), getCommandQueue());
-        this.commandWorkflow.enableNavigationGoalListener();
-        processModel.setOperationExecutor(this.commandWorkflow.getOperationExecutor());
+        this.executeCommandWorkflow = new ExecuteCommandWorkflow(processModel, getSentQueue());
+        this.executeCommandWorkflow.enableNavigationGoalListener();
+        processModel.setExecuteOperationWorkflow(this.executeCommandWorkflow.getExecuteOperationWorkflow());
 
         super.enable();
     }
@@ -142,7 +146,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
         }
 
         getProcessModel().onDriverDisable(); // Vehicle instance
-        this.commandWorkflow = null; // Cyclic task for picking up tasks
+        this.executeCommandWorkflow = null; // Cyclic task for picking up tasks
 
         super.disable();
     }
@@ -164,7 +168,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
         LOG.info("1 Comm queue: " + getCommandQueue().toString());
 
         // Forward to commandExecutor
-        commandWorkflow.processMovementCommand(cmd);
+        executeCommandWorkflow.processMovementCommand(cmd);
     }
 
     @Override
