@@ -5,13 +5,14 @@ import geometry_msgs.msg.PoseStamped;
 import geometry_msgs.msg.PoseWithCovarianceStamped;
 import lombok.Getter;
 import lombok.Setter;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.IncomingMessageLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.ScaleCorrector;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.ExecuteOperationWorkflow;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeManager;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeMessageListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatus;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatusListener;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.MessageLib;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.OutgoingMessageLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.UnitConverterLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalTracker;
@@ -70,7 +71,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
      * @param y The Y coordinate in meters.
      */
     public void setInitialPosition(double x, double y) {
-        final PoseWithCovarianceStamped message = MessageLib.generateInitialPoseMessageByCoordinate(x, y);
+        final PoseWithCovarianceStamped message = OutgoingMessageLib.generateInitialPoseMessageByCoordinate(x, y);
         // Todo: set current location too.
         nodeManager.getNode().getInitialPosePublisher().publish(message);
     }
@@ -92,7 +93,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
      */
     public void dispatchToPoint(@Nonnull Point point) {
         LOG.info("Dispatching vehicle to point '{}'", point.getName());
-        PoseStamped message = MessageLib.generateNavigationMessageByPoint(point);
+        PoseStamped message = OutgoingMessageLib.generateScaledNavigationMessageByPoint(point);
 
         this.navigationGoalTracker.setDestinationPointIncomingGoal(point); // Notify NavigationGoalTracker that we expect a new goal
         this.nodeManager.getNode().getGoalPublisher().publish(message);
@@ -175,14 +176,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     public void onNewAmclPose(PoseWithCovarianceStamped amclPose) {
         Triple oldEstimatePosition = this.estimatePosition;
 
-        geometry_msgs.msg.Point amclPosePoint = amclPose.getPose().getPose().getPosition();
-        Triple estimatePositionUnscaled = UnitConverterLib.convertCoordinatesInMeterToTriple(
-                amclPosePoint.getX(),
-                amclPosePoint.getY(),
-                amclPosePoint.getZ()
-        );
-        // Scale triple
-        this.estimatePosition = ScaleCorrector.getInstance().scaleTripleForFleetManager(estimatePositionUnscaled);
+        this.estimatePosition = IncomingMessageLib.generateTripleByAmclPose(amclPose);
 
         getPropertyChangeSupport().firePropertyChange(Attribute.POSITION_ESTIMATE.name(), oldEstimatePosition, this.estimatePosition);
         setVehiclePrecisePosition(this.estimatePosition);

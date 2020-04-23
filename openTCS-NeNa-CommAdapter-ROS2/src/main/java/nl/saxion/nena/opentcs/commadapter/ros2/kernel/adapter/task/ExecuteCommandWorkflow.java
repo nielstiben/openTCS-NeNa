@@ -6,7 +6,7 @@ import lombok.SneakyThrows;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.ExecuteOperationWorkflow;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.OperationExecutorListener;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.MessageLib;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.OutgoingMessageLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalTracker;
 import org.opentcs.data.model.Point;
@@ -68,7 +68,7 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
 
         // Generate message.
         LOG.info("Command Execution: Dispatching vehicle to point '{}'", destinationPoint.getName());
-        PoseStamped message = MessageLib.generateNavigationMessageByPoint(destinationPoint);
+        PoseStamped message = OutgoingMessageLib.generateScaledNavigationMessageByPoint(destinationPoint);
 
         // Notify NavigationGoalTracker that we expect a new goal.
         processModelInstance.getNavigationGoalTracker().setDestinationPointIncomingGoal(destinationPoint);

@@ -6,12 +6,13 @@ import geometry_msgs.msg.PoseWithCovarianceStamped;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Triple;
 
-public class MessageLib {
+public class OutgoingMessageLib {
     public static PoseWithCovarianceStamped generateInitialPoseMessageByCoordinate(double x, double y) {
         geometry_msgs.msg.Point position = new geometry_msgs.msg.Point();
         position.setX(x);
         position.setY(y);
 
+        // TODO scaler
         geometry_msgs.msg.Pose pose = new geometry_msgs.msg.Pose();
         pose.setPosition(position);
 
@@ -24,7 +25,7 @@ public class MessageLib {
         return poseWithCovarianceStamped;
     }
 
-    public static PoseStamped generateNavigationMessageByPoint(Point point){
+    public static PoseStamped generateScaledNavigationMessageByPoint(Point point){
         Triple triple = point.getPosition();
         double[] xyzUnscaled = UnitConverterLib.convertTripleToCoordinatesInMeter(triple);
 
