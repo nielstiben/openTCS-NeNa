@@ -5,22 +5,25 @@ import geometry_msgs.msg.PoseStamped;
 import geometry_msgs.msg.PoseWithCovarianceStamped;
 import lombok.Getter;
 import org.ros2.rcljava.RCLJava;
+import org.ros2.rcljava.node.BaseComposableNode;
+import org.ros2.rcljava.node.ComposableNode;
 import org.ros2.rcljava.publisher.Publisher;
 
 import javax.annotation.Nonnull;
 
 /**
  * Class that holds an an instances of a node and of all its publishers and subscriptions.
+ * It is based on org.ros2.rcljava.node.BaseComposableNode/
  */
 @Getter
-public class OpentcsNode {
+public class OpenTcsNode implements ComposableNode{
     @Getter
     private org.ros2.rcljava.node.Node node;
     private Publisher<PoseWithCovarianceStamped> initialPosePublisher;
     private Publisher<PoseStamped> goalPublisher;
 
 
-    public OpentcsNode(@Nonnull NodeMessageListener nodeMessageListener) {
+    public OpenTcsNode(@Nonnull NodeMessageListener nodeMessageListener) {
         this.node = RCLJava.createNode("opentcs");
 
         /* --------------- Publishers ---------------*/

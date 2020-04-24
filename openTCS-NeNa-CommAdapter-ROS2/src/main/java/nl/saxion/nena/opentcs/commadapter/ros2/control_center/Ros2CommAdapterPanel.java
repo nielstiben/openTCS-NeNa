@@ -118,15 +118,19 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         if (nodeStatus.equals(NodeRunningStatus.NOT_ACTIVE.name())) {
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node is not active"));
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.BLACK));
+            SwingUtilities.invokeLater(() -> enableButton.setEnabled(true)); // Release the enabled button.
         } else if (nodeStatus.equals(NodeRunningStatus.INITIATING.name())) {
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node is initiating"));
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.ORANGE));
+            SwingUtilities.invokeLater(() -> enableButton.setEnabled(false)); // Lock the enabled button.
         } else if (nodeStatus.equals(NodeRunningStatus.ACTIVE.name())) {
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node is active"));
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.GREEN));
+            SwingUtilities.invokeLater(() -> enableButton.setEnabled(true)); // Release the enabled button.
         } else if (nodeStatus.equals(NodeRunningStatus.TERMINATING.name())) {
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node is shutting down"));
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.ORANGE));
+            SwingUtilities.invokeLater(() -> enableButton.setEnabled(false)); // Lock the enabled button.
         } else {
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node has an unknown state"));
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.RED));

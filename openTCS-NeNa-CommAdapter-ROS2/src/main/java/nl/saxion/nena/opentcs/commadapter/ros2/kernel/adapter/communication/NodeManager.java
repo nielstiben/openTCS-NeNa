@@ -1,12 +1,11 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import org.ros2.rcljava.RCLJava;
-
-import javax.annotation.Nonnull;
+import org.ros2.rcljava.executors.SingleThreadedExecutor;
 
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatus.*;
 
@@ -23,7 +22,7 @@ public class NodeManager implements NodeStarterListener {
     private NodeRunnable nodeRunnable;
 
     @Getter
-    private OpentcsNode opentcsNode;
+    private OpenTcsNode opentcsNode;
 
     @Getter
     private NodeRunningStatus nodeRunningStatus = NOT_ACTIVE;
@@ -33,20 +32,25 @@ public class NodeManager implements NodeStarterListener {
         this.nodeRunningStatusListener = nodeRunningStatusListener;
 
         changeNodeStatus(INITIATING);
+
         NodeRunnable nodeRunnable = new NodeRunnable(nodeMessageListener, this);
-        new Thread(nodeRunnable).start();
+        NodeWatcher nodeWatcher = new NodeWatcher(nodeRunnable, this);
+
+        new Thread(nodeWatcher).start();
     }
 
     public void stop() {
         assert this.nodeRunningStatus == ACTIVE; // Only stopping active nodes can be stopped.
         changeNodeStatus(TERMINATING);
-        this.nodeRunnable.setRunning(false);
+
+        this.nodeRunnable.stop();
+
     }
 
     @Override
-    public void onNodeStarted(@Nonnull NodeRunnable initialisedNodeRunnable) {
-        this.nodeRunnable = initialisedNodeRunnable;
-        this.opentcsNode = initialisedNodeRunnable.getOpentcsNode();
+    public void onNodeStarted(NodeRunnable nodeRunnable) throws InterruptedException {
+        this.nodeRunnable = nodeRunnable;
+        this.opentcsNode = nodeRunnable.getNode();
         changeNodeStatus(ACTIVE);
     }
 
@@ -58,35 +62,56 @@ public class NodeManager implements NodeStarterListener {
     }
 
     /**
-     * Runnable for the node instance.
+     * Runnable that watches the NodeRunnable and gives a callback when the node has been initialised.
      */
-    protected static class NodeRunnable implements Runnable {
-        @Getter
-        private OpentcsNode opentcsNode;
-        private final NodeMessageListener nodeMessageListener;
+    @AllArgsConstructor
+    private static class NodeWatcher implements Runnable {
+        private NodeRunnable nodeRunnable;
         private NodeStarterListener nodeStarterListener;
-        @Setter
-        private boolean isRunning;
-
-        public NodeRunnable(NodeMessageListener nodeMessageListener, NodeStarterListener nodeStarterListener) {
-            this.nodeMessageListener = nodeMessageListener;
-            this.nodeStarterListener = nodeStarterListener;
-        }
 
         @SneakyThrows
         @Override
         public void run() {
-            this.isRunning = true;
-            RCLJava.rclJavaInit();
-            this.opentcsNode = new OpentcsNode(nodeMessageListener);
-            nodeStarterListener.onNodeStarted(this);
+            new Thread(nodeRunnable).start();
 
-            while (RCLJava.ok() && this.isRunning) {
-                RCLJava.spinOnce(this.opentcsNode.getNode());
+            while (nodeRunnable.getNode() == null) {
+                // Waiting for node to initiate...
+                Thread.sleep(500);
             }
+            nodeStarterListener.onNodeStarted(nodeRunnable);
+        }
+    }
 
-            this.opentcsNode.shutdown();
-            this.opentcsNode = null;
+    /**
+     * Runnable for the node instance.
+     */
+    protected static class NodeRunnable implements Runnable {
+        @Getter
+        private OpenTcsNode node;
+        private NodeMessageListener nodeMessageListener;
+        private NodeStarterListener nodeStarterListener;
+        private SingleThreadedExecutor executor;
+
+        public NodeRunnable(NodeMessageListener nodeMessageListener,  NodeStarterListener nodeStarterListener) {
+            this.nodeMessageListener = nodeMessageListener;
+            this.nodeStarterListener = nodeStarterListener;
+        }
+
+        @Override
+        public void run() {
+            RCLJava.rclJavaInit();
+            executor = new SingleThreadedExecutor();
+            this.node = new OpenTcsNode(nodeMessageListener);
+            executor.addNode(node);
+            executor.spin();
+        }
+
+        public void stop(){
+            this.node.shutdown();
+            this.executor.removeNode(node); // Remove the (stopped) node, otherwise it is still shown in the node list.
+
+            this.node = null;
+            this.executor = null;
             nodeStarterListener.onNodeStopped();
         }
     }
