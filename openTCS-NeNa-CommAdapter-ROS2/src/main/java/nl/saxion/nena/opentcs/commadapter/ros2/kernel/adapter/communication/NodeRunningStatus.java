@@ -4,4 +4,5 @@ public enum NodeRunningStatus {
     NOT_ACTIVE,
     INITIATING,
     ACTIVE,
+    TERMINATING,
 }

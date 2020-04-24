@@ -124,6 +124,9 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         } else if (nodeStatus.equals(NodeRunningStatus.ACTIVE.name())) {
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node is active"));
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.GREEN));
+        } else if (nodeStatus.equals(NodeRunningStatus.TERMINATING.name())) {
+            SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node is shutting down"));
+            SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.ORANGE));
         } else {
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node has an unknown state"));
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.RED));
