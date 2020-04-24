@@ -5,7 +5,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2.control_center.lib;
  */
 public class InputValidationLib {
     public static boolean isValidNamespace(String namespace) {
-        return namespace.matches("/[a-zA-Z0-9]+");
+        return namespace.matches("(|(/[a-zA-Z0-9]+))");
     }
 
     public static String getIsDoubleRegex(){

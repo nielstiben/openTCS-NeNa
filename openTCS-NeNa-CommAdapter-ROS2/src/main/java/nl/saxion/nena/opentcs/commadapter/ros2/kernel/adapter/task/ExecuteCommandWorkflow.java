@@ -74,7 +74,7 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
         processModelInstance.getNavigationGoalTracker().setDestinationPointIncomingGoal(destinationPoint);
 
         // Give dispatch order.
-        processModelInstance.getNodeManager().getNode().getGoalPublisher().publish(message);
+        processModelInstance.getNodeManager().getOpentcsNode().getGoalPublisher().publish(message);
 
         // Next step (2: Current Movement Command Active) is activated by callback.
     }

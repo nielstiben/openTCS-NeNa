@@ -5,7 +5,6 @@ import geometry_msgs.msg.PoseStamped;
 import geometry_msgs.msg.PoseWithCovarianceStamped;
 import lombok.Getter;
 import org.ros2.rcljava.RCLJava;
-import org.ros2.rcljava.node.BaseComposableNode;
 import org.ros2.rcljava.publisher.Publisher;
 
 import javax.annotation.Nonnull;
@@ -14,12 +13,16 @@ import javax.annotation.Nonnull;
  * Class that holds an an instances of a node and of all its publishers and subscriptions.
  */
 @Getter
-public class Node extends BaseComposableNode {
+public class OpentcsNode {
+    @Getter
+    private org.ros2.rcljava.node.Node node;
     private Publisher<PoseWithCovarianceStamped> initialPosePublisher;
     private Publisher<PoseStamped> goalPublisher;
 
-    public Node(@Nonnull NodeMessageListener nodeMessageListener) {
-        super("opentcs"); // Node Name
+
+    public OpentcsNode(@Nonnull NodeMessageListener nodeMessageListener) {
+        this.node = RCLJava.createNode("opentcs");
+
         /* --------------- Publishers ---------------*/
         // Publisher for setting the initial pose
         this.initialPosePublisher = node.createPublisher(PoseWithCovarianceStamped.class, "/initialpose");
@@ -46,7 +49,7 @@ public class Node extends BaseComposableNode {
     /**
      * Stop the node.
      */
-    public void stop() {
+    public void shutdown() {
         RCLJava.shutdown();
     }
 }
