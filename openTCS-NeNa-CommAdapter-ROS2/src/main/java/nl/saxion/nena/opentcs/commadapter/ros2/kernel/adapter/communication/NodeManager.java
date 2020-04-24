@@ -27,10 +27,10 @@ public class NodeManager implements NodeStarterListener {
     @Getter
     private NodeRunningStatus nodeRunningStatus = NOT_ACTIVE;
 
-    public void start(NodeRunningStatusListener nodeRunningStatusListener, NodeMessageListener nodeMessageListener, int domainId) {
+    public void start(NodeRunningStatusListener nodeRunningStatusListener, NodeMessageListener nodeMessageListener, String namespace) {
         assert this.nodeRunningStatus == NodeRunningStatus.NOT_ACTIVE;
-
         this.nodeRunningStatusListener = nodeRunningStatusListener;
+
         changeNodeStatus(INITIATING);
 
         NodeRunnable nodeRunnable = new NodeRunnable(nodeMessageListener);
@@ -94,7 +94,6 @@ public class NodeManager implements NodeStarterListener {
             RCLJava.rclJavaInit();
             executor = new SingleThreadedExecutor();
             this.node = new Node(nodeMessageListener);
-
             executor.addNode(node);
             executor.spin();
         }

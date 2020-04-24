@@ -3,19 +3,19 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter;
 import action_msgs.msg.GoalStatusArray;
 import geometry_msgs.msg.PoseStamped;
 import geometry_msgs.msg.PoseWithCovarianceStamped;
+import geometry_msgs.msg.Quaternion;
 import lombok.Getter;
 import lombok.Setter;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.IncomingMessageLib;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.ScaleCorrector;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.ExecuteOperationWorkflow;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeManager;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeMessageListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatus;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatusListener;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.IncomingMessageLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.OutgoingMessageLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.UnitConverterLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalTracker;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.ExecuteOperationWorkflow;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConstants;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.point.CoordinatePoint;
 import org.opentcs.data.model.Point;
@@ -39,7 +39,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     private final String unloadOperation;
 
     @Setter
-    private int domainId = 0;
+    private String namespace = "";
     @Getter
     private NavigationGoalTracker navigationGoalTracker;
     @Getter
@@ -146,7 +146,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
 
     /* --------------- Enable / Disable ---------------*/
     public void onDriverEnable() {
-        nodeManager.start(this, this, domainId);
+        nodeManager.start(this, this, this.namespace);
         this.navigationGoalTracker = new NavigationGoalTracker(this); // Start navigation goal tracker
 
     }
@@ -175,19 +175,16 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     @Override
     public void onNewAmclPose(PoseWithCovarianceStamped amclPose) {
         Triple oldEstimatePosition = this.estimatePosition;
-
         this.estimatePosition = IncomingMessageLib.generateTripleByAmclPose(amclPose);
 
-        getPropertyChangeSupport().firePropertyChange(Attribute.POSITION_ESTIMATE.name(), oldEstimatePosition, this.estimatePosition);
+        // Set precise position
         setVehiclePrecisePosition(this.estimatePosition);
+        getPropertyChangeSupport().firePropertyChange(Attribute.POSITION_ESTIMATE.name(), oldEstimatePosition, this.estimatePosition);
 
-        // W minus Z
-        amclPose.getPose().getPose().getOrientation();
-
-        System.out.println("ORIENTATION: ");
-        System.out.println(getVehicleOrientationAngle());
-
-
+        // Set orientation angle
+        Quaternion orientationQuaternion = amclPose.getPose().getPose().getOrientation();
+        double orientationDegrees = UnitConverterLib.quaternionToAngleDegree(orientationQuaternion);
+        setVehicleOrientationAngle(orientationDegrees);
     }
 
     /* Operations */

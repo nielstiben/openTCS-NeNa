@@ -9,12 +9,12 @@ import org.opentcs.drivers.vehicle.VehicleCommAdapter;
  * Command to setup ROS2 connection with a given domain id.
  */
 @AllArgsConstructor
-public class SetDomainIdCommand implements AdapterCommand {
-    private final int domainId;
+public class SetNamespaceCommand implements AdapterCommand {
+    private final String namespace;
 
     @Override
     public void execute(VehicleCommAdapter adapter) {
         Ros2ProcessModel ros2ProcessModel = (Ros2ProcessModel) adapter.getProcessModel();
-        ros2ProcessModel.setDomainId(domainId);
+        ros2ProcessModel.setNamespace(namespace);
     }
 }

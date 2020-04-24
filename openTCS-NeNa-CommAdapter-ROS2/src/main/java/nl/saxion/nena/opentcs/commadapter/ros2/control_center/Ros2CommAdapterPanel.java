@@ -3,7 +3,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2.control_center;
 import com.google.inject.assistedinject.Assisted;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.DispatchToCoordinateCommand;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.DispatchToPointCommand;
-import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.SetDomainIdCommand;
+import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.SetNamespaceCommand;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.SetLoadHandlingDevicesCommand;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components.*;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.lib.InputValidationLib;
@@ -109,7 +109,7 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
             updateNodeStatus(processModel.getNodeStatus());
         } else if (attributeChanged.equals(NAVIGATION_GOALS.name())) {
             updateNavigationGoalsTable(processModel.getNavigationGoalTable());
-        }else if (attributeChanged.equals(POSITION_ESTIMATE.name())) {
+        } else if (attributeChanged.equals(POSITION_ESTIMATE.name())) {
             updatePositionEstimateValueLabel(processModel.getEstimatePosition());
         }
     }
@@ -133,27 +133,38 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
     private void updateVehicleProcessModelData(String attributeChanged, VehicleProcessModelTO processModel) {
         if (attributeChanged.equals(VehicleProcessModel.Attribute.COMM_ADAPTER_ENABLED.name())) {
             updateIsAdapterEnabled(processModel.isCommAdapterEnabled());
-        } else if(attributeChanged.equals(VehicleProcessModel.Attribute.POSITION.name())){
+        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.POSITION.name())) {
             updatePositionPointValueLabel(processModel.getVehiclePosition());
-        } else if(attributeChanged.equals(VehicleProcessModel.Attribute.PRECISE_POSITION.name())){
+        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.PRECISE_POSITION.name())) {
             updatePositionCoordinateValueLabel(processModel.getPrecisePosition());
+        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.ORIENTATION_ANGLE.name())) {
+            updateOrientationAngleValueLabel(processModel.getOrientationAngle());
         } else if (attributeChanged.equals(VehicleProcessModel.Attribute.LOAD_HANDLING_DEVICES.name())) {
             updateVehicleLoadHandlingDevice(processModel.getLoadHandlingDevices());
         }
     }
 
-    private void updatePositionPointValueLabel(String updatedPointName){
-        if (updatedPointName != null && !updatedPointName.isEmpty()){
+    private void updatePositionPointValueLabel(String updatedPointName) {
+        if (updatedPointName != null && !updatedPointName.isEmpty()) {
             SwingUtilities.invokeLater(() -> positionPointValueLabel.setText(updatedPointName));
         }
     }
 
-    private void updatePositionCoordinateValueLabel(Triple updatedCoordinate){
-        if(updatedCoordinate != null){
+    private void updatePositionCoordinateValueLabel(Triple updatedCoordinate) {
+        if (updatedCoordinate != null) {
             double[] xyz = UnitConverterLib.convertTripleToCoordinatesInMeter(updatedCoordinate);
             String coordinateText = String.format("%.2f, %.2f, %.2f", xyz[0], xyz[1], xyz[2]); // Print as two-decimal numbers
             SwingUtilities.invokeLater(() -> positionCoordinateValueLabel.setText(coordinateText));
         }
+    }
+
+    private void updateOrientationAngleValueLabel(double updatedOrientationAngle) {
+        if (!Double.isNaN(updatedOrientationAngle)) {
+            SwingUtilities.invokeLater(() -> orientationDegreesValueLabel.setText(
+                    String.format("%.2f°", updatedOrientationAngle))
+            );
+        }
+
     }
 
     private void updateNavigationGoalsTable(Object[][] navigationGoalData) {
@@ -172,8 +183,8 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         SwingUtilities.invokeLater(() -> navigationGoalTable.setModel(tableModel));
     }
 
-    private void updatePositionEstimateValueLabel(Triple updatedEstimate){
-        if(updatedEstimate != null){
+    private void updatePositionEstimateValueLabel(Triple updatedEstimate) {
+        if (updatedEstimate != null) {
             double[] xyz = UnitConverterLib.convertTripleToCoordinatesInMeter(updatedEstimate);
             String coordinateText = String.format("%.2f, %.2f, %.2f", xyz[0], xyz[1], xyz[2]); // Print as two-decimal numbers
             SwingUtilities.invokeLater(() -> positionEstimateValueLabel.setText(coordinateText));
@@ -205,8 +216,8 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
      */
     private void setStatePanelEnabled(boolean enabled) {
         // Top panel pane
-        SwingUtilities.invokeLater(() -> domainIdLabel.setEnabled(!enabled));
-        SwingUtilities.invokeLater(() -> domainIdTextField.setEnabled(!enabled));
+        SwingUtilities.invokeLater(() -> namespaceLabel.setEnabled(!enabled));
+        SwingUtilities.invokeLater(() -> namespaceTextField.setEnabled(!enabled));
         SwingUtilities.invokeLater(() -> setEnableButtonTextByEnabledBoolean(enabled));
 
         // Navigation goals pane
@@ -257,8 +268,8 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         topPanel = new javax.swing.JPanel();
         topPanelLeft = new javax.swing.JPanel();
         domainIdPanel = new javax.swing.JPanel();
-        domainIdLabel = new javax.swing.JLabel();
-        domainIdTextField = new javax.swing.JTextField();
+        namespaceLabel = new javax.swing.JLabel();
+        namespaceTextField = new javax.swing.JTextField();
         enableButtonWrapper = new javax.swing.JPanel();
         enableButton = new javax.swing.JButton();
         nodeStatusLabel = new javax.swing.JLabel();
@@ -273,10 +284,12 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         positionPointLabelLabel = new javax.swing.JLabel();
         positionCoordinateLabelLabel = new javax.swing.JLabel();
         positionEstimateLabelLabel = new javax.swing.JLabel();
+        orientationDegreesLabelLabel = new javax.swing.JLabel();
         vehiclePropertiesValuesPanel = new javax.swing.JPanel();
         positionPointValueLabel = new javax.swing.JLabel();
         positionCoordinateValueLabel = new javax.swing.JLabel();
         positionEstimateValueLabel = new javax.swing.JLabel();
+        orientationDegreesValueLabel = new javax.swing.JLabel();
         testPanel = new javax.swing.JPanel();
         navigationGoalTableScrollPane = new javax.swing.JScrollPane();
         navigationGoalTable = new javax.swing.JTable();
@@ -312,12 +325,11 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         domainIdPanel.setMaximumSize(new java.awt.Dimension(2147483647, 25));
         domainIdPanel.setLayout(new java.awt.BorderLayout());
 
-        domainIdLabel.setText(bundle.getString("ros2CommAdapterPanel.label_domain_id.text")); // NOI18N
-        domainIdPanel.add(domainIdLabel, java.awt.BorderLayout.WEST);
+        namespaceLabel.setText(bundle.getString("ros2CommAdapterPanel.label_namespace.text")); // NOI18N
+        domainIdPanel.add(namespaceLabel, java.awt.BorderLayout.WEST);
 
-        domainIdTextField.setText(bundle.getString("ros2CommAdapterPanel.textField_domainId")); // NOI18N
-        domainIdTextField.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-        domainIdPanel.add(domainIdTextField, java.awt.BorderLayout.CENTER);
+        namespaceTextField.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        domainIdPanel.add(namespaceTextField, java.awt.BorderLayout.CENTER);
 
         topPanelLeft.add(domainIdPanel, java.awt.BorderLayout.PAGE_START);
 
@@ -398,6 +410,9 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         positionEstimateLabelLabel.setText(bundle.getString("ros2CommAdapterPanel.label_position_estimate.text")); // NOI18N
         vehiclePropertiesLabelsPanel.add(positionEstimateLabelLabel);
 
+        orientationDegreesLabelLabel.setText(bundle.getString("ros2CommAdapterPanel.label_orientation_degrees.text")); // NOI18N
+        vehiclePropertiesLabelsPanel.add(orientationDegreesLabelLabel);
+
         vehiclePropertiesLeftPanel.add(vehiclePropertiesLabelsPanel, java.awt.BorderLayout.WEST);
 
         vehiclePropertiesValuesPanel.setBackground(new java.awt.Color(255, 255, 255));
@@ -416,6 +431,9 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         positionEstimateValueLabel.setFont(new java.awt.Font("Ubuntu", 2, 15)); // NOI18N
         positionEstimateValueLabel.setText(" ");
         vehiclePropertiesValuesPanel.add(positionEstimateValueLabel);
+
+        orientationDegreesValueLabel.setText(" ");
+        vehiclePropertiesValuesPanel.add(orientationDegreesValueLabel);
 
         vehiclePropertiesLeftPanel.add(vehiclePropertiesValuesPanel, java.awt.BorderLayout.LINE_END);
 
@@ -490,15 +508,14 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
 
             } else {
                 // Enable adapter:
-                String domainIdString = domainIdTextField.getText();
-                if (!InputValidationLib.isValidDomainId(domainIdString)) {
-                    // Invalid domain ID
+                String namespaceString = namespaceTextField.getText();
+                if (!InputValidationLib.isValidNamespace(namespaceString)) {
+                    // Invalid namespace
                     showMessageDialog(this, bundle.getString("ros2CommAdapterPanel.messageDialog.text"));
                     return;
                 }
 
-                int domainId = Integer.parseInt(domainIdString);
-                sendCommand(new SetDomainIdCommand(domainId));
+                sendCommand(new SetNamespaceCommand(namespaceString));
 
                 callWrapper.call(() -> vehicleService.enableCommAdapter(vehicle.getReference()));
             }
@@ -586,9 +603,7 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
     private javax.swing.JPanel dispatchPanel;
     private javax.swing.JButton dispatchToCoordinateButton;
     private javax.swing.JButton dispatchToPointButton;
-    private javax.swing.JLabel domainIdLabel;
     private javax.swing.JPanel domainIdPanel;
-    private javax.swing.JTextField domainIdTextField;
     private javax.swing.JButton enableButton;
     private javax.swing.JPanel enableButtonWrapper;
     private javax.swing.JMenu jMenu1;
@@ -598,9 +613,13 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
     private javax.swing.JCheckBox lHDCheckbox;
     private javax.swing.JPanel loadDevicePanel;
     private javax.swing.JPanel mainPanel;
+    private javax.swing.JLabel namespaceLabel;
+    private javax.swing.JTextField namespaceTextField;
     private javax.swing.JTable navigationGoalTable;
     private javax.swing.JScrollPane navigationGoalTableScrollPane;
     private javax.swing.JLabel nodeStatusLabel;
+    private javax.swing.JLabel orientationDegreesLabelLabel;
+    private javax.swing.JLabel orientationDegreesValueLabel;
     private javax.swing.JLabel positionCoordinateLabelLabel;
     private javax.swing.JLabel positionCoordinateValueLabel;
     private javax.swing.JLabel positionEstimateLabelLabel;

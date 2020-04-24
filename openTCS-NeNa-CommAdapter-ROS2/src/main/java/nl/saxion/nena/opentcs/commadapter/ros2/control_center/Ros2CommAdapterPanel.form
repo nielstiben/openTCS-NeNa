@@ -134,10 +134,10 @@
 
                   <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
                   <SubComponents>
-                    <Component class="javax.swing.JLabel" name="domainIdLabel">
+                    <Component class="javax.swing.JLabel" name="namespaceLabel">
                       <Properties>
                         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                          <ResourceString bundle="nl/saxion/nena/opentcs/commadapter/ros2/Bundle.properties" key="ros2CommAdapterPanel.label_domain_id.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                          <ResourceString bundle="nl/saxion/nena/opentcs/commadapter/ros2/Bundle.properties" key="ros2CommAdapterPanel.label_namespace.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                         </Property>
                       </Properties>
                       <Constraints>
@@ -146,11 +146,8 @@
                         </Constraint>
                       </Constraints>
                     </Component>
-                    <Component class="javax.swing.JTextField" name="domainIdTextField">
+                    <Component class="javax.swing.JTextField" name="namespaceTextField">
                       <Properties>
-                        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                          <ResourceString bundle="nl/saxion/nena/opentcs/commadapter/ros2/Bundle.properties" key="ros2CommAdapterPanel.textField_domainId" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-                        </Property>
                         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                           <Border info="org.netbeans.modules.form.compat2.border.EtchedBorderInfo">
                             <EtchetBorder/>
@@ -395,6 +392,13 @@
                             </Property>
                           </Properties>
                         </Component>
+                        <Component class="javax.swing.JLabel" name="orientationDegreesLabelLabel">
+                          <Properties>
+                            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                              <ResourceString bundle="nl/saxion/nena/opentcs/commadapter/ros2/Bundle.properties" key="ros2CommAdapterPanel.label_orientation_degrees.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                            </Property>
+                          </Properties>
+                        </Component>
                       </SubComponents>
                     </Container>
                     <Container class="javax.swing.JPanel" name="vehiclePropertiesValuesPanel">
@@ -442,6 +446,11 @@
                             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                               <Font name="Ubuntu" size="15" style="2"/>
                             </Property>
+                            <Property name="text" type="java.lang.String" value=" "/>
+                          </Properties>
+                        </Component>
+                        <Component class="javax.swing.JLabel" name="orientationDegreesValueLabel">
+                          <Properties>
                             <Property name="text" type="java.lang.String" value=" "/>
                           </Properties>
                         </Component>
