@@ -71,14 +71,10 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
 
     /**
      * Sends the initial position to help a ROS2 node finding its current location on the map.
-     *
-     * @param x The X coordinate in meters.
-     * @param y The Y coordinate in meters.
      */
-    public void setInitialPosition(double x, double y) {
-        final PoseWithCovarianceStamped message = OutgoingMessageLib.generateInitialPoseMessageByCoordinate(x, y);
-        // Todo: set current location too.
-        nodeManager.getNode().getInitialPosePublisher().publish(message);
+    public void setInitialPoint(Point initialPoint) {
+        final PoseWithCovarianceStamped message = OutgoingMessageLib.generateInitialPoseMessageByPoint(initialPoint);
+        this.nodeManager.getNode().getInitialPosePublisher().publish(message);
     }
 
     /**

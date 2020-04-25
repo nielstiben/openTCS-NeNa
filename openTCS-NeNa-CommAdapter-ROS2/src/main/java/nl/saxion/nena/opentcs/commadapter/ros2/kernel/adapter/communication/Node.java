@@ -27,6 +27,7 @@ public class Node implements ComposableNode {
         /* --------------- Publishers ---------------*/
         // Publisher for setting the initial pose
         this.initialPosePublisher = node.createPublisher(PoseWithCovarianceStamped.class, namespace + "/initialpose");
+
         // Publisher for sending a navigation goal
         this.goalPublisher = node.createPublisher(PoseStamped.class, namespace + "/move_base_simple/goal");
 

@@ -1,10 +1,7 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.control_center;
 
 import com.google.inject.assistedinject.Assisted;
-import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.DispatchToCoordinateCommand;
-import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.DispatchToPointCommand;
-import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.SetNamespaceCommand;
-import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.SetLoadHandlingDevicesCommand;
+import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.*;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components.*;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.lib.InputValidationLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter;
@@ -228,6 +225,7 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         SwingUtilities.invokeLater(() -> setEnableButtonTextByEnabledBoolean(enabled));
 
         // Navigation goals pane
+        SwingUtilities.invokeLater(() -> setInitialPointButton.setEnabled(enabled));
         SwingUtilities.invokeLater(() -> dispatchToCoordinateButton.setEnabled(enabled));
         SwingUtilities.invokeLater(() -> dispatchToPointButton.setEnabled(enabled));
         SwingUtilities.invokeLater(() -> navigationGoalTable.setEnabled(enabled));
@@ -301,8 +299,9 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         navigationGoalTableScrollPane = new javax.swing.JScrollPane();
         navigationGoalTable = new javax.swing.JTable();
         dispatchPanel = new javax.swing.JPanel();
-        dispatchToPointButton = new javax.swing.JButton();
+        setInitialPointButton = new javax.swing.JButton();
         dispatchToCoordinateButton = new javax.swing.JButton();
+        dispatchToPointButton = new javax.swing.JButton();
 
         jMenu1.setText("File");
         jMenuBar1.add(jMenu1);
@@ -472,13 +471,13 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         dispatchPanel.setBackground(new java.awt.Color(255, 255, 255));
         dispatchPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
-        dispatchToPointButton.setText(bundle.getString("ros2CommAdapterPanel.button_dispatch_to_point.text")); // NOI18N
-        dispatchToPointButton.addActionListener(new java.awt.event.ActionListener() {
+        setInitialPointButton.setText(bundle.getString("ros2CommAdapterPanel.dialog_setInitialPoint.title")); // NOI18N
+        setInitialPointButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dispatchToPointButtonActionPerformed(evt);
+                setInitialPointButtonActionPerformed(evt);
             }
         });
-        dispatchPanel.add(dispatchToPointButton);
+        dispatchPanel.add(setInitialPointButton);
 
         dispatchToCoordinateButton.setText(bundle.getString("ros2CommAdapterPanel.button_dispatch_to_coordinate.text")); // NOI18N
         dispatchToCoordinateButton.addActionListener(new java.awt.event.ActionListener() {
@@ -487,6 +486,14 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
             }
         });
         dispatchPanel.add(dispatchToCoordinateButton);
+
+        dispatchToPointButton.setText(bundle.getString("ros2CommAdapterPanel.button_dispatch_to_point.text")); // NOI18N
+        dispatchToPointButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dispatchToPointButtonActionPerformed(evt);
+            }
+        });
+        dispatchPanel.add(dispatchToPointButton);
 
         testPanel.add(dispatchPanel, java.awt.BorderLayout.PAGE_START);
 
@@ -606,6 +613,40 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         }
     }//GEN-LAST:event_dispatchToPointButtonActionPerformed
 
+    private void setInitialPointButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setInitialPointButtonActionPerformed
+        // Prepare list of model points
+        Set<org.opentcs.data.model.Point> pointSet;
+        try {
+            pointSet = callWrapper.call(() -> vehicleService.fetchObjects(org.opentcs.data.model.Point.class));
+        } catch (Exception ex) {
+            LOG.warn("Error fetching points", ex);
+            return;
+        }
+
+        List<org.opentcs.data.model.Point> pointList = new ArrayList<>(pointSet);
+        pointList.sort(Comparators.objectsByName());
+        pointList.add(0, null);
+
+        // Create panel and dialog
+        InputPanel panel = new DropdownListInputPanel.Builder<>(bundle.getString("ros2CommAdapterPanel.dialog_setInitialPoint.title"), pointList)
+                .setSelectionRepresenter(x -> x == null ? "" : x.getName())
+                .setLabel(bundle.getString("ros2CommAdapterPanel.label_position.text"))
+                .setEditable(true)
+                .setRenderer(new StringListCellRenderer<>(x -> x == null ? "" : x.getName()))
+                .build();
+        InputDialog dialog = new InputDialog(panel);
+        dialog.setVisible(true);
+        // Get result from dialog and set vehicle position
+        if (dialog.getReturnStatus() == InputDialog.ReturnStatus.ACCEPTED) {
+            Object item = dialog.getInput();
+            if (item == null) {
+                // Do nothing
+            } else {
+                sendCommand(new SetInitialPointCommand(((Point) item)));
+            }
+        }
+    }//GEN-LAST:event_setInitialPointButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel bottomPanel;
     private javax.swing.JPanel dispatchPanel;
@@ -635,6 +676,7 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
     private javax.swing.JLabel positionPointLabelLabel;
     private javax.swing.JLabel positionPointValueLabel;
     private javax.swing.JLabel saxionLogoLabel;
+    private javax.swing.JButton setInitialPointButton;
     private javax.swing.JPanel testPanel;
     private javax.swing.JPanel topPanel;
     private javax.swing.JPanel topPanelLeft;

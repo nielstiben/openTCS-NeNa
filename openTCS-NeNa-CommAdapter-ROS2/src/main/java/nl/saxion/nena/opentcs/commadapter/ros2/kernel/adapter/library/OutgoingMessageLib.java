@@ -1,20 +1,20 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library;
 
-import geometry_msgs.msg.PoseStamped;
-import geometry_msgs.msg.PoseWithCovariance;
-import geometry_msgs.msg.PoseWithCovarianceStamped;
+import builtin_interfaces.msg.Time;
+import geometry_msgs.msg.*;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Triple;
+import std_msgs.msg.Header;
+
+import javax.annotation.Nonnull;
+import java.time.Instant;
 
 public class OutgoingMessageLib {
-    public static PoseWithCovarianceStamped generateInitialPoseMessageByCoordinate(double x, double y) {
-        geometry_msgs.msg.Point position = new geometry_msgs.msg.Point();
-        position.setX(x);
-        position.setY(y);
-
-        // TODO scaler
-        geometry_msgs.msg.Pose pose = new geometry_msgs.msg.Pose();
-        pose.setPosition(position);
+    public static PoseWithCovarianceStamped generateInitialPoseMessageByPoint(Point point) {
+        Pose pose = generatePoseMessageByPoint(point);
+        Quaternion quaternion = new Quaternion();
+        quaternion.setW(1.0);
+        pose.setOrientation(quaternion);
 
         PoseWithCovariance poseWithCovariance = new PoseWithCovariance();
         poseWithCovariance.setPose(pose);
@@ -22,14 +22,30 @@ public class OutgoingMessageLib {
         PoseWithCovarianceStamped poseWithCovarianceStamped = new PoseWithCovarianceStamped();
         poseWithCovarianceStamped.setPose(poseWithCovariance);
 
+        Header header = new Header();
+        header.setFrameId("map");
+
+        Time time = new Time();
+        time.setSec((int) Instant.now().getEpochSecond());
+        header.setStamp(time);
+
+        poseWithCovarianceStamped.setHeader(header);
+
         return poseWithCovarianceStamped;
     }
 
-    public static PoseStamped generateScaledNavigationMessageByPoint(Point point){
+    public static PoseStamped generateScaledNavigationMessageByPoint(Point point) {
+        Pose pose = generatePoseMessageByPoint(point);
+
+        geometry_msgs.msg.PoseStamped poseStamped = new geometry_msgs.msg.PoseStamped();
+        poseStamped.setPose(pose);
+
+        return poseStamped;
+    }
+
+    private static Pose generatePoseMessageByPoint(@Nonnull Point point) {
         Triple triple = point.getPosition();
         double[] xyzUnscaled = UnitConverterLib.convertTripleToCoordinatesInMeter(triple);
-
-        // Scale
         double[] xyzScaled = ScaleCorrector.getInstance().scaleCoordinatesForDevice(xyzUnscaled);
 
         geometry_msgs.msg.Point position = new geometry_msgs.msg.Point();
@@ -40,9 +56,6 @@ public class OutgoingMessageLib {
         geometry_msgs.msg.Pose pose = new geometry_msgs.msg.Pose();
         pose.setPosition(position);
 
-        geometry_msgs.msg.PoseStamped poseStamped = new geometry_msgs.msg.PoseStamped();
-        poseStamped.setPose(pose);
-
-        return poseStamped;
+        return pose;
     }
 }
