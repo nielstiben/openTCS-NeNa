@@ -1,11 +1,12 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import org.ros2.rcljava.RCLJava;
 import org.ros2.rcljava.executors.SingleThreadedExecutor;
+
+import javax.annotation.Nonnull;
 
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatus.*;
 
@@ -17,28 +18,51 @@ import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communicati
  * @author Niels Tiben <nielstiben@outlook.com>
  */
 @NoArgsConstructor
-public class NodeManager implements NodeStarterListener {
+public class NodeManager implements NodeRunnableListener {
     private NodeRunningStatusListener nodeRunningStatusListener;
     private NodeRunnable nodeRunnable;
 
     @Getter
-    private OpenTcsNode opentcsNode;
+    private Node node;
 
     @Getter
     private NodeRunningStatus nodeRunningStatus = NOT_ACTIVE;
 
-    public void start(NodeRunningStatusListener nodeRunningStatusListener, NodeMessageListener nodeMessageListener, String namespace) {
+    /**
+     * Start a node in a separate thread, that is responsible for communication with a ROS2 vehicle.
+     *
+     * @param nodeRunningStatusListener Listener for notifying updates regarding the node running status.
+     * @param nodeMessageListener       Listener for notifying about new incoming node messages (e.g. new amcl_pose).
+     * @param namespace                 The ROS2 namespace that the node should use. Used for distinguishing multiple vehicles.
+     */
+    public void start(
+            @Nonnull NodeRunningStatusListener nodeRunningStatusListener,
+            @Nonnull NodeMessageListener nodeMessageListener,
+            @Nonnull String namespace) {
         assert this.nodeRunningStatus == NodeRunningStatus.NOT_ACTIVE;
         this.nodeRunningStatusListener = nodeRunningStatusListener;
 
         changeNodeStatus(INITIATING);
 
-        NodeRunnable nodeRunnable = new NodeRunnable(nodeMessageListener, this);
-        NodeWatcher nodeWatcher = new NodeWatcher(nodeRunnable, this);
-
-        new Thread(nodeWatcher).start();
+        NodeRunnable nodeRunnable = new NodeRunnable(nodeMessageListener, this, namespace);
+        new Thread(nodeRunnable).start();
     }
 
+    /**
+     * Method that get's called when a node has been effectively initiated after start() has been called.
+     *
+     * @param nodeRunnable The runnable instance of the just created node.
+     */
+    @Override
+    public void onNodeStarted(@Nonnull NodeRunnable nodeRunnable) {
+        this.nodeRunnable = nodeRunnable;
+        this.node = nodeRunnable.getNode();
+        changeNodeStatus(ACTIVE);
+    }
+
+    /**
+     * Terminate the node instance.
+     */
     public void stop() {
         assert this.nodeRunningStatus == ACTIVE; // Only stopping active nodes can be stopped.
         changeNodeStatus(TERMINATING);
@@ -47,39 +71,24 @@ public class NodeManager implements NodeStarterListener {
 
     }
 
-    @Override
-    public void onNodeStarted(NodeRunnable nodeRunnable) throws InterruptedException {
-        this.nodeRunnable = nodeRunnable;
-        this.opentcsNode = nodeRunnable.getNode();
-        changeNodeStatus(ACTIVE);
-    }
-
+    /**
+     * Method that get's called when a node has been effectively terminated.
+     */
     @Override
     public void onNodeStopped() {
         changeNodeStatus(NOT_ACTIVE);
         this.nodeRunnable = null;
-        this.opentcsNode = null;
+        this.node = null;
     }
 
     /**
-     * Runnable that watches the NodeRunnable and gives a callback when the node has been initialised.
+     * Helper method to change the node's running status.
+     *
+     * @param newNodeRunningStatus The updated node running status.
      */
-    @AllArgsConstructor
-    private static class NodeWatcher implements Runnable {
-        private NodeRunnable nodeRunnable;
-        private NodeStarterListener nodeStarterListener;
-
-        @SneakyThrows
-        @Override
-        public void run() {
-            new Thread(nodeRunnable).start();
-
-            while (nodeRunnable.getNode() == null) {
-                // Waiting for node to initiate...
-                Thread.sleep(500);
-            }
-            nodeStarterListener.onNodeStarted(nodeRunnable);
-        }
+    private void changeNodeStatus(NodeRunningStatus newNodeRunningStatus) {
+        this.nodeRunningStatus = newNodeRunningStatus;
+        nodeRunningStatusListener.onNodeStatusChange(newNodeRunningStatus);
     }
 
     /**
@@ -87,37 +96,47 @@ public class NodeManager implements NodeStarterListener {
      */
     protected static class NodeRunnable implements Runnable {
         @Getter
-        private OpenTcsNode node;
-        private NodeMessageListener nodeMessageListener;
-        private NodeStarterListener nodeStarterListener;
+        private Node node;
         private SingleThreadedExecutor executor;
 
-        public NodeRunnable(NodeMessageListener nodeMessageListener,  NodeStarterListener nodeStarterListener) {
+        private final NodeMessageListener nodeMessageListener;
+        private final NodeRunnableListener nodeRunnableListener;
+        private final String nodeNamespace;
+
+        /**
+         * Constructor
+         *
+         * @param nodeMessageListener  Listener for notifying about new incoming node messages (e.g. new amcl_pose).
+         * @param nodeRunnableListener Listener for notifying the NodeManager when a node has been effectively started or stopped.
+         * @param nodeNamespace        The ROS2 namespace that the node should use. Used for distinguishing multiple vehicles.
+         */
+        public NodeRunnable(
+                @Nonnull NodeMessageListener nodeMessageListener,
+                @Nonnull NodeRunnableListener nodeRunnableListener,
+                @Nonnull String nodeNamespace
+        ) {
             this.nodeMessageListener = nodeMessageListener;
-            this.nodeStarterListener = nodeStarterListener;
+            this.nodeRunnableListener = nodeRunnableListener;
+            this.nodeNamespace = nodeNamespace;
         }
 
+        @SneakyThrows
         @Override
         public void run() {
             RCLJava.rclJavaInit();
-            executor = new SingleThreadedExecutor();
-            this.node = new OpenTcsNode(nodeMessageListener);
-            executor.addNode(node);
-            executor.spin();
+            this.executor = new SingleThreadedExecutor();
+            this.node = new Node(this.nodeMessageListener, this.nodeNamespace);
+            this.executor.addNode(this.node);
+            this.nodeRunnableListener.onNodeStarted(this);
+
+            // spin() is blocking and keeps running until stop() is called.
+            this.executor.spin();
         }
 
-        public void stop(){
-            this.node.shutdown();
-            this.executor.removeNode(node); // Remove the (stopped) node, otherwise it is still shown in the node list.
-
-            this.node = null;
-            this.executor = null;
-            nodeStarterListener.onNodeStopped();
+        public void stop() {
+            RCLJava.shutdown();
+            this.executor.removeNode(this.node); // Remove the (stopped) node, otherwise it is still shown in the node list.
+            this.nodeRunnableListener.onNodeStopped();
         }
-    }
-
-    private void changeNodeStatus(NodeRunningStatus newNodeRunningStatus) {
-        this.nodeRunningStatus = newNodeRunningStatus;
-        nodeRunningStatusListener.onNodeStatusChange(newNodeRunningStatus);
     }
 }

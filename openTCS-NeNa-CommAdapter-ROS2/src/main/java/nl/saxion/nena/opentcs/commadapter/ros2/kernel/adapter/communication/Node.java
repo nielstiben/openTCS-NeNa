@@ -5,7 +5,6 @@ import geometry_msgs.msg.PoseStamped;
 import geometry_msgs.msg.PoseWithCovarianceStamped;
 import lombok.Getter;
 import org.ros2.rcljava.RCLJava;
-import org.ros2.rcljava.node.BaseComposableNode;
 import org.ros2.rcljava.node.ComposableNode;
 import org.ros2.rcljava.publisher.Publisher;
 
@@ -13,32 +12,31 @@ import javax.annotation.Nonnull;
 
 /**
  * Class that holds an an instances of a node and of all its publishers and subscriptions.
- * It is based on org.ros2.rcljava.node.BaseComposableNode/
+ * This class is based on org.ros2.rcljava.node.BaseComposableNode
  */
 @Getter
-public class OpenTcsNode implements ComposableNode{
-    @Getter
+public class Node implements ComposableNode {
     private org.ros2.rcljava.node.Node node;
     private Publisher<PoseWithCovarianceStamped> initialPosePublisher;
     private Publisher<PoseStamped> goalPublisher;
 
 
-    public OpenTcsNode(@Nonnull NodeMessageListener nodeMessageListener) {
-        this.node = RCLJava.createNode("opentcs");
+    public Node(@Nonnull NodeMessageListener nodeMessageListener, @Nonnull String namespace) {
+        this.node = RCLJava.createNode("opentcs", namespace, RCLJava.getDefaultContext());
 
         /* --------------- Publishers ---------------*/
         // Publisher for setting the initial pose
-        this.initialPosePublisher = node.createPublisher(PoseWithCovarianceStamped.class, "/initialpose");
+        this.initialPosePublisher = node.createPublisher(PoseWithCovarianceStamped.class, namespace + "/initialpose");
         // Publisher for sending a navigation goal
-        this.goalPublisher = node.createPublisher(PoseStamped.class, "/move_base_simple/goal");
+        this.goalPublisher = node.createPublisher(PoseStamped.class, namespace + "/move_base_simple/goal");
 
         /* --------------- Subscriptions ---------------*/
         // Subscriber for navigation status
-        node.createSubscription(GoalStatusArray.class, "/NavigateToPose/_action/status",
+        node.createSubscription(GoalStatusArray.class, namespace + "/NavigateToPose/_action/status",
                 nodeMessageListener::onNewGoalStatusArray);
 
         // Subscription for current location
-        node.createSubscription(PoseWithCovarianceStamped.class, "/amcl_pose",
+        node.createSubscription(PoseWithCovarianceStamped.class, namespace + "/amcl_pose",
                 nodeMessageListener::onNewAmclPose);
 
         // Subscription for battery data (TurtleBot3 specific)
@@ -47,12 +45,5 @@ public class OpenTcsNode implements ComposableNode{
         // TODO: Implement publisher and subscriber for LOAD CARGO operation.
 
         // TODO: Implement publisher and subscriber for UNLOAD CARGO operation.
-    }
-
-    /**
-     * Stop the node.
-     */
-    public void shutdown() {
-        RCLJava.shutdown();
     }
 }

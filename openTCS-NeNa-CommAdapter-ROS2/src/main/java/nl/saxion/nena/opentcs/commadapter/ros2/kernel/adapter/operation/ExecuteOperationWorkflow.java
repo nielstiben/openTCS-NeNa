@@ -2,7 +2,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation;
 
 import lombok.SneakyThrows;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.OpenTcsNode;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.Node;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConstants;
 
 import javax.annotation.Nonnull;
@@ -44,7 +44,7 @@ public class ExecuteOperationWorkflow {
     /* --------------- 2: Execute operation ---------------*/
 
     private void executeLoadCargo() {
-        OpenTcsNode opentcsNode = processModel.getNodeManager().getOpentcsNode();
+        Node opentcsNode = processModel.getNodeManager().getNode();
         System.out.println("LOADING CARGO...");
         // TODO: Implement executor for LOAD CARGO operation.
 
@@ -54,7 +54,7 @@ public class ExecuteOperationWorkflow {
 
     private void executeUnloadCargo() {
         // TODO: Implement executor for UNLOAD CARGO operation.
-        OpenTcsNode opentcsNode = processModel.getNodeManager().getOpentcsNode();
+        Node opentcsNode = processModel.getNodeManager().getNode();
         System.out.println("UNLOADING CARGO...");
 
         // Fake that the operation was successful.

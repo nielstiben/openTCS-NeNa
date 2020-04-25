@@ -112,7 +112,7 @@
 
               <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
               <SubComponents>
-                <Container class="javax.swing.JPanel" name="domainIdPanel">
+                <Container class="javax.swing.JPanel" name="namespacePanel">
                   <Properties>
                     <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                       <Color blue="fe" green="fe" red="fe" type="rgb"/>
@@ -451,6 +451,9 @@
                         </Component>
                         <Component class="javax.swing.JLabel" name="orientationDegreesValueLabel">
                           <Properties>
+                            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                              <Font name="Ubuntu" size="15" style="2"/>
+                            </Property>
                             <Property name="text" type="java.lang.String" value=" "/>
                           </Properties>
                         </Component>

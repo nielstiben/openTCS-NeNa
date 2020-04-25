@@ -274,7 +274,7 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         mainPanel = new javax.swing.JPanel();
         topPanel = new javax.swing.JPanel();
         topPanelLeft = new javax.swing.JPanel();
-        domainIdPanel = new javax.swing.JPanel();
+        namespacePanel = new javax.swing.JPanel();
         namespaceLabel = new javax.swing.JLabel();
         namespaceTextField = new javax.swing.JTextField();
         enableButtonWrapper = new javax.swing.JPanel();
@@ -327,18 +327,18 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         topPanelLeft.setPreferredSize(new java.awt.Dimension(300, 110));
         topPanelLeft.setLayout(new java.awt.BorderLayout());
 
-        domainIdPanel.setBackground(new java.awt.Color(254, 254, 254));
-        domainIdPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 0, 5));
-        domainIdPanel.setMaximumSize(new java.awt.Dimension(2147483647, 25));
-        domainIdPanel.setLayout(new java.awt.BorderLayout());
+        namespacePanel.setBackground(new java.awt.Color(254, 254, 254));
+        namespacePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 0, 5));
+        namespacePanel.setMaximumSize(new java.awt.Dimension(2147483647, 25));
+        namespacePanel.setLayout(new java.awt.BorderLayout());
 
         namespaceLabel.setText(bundle.getString("ros2CommAdapterPanel.label_namespace.text")); // NOI18N
-        domainIdPanel.add(namespaceLabel, java.awt.BorderLayout.WEST);
+        namespacePanel.add(namespaceLabel, java.awt.BorderLayout.WEST);
 
         namespaceTextField.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-        domainIdPanel.add(namespaceTextField, java.awt.BorderLayout.CENTER);
+        namespacePanel.add(namespaceTextField, java.awt.BorderLayout.CENTER);
 
-        topPanelLeft.add(domainIdPanel, java.awt.BorderLayout.PAGE_START);
+        topPanelLeft.add(namespacePanel, java.awt.BorderLayout.PAGE_START);
 
         enableButtonWrapper.setBackground(new java.awt.Color(255, 255, 255));
         enableButtonWrapper.setLayout(new java.awt.BorderLayout());
@@ -439,6 +439,7 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         positionEstimateValueLabel.setText(" ");
         vehiclePropertiesValuesPanel.add(positionEstimateValueLabel);
 
+        orientationDegreesValueLabel.setFont(new java.awt.Font("Ubuntu", 2, 15)); // NOI18N
         orientationDegreesValueLabel.setText(" ");
         vehiclePropertiesValuesPanel.add(orientationDegreesValueLabel);
 
@@ -610,7 +611,6 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
     private javax.swing.JPanel dispatchPanel;
     private javax.swing.JButton dispatchToCoordinateButton;
     private javax.swing.JButton dispatchToPointButton;
-    private javax.swing.JPanel domainIdPanel;
     private javax.swing.JButton enableButton;
     private javax.swing.JPanel enableButtonWrapper;
     private javax.swing.JMenu jMenu1;
@@ -621,6 +621,7 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
     private javax.swing.JPanel loadDevicePanel;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JLabel namespaceLabel;
+    private javax.swing.JPanel namespacePanel;
     private javax.swing.JTextField namespaceTextField;
     private javax.swing.JTable navigationGoalTable;
     private javax.swing.JScrollPane navigationGoalTableScrollPane;

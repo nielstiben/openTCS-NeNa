@@ -73,7 +73,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     public void setInitialPosition(double x, double y) {
         final PoseWithCovarianceStamped message = OutgoingMessageLib.generateInitialPoseMessageByCoordinate(x, y);
         // Todo: set current location too.
-        nodeManager.getOpentcsNode().getInitialPosePublisher().publish(message);
+        nodeManager.getNode().getInitialPosePublisher().publish(message);
     }
 
     /**
@@ -96,7 +96,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
         PoseStamped message = OutgoingMessageLib.generateScaledNavigationMessageByPoint(point);
 
         this.navigationGoalTracker.setDestinationPointIncomingGoal(point); // Notify NavigationGoalTracker that we expect a new goal
-        this.nodeManager.getOpentcsNode().getGoalPublisher().publish(message);
+        this.nodeManager.getNode().getGoalPublisher().publish(message);
     }
 
     /* --------------- Operation ---------------*/
