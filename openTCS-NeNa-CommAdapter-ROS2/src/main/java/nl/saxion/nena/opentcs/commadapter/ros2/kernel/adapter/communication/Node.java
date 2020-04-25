@@ -39,8 +39,7 @@ public class Node implements ComposableNode {
         node.createSubscription(PoseWithCovarianceStamped.class, namespace + "/amcl_pose",
                 nodeMessageListener::onNewAmclPose);
 
-        // Subscription for battery data (TurtleBot3 specific)
-        // TODO, see: http://docs.ros.org/api/turtlebot3_msgs/html/msg/SensorState.html
+        // TODO: Implement Subscription for battery data (TurtleBot3 specific)
 
         // TODO: Implement publisher and subscriber for LOAD CARGO operation.
 

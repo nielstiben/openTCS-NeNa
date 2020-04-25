@@ -13,11 +13,13 @@ import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.Node
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.IncomingMessageLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.OutgoingMessageLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.UnitConverterLib;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.ExternalNavigationGoalListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalTracker;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.ExecuteOperationWorkflow;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConstants;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.point.CoordinatePoint;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.task.ExecuteCommandWorkflow;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Triple;
 import org.opentcs.data.model.Vehicle;
@@ -33,7 +35,8 @@ import javax.annotation.Nonnull;
 public class Ros2ProcessModel extends VehicleProcessModel implements
         NodeRunningStatusListener,
         NodeMessageListener,
-        NavigationGoalListener {
+        NavigationGoalListener,
+        ExternalNavigationGoalListener {
     private static final Logger LOG = LoggerFactory.getLogger(Ros2CommAdapter.class);
     private final String loadOperation;
     private final String unloadOperation;
@@ -48,6 +51,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     private int operatingTime;
     @Getter
     private Triple estimatePosition;
+    @Setter
+    private ExecuteCommandWorkflow executeCommandWorkflow;
     @Setter
     private ExecuteOperationWorkflow executeOperationWorkflow;
 
@@ -147,7 +152,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     /* --------------- Enable / Disable ---------------*/
     public void onDriverEnable() {
         nodeManager.start(this, this, this.namespace);
-        this.navigationGoalTracker = new NavigationGoalTracker(this); // Start navigation goal tracker
+        this.navigationGoalTracker = new NavigationGoalTracker(this, this); // Start navigation goal tracker
 
     }
 
@@ -209,19 +214,43 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
      * @param point
      */
     @Override
-    public void onNavigationGoalSucceeded(Point point) {
+    public void onNavigationGoalSucceeded(@Nonnull Point point) {
         if (point instanceof CoordinatePoint) {
             // The vehicle reached a coordinate point.
             // Since this is a fictional point, the vehicle position should not be modified.
+            setVehiclePosition(null); // Because we are at a given coordinate, which unknown position for our plant.
+            setVehicleState(Vehicle.State.UNAVAILABLE);
         } else {
             setVehiclePosition(point.getName());
             setVehiclePrecisePosition(point.getPosition());
+
+            if (executeCommandWorkflow != null && executeCommandWorkflow.isCommandExecutorActive()){
+                // Vehicle state is set by the ExecuteCommandWorkflow
+            } else {
+                setVehicleState(Vehicle.State.IDLE);
+            }
         }
     }
 
     @Override
-    public void onNavigationGoalActive(Point point) {
-        // Todo:
+    public void onNavigationGoalActive(@Nonnull Point point) {
+        if (executeCommandWorkflow != null && executeCommandWorkflow.isCommandExecutorActive()){
+            // Vehicle state is set by the ExecuteCommandWorkflow
+        } else {
+            setVehicleState(Vehicle.State.EXECUTING);
+        }
+    }
+
+    @Override
+    public void onExternalNavigationGoalActive() {
+        setVehiclePosition(null); // Because we are at a given coordinate, which unknown position for our plant.
+        setVehicleState(Vehicle.State.EXECUTING);
+    }
+
+    @Override
+    public void onExternalNavigationGoalSucceeded() {
+        setVehiclePosition(null); // Because we are at a given coordinate, which unknown position for our plant.
+        setVehicleState(Vehicle.State.UNAVAILABLE);
     }
 
     /**

@@ -15,7 +15,8 @@ import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_
 public class NavigationGoalTracker {
     private static final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_PATH);
     private HashMap<List<Byte>, NavigationGoal> navigationGoalMap = new HashMap<>(); // Pair UUID - Navigation Goal
-    private final NavigationGoalListener processModelListener;
+    private final NavigationGoalListener navigationGoalListener;
+    private final ExternalNavigationGoalListener externalNavigationGoalListener;
 
     @Setter
     private NavigationGoalListener commandExecutorListener = null;
@@ -24,9 +25,11 @@ public class NavigationGoalTracker {
     private Point destinationPointIncomingGoal = null;
 
     public NavigationGoalTracker(
-            NavigationGoalListener processModelListener
+            NavigationGoalListener navigationGoalListener,
+            ExternalNavigationGoalListener externalNavigationGoalListener
     ) {
-        this.processModelListener = processModelListener;
+        this.navigationGoalListener = navigationGoalListener;
+        this.externalNavigationGoalListener = externalNavigationGoalListener;
     }
 
     public void updateByGoalStatusArray(@Nonnull GoalStatusArray goalStatusArray) {
@@ -61,7 +64,7 @@ public class NavigationGoalTracker {
             this.navigationGoalMap.put(navigationGoal.getUuid(), navigationGoal);
 
             // Notify listeners
-            this.processModelListener.onNavigationGoalActive(destinationPointIncomingGoal);
+            this.navigationGoalListener.onNavigationGoalActive(destinationPointIncomingGoal);
             this.commandExecutorListener.onNavigationGoalActive(destinationPointIncomingGoal);
 
             // Reset destination point for new incoming navigation goals.
@@ -71,10 +74,11 @@ public class NavigationGoalTracker {
             // Navigation goal not initiated by OpenTCS => destination is not known.
             NavigationGoal navigationGoal = new NavigationGoal(goalStatusToProcess, null);
             this.navigationGoalMap.put(navigationGoal.getUuid(), navigationGoal);
+            this.externalNavigationGoalListener.onExternalNavigationGoalActive();
         }
     }
 
-    private boolean isNavigationGoalInitiatedByOpenTCS(GoalStatus goalStatus) {
+    private boolean isNavigationGoalInitiatedByOpenTCS(@Nonnull GoalStatus goalStatus) {
         NavigationGoalStatus navigationStatus = NavigationGoalStatus.getByStatusCode(goalStatus.getStatus());
         if (navigationStatus.equals(ACTIVE) && this.destinationPointIncomingGoal != null && isTimeStampMatching()) {
             // Initiated by OpenTCS
@@ -110,9 +114,10 @@ public class NavigationGoalTracker {
         if (navigationGoal.getNavigationGoalStatus().equals(NavigationGoalStatus.SUCCEEDED)) {
             Point destinationPoint = navigationGoal.getDestinationPoint();
             if (destinationPoint != null) {
-                this.processModelListener.onNavigationGoalSucceeded(destinationPoint);
+                this.navigationGoalListener.onNavigationGoalSucceeded(destinationPoint);
                 this.commandExecutorListener.onNavigationGoalSucceeded(destinationPoint);
-
+            } else {
+                this.externalNavigationGoalListener.onExternalNavigationGoalSucceeded();
             }
         }
     }

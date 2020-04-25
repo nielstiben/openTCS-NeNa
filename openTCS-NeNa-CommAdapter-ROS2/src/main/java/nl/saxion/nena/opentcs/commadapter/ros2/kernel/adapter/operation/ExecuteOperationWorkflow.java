@@ -11,7 +11,7 @@ import javax.annotation.Nonnull;
  * @author Niels Tiben <nielstiben@outlook.com>
  */
 public class ExecuteOperationWorkflow {
-    private boolean isActionBeingExecuted = false;
+    private boolean isOperationBeingExecuted = false;
 
     private final Ros2ProcessModel processModel;
     private final OperationExecutorListener operationExecutorListener;
@@ -26,7 +26,7 @@ public class ExecuteOperationWorkflow {
     @SneakyThrows
     public void executeActionByName(@Nonnull String actionName) {
         // Only one action at a time can be executed.
-        assert !this.isActionBeingExecuted;
+        assert !this.isOperationBeingExecuted;
 
         switch (actionName) {
             case OperationConstants.LOAD_CARGO:
@@ -83,12 +83,12 @@ public class ExecuteOperationWorkflow {
     /* --------------- 4: Callback to CommandWorkflow ---------------*/
 
     private void onOperationExecutionFinished() {
-        this.isActionBeingExecuted = false;
+        this.isOperationBeingExecuted = false;
         this.operationExecutorListener.onOperationExecutionSucceeded();
     }
 
     private void onOperationExecutionFailed(String reason) {
-        this.isActionBeingExecuted = false;
+        this.isOperationBeingExecuted = false;
         this.operationExecutorListener.onOperationExecutionFailed(reason);
     }
 }

@@ -30,6 +30,8 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
     private final ExecuteOperationWorkflow executeOperationWorkflow;
 
     private MovementCommand currentCommand;
+
+    @Getter
     private boolean isCommandExecutorActive = false;
 
     /* --------------- 0: Construct and enable ---------------*/
@@ -47,7 +49,9 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
         NavigationGoalTracker goalTracker = processModelInstance.getNavigationGoalTracker();
 
         assert goalTracker != null;
+
         goalTracker.setCommandExecutorListener(this);
+        this.processModelInstance.setExecuteCommandWorkflow(this);
     }
 
     /* --------------- 1: Create Movement Command ---------------*/
@@ -79,14 +83,14 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
         // Next step (2: Current Movement Command Active) is activated by callback.
     }
 
-    private void processMovementCommand1(){
+    private void processMovementCommand1() {
 
     }
 
     /* --------------- 2: Current Movement Command Active ---------------*/
 
     @Override
-    public void onNavigationGoalActive(Point point) {
+    public void onNavigationGoalActive(@Nonnull Point point) {
         // Callback received that a new navigation goal has been activated.
 
         if (this.isCommandExecutorActive) {
@@ -105,7 +109,7 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
     /* --------------- 3: Current Movement Command Active ---------------*/
 
     @Override
-    public void onNavigationGoalSucceeded(Point point) {
+    public void onNavigationGoalSucceeded(@Nonnull Point point) {
         if (this.isCommandExecutorActive) {
             Point currentDestination = this.currentCommand.getStep().getDestinationPoint();
 
@@ -113,13 +117,12 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
             if (currentDestination.equals(point)) {
                 // Vehicle reached its intended destination
                 LOG.info("Processing MovementCommand Succeeded: Vehicle reached its intended destination! =>" + currentDestination.toString());
+                executeOperationIfNeeded();
             } else {
                 // Vehicle did not reach its intended destination, but a different destination.
-                LOG.info("Processing MovementCommand Failed: Vehicle did not reach its intended destination, but a different destination ( " + point.toString() + " -instead of- " + currentDestination.toString() + " )");
-                return;
+                String reason = String.format("Processing MovementCommand Failed: Vehicle did not reach its intended destination, but a different destination ('%s' instead of '%s')", point.toString(), currentDestination.toString());
+                onOperationExecutionFailed(reason);
             }
-
-            executeOperationIfNeeded();
         } else {
             // Not intended for CommandExecutor so we don't care, just proceed.
         }
@@ -160,7 +163,7 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
 
         this.processModelInstance.commandExecuted(this.currentCommand);
 
-        if (hasVehicleReachedFinalDestination()){
+        if (hasVehicleReachedFinalDestination()) {
             // We reached our final destination and executed all operations.
             this.processModelInstance.setVehicleState(Vehicle.State.IDLE);
         } else {
@@ -169,21 +172,21 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
         }
     }
 
-    private void setCommandWorkflowFailed(){
+    private void setCommandWorkflowFailed() {
         removeExecutedCommandFromSentQueueAndSetWorkflowInactive();
 
         this.processModelInstance.commandFailed(this.currentCommand);
         this.processModelInstance.setVehicleState(Vehicle.State.ERROR);
     }
 
-    private boolean hasVehicleReachedFinalDestination(){
+    private boolean hasVehicleReachedFinalDestination() {
         Point finalDestination = this.currentCommand.getFinalDestination();
         Point currentStepDestination = this.currentCommand.getStep().getDestinationPoint();
 
         return currentStepDestination.equals(finalDestination);
     }
 
-    private void removeExecutedCommandFromSentQueueAndSetWorkflowInactive(){
+    private void removeExecutedCommandFromSentQueueAndSetWorkflowInactive() {
         // Remove current command from the queue
         MovementCommand movementCommandOnQueue = this.sentQueue.poll();
         assert movementCommandOnQueue != null && movementCommandOnQueue.equals(this.currentCommand);
