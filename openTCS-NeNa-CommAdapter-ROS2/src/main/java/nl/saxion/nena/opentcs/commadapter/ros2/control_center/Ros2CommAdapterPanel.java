@@ -35,7 +35,7 @@ import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 import static javax.swing.JOptionPane.showMessageDialog;
-import static nl.saxion.nena.opentcs.commadapter.ros2.common.I18nROS2CommAdapter.BUNDLE_PATH;
+import static nl.saxion.nena.opentcs.commadapter.ros2.I18nROS2CommAdapter.BUNDLE_PATH;
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel.Attribute.*;
 
 /**
@@ -203,7 +203,7 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
                 .findFirst()
                 .map(lhd -> lhd.isFull())
                 .orElse(false);
-        SwingUtilities.invokeLater(() -> lHDCheckbox.setSelected(loaded));
+        SwingUtilities.invokeLater(() -> loadHandlingDeviceCheckbox.setSelected(loaded));
     }
 
 
@@ -230,6 +230,8 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         SwingUtilities.invokeLater(() -> dispatchToPointButton.setEnabled(enabled));
         SwingUtilities.invokeLater(() -> navigationGoalTable.setEnabled(enabled));
 
+        // Load handling device
+        SwingUtilities.invokeLater(() -> loadHandlingDeviceCheckbox.setEnabled(enabled));
     }
 
     private void setEnableButtonTextByEnabledBoolean(boolean isDriverEnabled) {
@@ -282,7 +284,7 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         saxionLogoLabel = new javax.swing.JLabel();
         bottomPanel = new javax.swing.JPanel();
         loadDevicePanel = new javax.swing.JPanel();
-        lHDCheckbox = new javax.swing.JCheckBox();
+        loadHandlingDeviceCheckbox = new javax.swing.JCheckBox();
         vehiclePropertiesPanel = new javax.swing.JPanel();
         vehiclePropertiesLeftPanel = new javax.swing.JPanel();
         vehiclePropertiesLabelsPanel = new javax.swing.JPanel();
@@ -379,15 +381,15 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         loadDevicePanel.setBorder(javax.swing.BorderFactory.createTitledBorder(bundle.getString("ros2CommAdapterPanel.panel_loadHandlingDevice.border.title"))); // NOI18N
         loadDevicePanel.setLayout(new java.awt.BorderLayout());
 
-        lHDCheckbox.setBackground(new java.awt.Color(254, 254, 254));
-        lHDCheckbox.setText("Device loaded");
-        lHDCheckbox.setEnabled(false);
-        lHDCheckbox.addActionListener(new java.awt.event.ActionListener() {
+        loadHandlingDeviceCheckbox.setBackground(new java.awt.Color(254, 254, 254));
+        loadHandlingDeviceCheckbox.setText("Device loaded");
+        loadHandlingDeviceCheckbox.setEnabled(false);
+        loadHandlingDeviceCheckbox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                lHDCheckboxClicked(evt);
+                loadHandlingDeviceCheckboxClicked(evt);
             }
         });
-        loadDevicePanel.add(lHDCheckbox, java.awt.BorderLayout.PAGE_END);
+        loadDevicePanel.add(loadHandlingDeviceCheckbox, java.awt.BorderLayout.PAGE_END);
 
         bottomPanel.add(loadDevicePanel, java.awt.BorderLayout.PAGE_END);
 
@@ -506,11 +508,11 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         getAccessibleContext().setAccessibleName(bundle.getString("ros2CommAdapterPanel.accessibleName")); // NOI18N
     }// </editor-fold>//GEN-END:initComponents
 
-    private void lHDCheckboxClicked(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lHDCheckboxClicked
+    private void loadHandlingDeviceCheckboxClicked(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadHandlingDeviceCheckboxClicked
         List<LoadHandlingDevice> devices = Arrays.asList(
-                new LoadHandlingDevice(Ros2CommAdapter.LHD_NAME, lHDCheckbox.isSelected()));
+                new LoadHandlingDevice(Ros2CommAdapter.LHD_NAME, loadHandlingDeviceCheckbox.isSelected()));
         sendCommand(new SetLoadHandlingDevicesCommand(devices));
-    }//GEN-LAST:event_lHDCheckboxClicked
+    }//GEN-LAST:event_loadHandlingDeviceCheckboxClicked
 
     private void enableButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enableButtonActionPerformed
         try {
@@ -658,8 +660,8 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JCheckBox lHDCheckbox;
     private javax.swing.JPanel loadDevicePanel;
+    private javax.swing.JCheckBox loadHandlingDeviceCheckbox;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JLabel namespaceLabel;
     private javax.swing.JPanel namespacePanel;

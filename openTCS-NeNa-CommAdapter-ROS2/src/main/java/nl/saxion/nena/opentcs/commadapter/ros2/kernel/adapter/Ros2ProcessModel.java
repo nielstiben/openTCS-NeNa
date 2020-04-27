@@ -38,9 +38,6 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
         NavigationGoalListener,
         ExternalNavigationGoalListener {
     private static final Logger LOG = LoggerFactory.getLogger(Ros2CommAdapter.class);
-    private final String loadOperation;
-    private final String unloadOperation;
-
     @Setter
     private String namespace = "";
     @Getter
@@ -58,12 +55,6 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
 
     public Ros2ProcessModel(Vehicle attachedVehicle) {
         super(attachedVehicle);
-        this.loadOperation = extractLoadOperation(attachedVehicle);
-        this.unloadOperation = extractUnloadOperation(attachedVehicle);
-        this.operatingTime = parseOperatingTime(attachedVehicle);
-//        this.navigationGoalTracker = new NavigationGoalTracker(this); // TODO: do we want to construct here??
-
-
         this.nodeManager = new NodeManager();
     }
 
@@ -100,41 +91,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
         this.nodeManager.getNode().getGoalPublisher().publish(message);
     }
 
-    /* --------------- Operation ---------------*/
-    private static String extractLoadOperation(Vehicle attachedVehicle) {
-        return OperationConstants.LOAD_CARGO;
-    }
-
-    private static String extractUnloadOperation(Vehicle attachedVehicle) {
-        return OperationConstants.UNLOAD_CARGO;
-    }
-
-    public String getLoadOperation() {
-        return loadOperation;
-    }
-
-    public String getUnloadOperation() {
-        return unloadOperation;
-    }
-
     /* --------------- Misc ---------------*/
-
-    public synchronized void setOperatingTime(int defaultOperatingTime) {
-        //TODO: Customize
-
-        int oldValue = this.operatingTime;
-        this.operatingTime = defaultOperatingTime;
-
-
-        getPropertyChangeSupport().firePropertyChange(Attribute.OPERATING_TIME.name(),
-                oldValue,
-                defaultOperatingTime);
-    }
-
-    private int parseOperatingTime(Vehicle vehicle) {
-        //TODO: Customize
-        return 1;
-    }
 
     public String[][] parseNavigationGoalTable() {
         // todo: fix code smell

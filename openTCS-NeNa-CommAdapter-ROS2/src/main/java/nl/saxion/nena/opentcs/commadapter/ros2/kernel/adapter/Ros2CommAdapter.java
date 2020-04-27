@@ -30,7 +30,6 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
     public static final String LHD_NAME = "ros2";
     private static final Logger LOG = LoggerFactory.getLogger(Ros2CommAdapter.class);
     private final Ros2CommAdapterConfiguration configuration;
-    private final ExecutorService kernelExecutor;
 
     private final Vehicle vehicle;
 
@@ -53,10 +52,8 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
      */
     @Inject
     public Ros2CommAdapter(
-            @Nonnull Ros2AdapterComponentsFactory componentsFactory,
             @Nonnull Ros2CommAdapterConfiguration configuration,
-            @Nonnull @Assisted Vehicle vehicle,
-            @Nonnull @KernelExecutor ExecutorService kernelExecutor
+            @Nonnull @Assisted Vehicle vehicle
     ) {
         super(
                 new Ros2ProcessModel(vehicle),
@@ -64,10 +61,8 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
                 1,
                 configuration.rechargeOperation()
         );
-
         this.vehicle = vehicle;
         this.configuration = configuration;
-        this.kernelExecutor = kernelExecutor;
     }
 
     @Override
@@ -220,11 +215,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
     @Override
     protected VehicleProcessModelTO createCustomTransferableProcessModel() {
         Ros2ProcessModelTO ros2ProcessModelTO = new Ros2ProcessModelTO();
-
         ros2ProcessModelTO.setNodeStatus(getProcessModel().getNodeManager().getNodeRunningStatus().name());
-        ros2ProcessModelTO.setLoadOperation(getProcessModel().getLoadOperation());
-        ros2ProcessModelTO.setOperatingTime(getProcessModel().getOperatingTime());
-        ros2ProcessModelTO.setUnloadOperation(getProcessModel().getUnloadOperation());
         ros2ProcessModelTO.setNavigationGoalTable(getProcessModel().parseNavigationGoalTable());
         ros2ProcessModelTO.setEstimatePosition(getProcessModel().getEstimatePosition());
 

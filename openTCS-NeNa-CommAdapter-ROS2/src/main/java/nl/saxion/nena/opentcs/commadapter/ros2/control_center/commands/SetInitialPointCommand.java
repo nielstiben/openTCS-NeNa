@@ -8,6 +8,11 @@ import org.opentcs.drivers.vehicle.VehicleCommAdapter;
 
 import javax.annotation.Nonnull;
 
+/**
+ * Instruct the kernel to send an initial pose message to the vehicle. In RViz, this is also called “2D Pose Estimate”.
+ *
+ * @author Niels Tiben
+ */
 @AllArgsConstructor
 public class SetInitialPointCommand implements AdapterCommand {
     private final Point initialPoint;

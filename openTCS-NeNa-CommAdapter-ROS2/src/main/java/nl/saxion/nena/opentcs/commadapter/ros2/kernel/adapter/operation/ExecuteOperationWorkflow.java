@@ -4,17 +4,22 @@ import lombok.SneakyThrows;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.Node;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConstants;
+import org.opentcs.drivers.vehicle.LoadHandlingDevice;
 
 import javax.annotation.Nonnull;
+import java.util.Arrays;
+import java.util.Collections;
+
+import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter.LHD_NAME;
 
 /**
  * @author Niels Tiben
  */
 public class ExecuteOperationWorkflow {
     private boolean isOperationBeingExecuted = false;
-
     private final Ros2ProcessModel processModel;
     private final OperationExecutorListener operationExecutorListener;
+    private Node opentcsNode;
 
     /* --------------- 1: Construct / Start ---------------*/
 
@@ -45,8 +50,13 @@ public class ExecuteOperationWorkflow {
 
     private void executeLoadCargo() {
         Node opentcsNode = processModel.getNodeManager().getNode();
+
         System.out.println("LOADING CARGO...");
         // TODO: Implement executor for LOAD CARGO operation.
+
+        // Set as full
+        processModel.setVehicleLoadHandlingDevices(
+                Collections.singletonList(new LoadHandlingDevice(LHD_NAME, true)));
 
         // Fake that the operation was successful.
         onOperationExecutionFinished();
@@ -56,6 +66,10 @@ public class ExecuteOperationWorkflow {
         // TODO: Implement executor for UNLOAD CARGO operation.
         Node opentcsNode = processModel.getNodeManager().getNode();
         System.out.println("UNLOADING CARGO...");
+
+        // Set as not-full
+        processModel.setVehicleLoadHandlingDevices(
+                Collections.singletonList(new LoadHandlingDevice(LHD_NAME, false)));
 
         // Fake that the operation was successful.
         onOperationExecutionFinished();

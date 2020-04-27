@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static nl.saxion.nena.opentcs.commadapter.ros2.common.I18nROS2CommAdapter.BUNDLE_PATH;
+import static nl.saxion.nena.opentcs.commadapter.ros2.I18nROS2CommAdapter.BUNDLE_PATH;
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalStatus.ACTIVE;
 
 public class NavigationGoalTracker {

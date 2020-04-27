@@ -8,23 +8,17 @@ import org.opentcs.drivers.vehicle.VehicleCommAdapter;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-import static java.util.Objects.requireNonNull;
-
 /**
- * A command to set the {@link LoadHandlingDevice}s attached to a vehicle.
+ * Instruct the kernel to set the vehicle its {@link LoadHandlingDevice}.
  *
- * @author Martin Grzenia (Fraunhofer IML)
+ * @author Niels Tiben
  */
 @AllArgsConstructor
-public class SetLoadHandlingDevicesCommand  implements AdapterCommand {
+public class SetLoadHandlingDevicesCommand implements AdapterCommand {
+    private final List<LoadHandlingDevice> loadHandlingDevices;
 
-  /**
-   * The list of load handling devices.
-   */
-  private final List<LoadHandlingDevice> devices;
-
-  @Override
-  public void execute(VehicleCommAdapter adapter) {
-    adapter.getProcessModel().setVehicleLoadHandlingDevices(devices);
-  }
+    @Override
+    public void execute(@Nonnull VehicleCommAdapter adapter) {
+        adapter.getProcessModel().setVehicleLoadHandlingDevices(loadHandlingDevices);
+    }
 }
