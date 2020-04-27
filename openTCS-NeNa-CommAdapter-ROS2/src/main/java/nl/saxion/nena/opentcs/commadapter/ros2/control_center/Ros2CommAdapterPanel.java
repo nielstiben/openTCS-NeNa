@@ -256,6 +256,9 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
 
         // Load handling device
         SwingUtilities.invokeLater(() -> loadHandlingDeviceCheckbox.setEnabled(enabled));
+
+        // Position & Orientation
+        SwingUtilities.invokeLater(this::resetAllPositionValues);
     }
 
     private void setEnableButtonTextByEnabledBoolean(boolean isDriverEnabled) {
@@ -266,6 +269,14 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
 
     }
 
+    private void resetAllPositionValues(){
+        String emptyString = " ";
+        SwingUtilities.invokeLater(() -> positionPointValueLabel.setText(emptyString));
+        SwingUtilities.invokeLater(() -> positionCoordinateValueLabel.setText(emptyString));
+        SwingUtilities.invokeLater(() -> positionEstimateValueLabel.setText(emptyString));
+        SwingUtilities.invokeLater(() -> orientationDegreesValueLabel.setText(emptyString));
+
+    }
     //================================================================================
     // Methods for sending commands
     //================================================================================
