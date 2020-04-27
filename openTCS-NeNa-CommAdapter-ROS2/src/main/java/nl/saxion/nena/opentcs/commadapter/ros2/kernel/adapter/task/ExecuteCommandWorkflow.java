@@ -19,7 +19,7 @@ import javax.annotation.Nonnull;
 import java.util.Queue;
 
 /**
- * @author Niels Tiben <nielstiben@outlook.com>
+ * @author Niels Tiben
  */
 public class ExecuteCommandWorkflow implements NavigationGoalListener, OperationExecutorListener {
     private static final Logger LOG = LoggerFactory.getLogger(ExecuteCommandWorkflow.class);

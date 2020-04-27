@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 
 /**
- * @author Niels Tiben <nielstiben@outlook.com>
+ * @author Niels Tiben
  */
 public class Ros2ProcessModel extends VehicleProcessModel implements
         NodeRunningStatusListener,

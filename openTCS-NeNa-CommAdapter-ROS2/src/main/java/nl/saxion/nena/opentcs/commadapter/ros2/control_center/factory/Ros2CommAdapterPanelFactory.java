@@ -8,6 +8,7 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.control_center.factory;
 
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.Ros2CommAdapterDescription;
+import nl.saxion.nena.opentcs.commadapter.ros2.control_center.Ros2CommAdapterPanel;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModelTO;
 import org.opentcs.access.KernelServicePortal;
 import org.opentcs.data.TCSObjectReference;

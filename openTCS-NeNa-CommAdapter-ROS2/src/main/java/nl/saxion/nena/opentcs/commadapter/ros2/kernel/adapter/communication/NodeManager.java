@@ -15,7 +15,7 @@ import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communicati
  * Starting a new ROS2 node takes time so a non-blocking callback
  * is used to notify other instances when a ROS2 node has been initiated.
  *
- * @author Niels Tiben <nielstiben@outlook.com>
+ * @author Niels Tiben
  */
 @NoArgsConstructor
 public class NodeManager implements NodeRunnableListener {

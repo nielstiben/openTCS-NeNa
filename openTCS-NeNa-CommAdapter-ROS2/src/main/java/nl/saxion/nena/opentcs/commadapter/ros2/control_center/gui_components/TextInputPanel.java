@@ -39,68 +39,14 @@ public abstract class TextInputPanel
     super(title);
   }
 
-  /**
-   * <p>
-   * Mark the input of the specified <code>Document</code> as valid/invalid
-   * and send {@link ValidationEvent ValidationEvents} to the attached
-   * {@link ValidationListener ValidationListeners}.
-   * The <code>Document</code> should be related to an input component in this
-   * panel.
-   * </p>
-   * <p>
-   * <b>Note</b>:<br/>
-   * The default implementation just forwards the call to
-   * {@link InputPanel#setInputValid(boolean)} without respect to the
-   * <code>Document</code>. Therefore subclasses with multiple Documents
-   * should overwrite this method to for example check if <b>all</b> input
-   * fields are valid and then decide if
-   * {@link InputPanel#setInputValid(boolean)} should be called or not.
-   * </p>
-   * @param valid true, if the content of the <code>Document</code> is valid
-   * @param doc the <code>Document</code>
-   */
   protected void setInputValid(boolean valid, Document doc) {
     setInputValid(valid);
   }
 
-  /**
-   * <p>
-   * A {@link javax.swing.event.DocumentListener DocumentListener} that can be
-   * used by subclasses of {@link TextInputPanel} to validate input in
-   * {@link javax.swing.JTextField JTextFields} and other Components that
-   * use {@link javax.swing.text.Document Documents}.
-   * It listens to the DocumentEvents of a
-   * <code>Document</code> and validates the Document's
-   * content against a specified regular expression. Some convenient regular
-   * expressions are provided as <code>public static</code> variables.
-   * After validation {@link TextInputPanel#setInputValid(boolean,
-   * javax.swing.text.Document)} is called.
-   * </p>
-   * <p>
-   * <b>Note:</b><br/>
-   * The, for convenience, provided regular expressions do
-   * NOT check whether the given number really fits into the range of the
-   * corresponding data type (e.g. <code>int</code> for <code>REGEX_INT</code>).
-   * </p>
-   * @see TextInputPanel#setInputValid(boolean, javax.swing.text.Document)
-   */
   public class TextInputValidator
       implements DocumentListener {
 
-    /**
-     * Regular expression that accepts a floating point 
-     * number of arbitary length.
-     * The decimal point and positions after it can be omitted.
-     * <p>
-     * Examples:
-     * <ul>
-     * <li>3.0 is valid</li>
-     * <li>-3 is valid</li>
-     * <li>3. is invalid</li>
-     * <li>.3 is invalid</li>
-     * </ul>
-     * </p>
-     */
+
     public static final String REGEX_FLOAT = "[-+]?[0-9]+(\\.[0-9]+)?";
     /**
      * Regular expression that accepts a positive floating point number of 

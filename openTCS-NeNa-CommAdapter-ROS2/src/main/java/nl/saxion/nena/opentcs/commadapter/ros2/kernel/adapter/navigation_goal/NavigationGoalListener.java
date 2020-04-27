@@ -5,7 +5,7 @@ import org.opentcs.data.model.Point;
 import javax.annotation.Nonnull;
 
 /**
- * @author Niels Tiben <nielstiben@outlook.com>
+ * @author Niels Tiben
  */
 public interface NavigationGoalListener {
     void onNavigationGoalSucceeded(@Nonnull Point point);

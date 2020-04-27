@@ -4,7 +4,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2.common;
 /**
  * Defines a constant regarding internationalization.
  *
- * @author Niels Tiben <nielstiben@outlook.com>
+ * @author Niels Tiben
  */
 public interface I18nROS2CommAdapter {
 

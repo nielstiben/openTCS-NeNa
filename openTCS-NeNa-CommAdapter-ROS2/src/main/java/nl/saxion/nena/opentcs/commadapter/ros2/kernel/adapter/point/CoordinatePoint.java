@@ -8,7 +8,7 @@ import org.opentcs.data.model.Triple;
 /**
  * Fictional point,used to navigate a AGV to a coordinate. CoordinatePoint instances are not stored in a plant model.
  *
- * @author Niels Tiben <nielstiben@outlook.com>
+ * @author Niels Tiben
  */
 @Getter
 public class CoordinatePoint extends Point {

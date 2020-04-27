@@ -7,7 +7,7 @@ import org.opentcs.data.model.Triple;
 import javax.annotation.Nonnull;
 
 /**
- * @author Niels Tiben <nielstiben@outlook.com>
+ * @author Niels Tiben
  */
 public class UnitConverterLib {
     public static double convertMilimetersToMeters(long millimeters) {

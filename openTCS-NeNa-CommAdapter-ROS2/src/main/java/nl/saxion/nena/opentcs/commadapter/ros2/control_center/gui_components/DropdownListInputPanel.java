@@ -236,7 +236,7 @@ public final class DropdownListInputPanel<E>
     /**
      * Set the initial selected list entry.
      *
-     * @param index Must be > 0, will have no effect otherwise.
+     * @param index Must be above 0, will have no effect otherwise.
      * @return The builder instance.
      */
     public Builder<E> setInitialSelection(int index) {

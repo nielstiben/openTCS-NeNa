@@ -12,7 +12,8 @@ import javax.annotation.Nonnull;
 
 /**
  * Class that holds an an instances of a node and of all its publishers and subscriptions.
- * This class is based on org.ros2.rcljava.node.BaseComposableNode
+ * {@link org.ros2.rcljava.node.BaseComposableNode} does not support namespaces,
+ * which is the reason for a the development of the Node class.
  */
 @Getter
 public class Node implements ComposableNode {

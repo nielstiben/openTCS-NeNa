@@ -7,7 +7,7 @@ import org.opentcs.drivers.vehicle.AdapterCommand;
 import org.opentcs.drivers.vehicle.VehicleCommAdapter;
 
 /**
- * @author Niels Tiben <nielstiben@outlook.com>
+ * @author Niels Tiben
  */
 @AllArgsConstructor
 public class DispatchToPointCommand implements AdapterCommand {

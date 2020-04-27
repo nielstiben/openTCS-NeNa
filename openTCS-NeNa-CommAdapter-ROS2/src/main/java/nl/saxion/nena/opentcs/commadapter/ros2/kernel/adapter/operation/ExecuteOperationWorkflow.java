@@ -8,7 +8,7 @@ import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constant
 import javax.annotation.Nonnull;
 
 /**
- * @author Niels Tiben <nielstiben@outlook.com>
+ * @author Niels Tiben
  */
 public class ExecuteOperationWorkflow {
     private boolean isOperationBeingExecuted = false;
