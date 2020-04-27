@@ -12,19 +12,26 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+/**
+ * Class for holding a single Navigation Goal, which consist of
+ * ROS2 (rcljava)-provided data (such as the UUID and parsed status)
+ * and OpenTCS-provided data (destination point)
+ *
+ * @author Niels Tiben
+ */
 @Getter
 public class NavigationGoal implements Comparable<NavigationGoal> {
     private final List<Byte> uuid;
     private final ZonedDateTime created;
+    private final Point destinationPoint;
     private ZonedDateTime lastUpdated;
     private NavigationGoalStatus navigationGoalStatus;
-    private final Point destinationPoint;
 
     public NavigationGoal(@Nonnull GoalStatus goalStatus, Point destinationPoint) {
         this.uuid = goalStatus.getGoalInfo().getGoalId().getUuid();
         this.created = parseTimestampFromGoalStatus(goalStatus);
         this.lastUpdated = parseTimestampFromGoalStatus(goalStatus);
-        this.navigationGoalStatus = NavigationGoalStatus.getByStatusCode(goalStatus.getStatus());
+        this.navigationGoalStatus = NavigationGoalStatus.getByStatusCodeNumber(goalStatus.getStatus());
         this.destinationPoint = destinationPoint;
     }
 
@@ -33,11 +40,10 @@ public class NavigationGoal implements Comparable<NavigationGoal> {
     }
 
     public void setNavigationGoalStatusByGoalStatus(@Nonnull GoalStatus goalStatus) {
-        this.navigationGoalStatus = NavigationGoalStatus.getByStatusCode(goalStatus.getStatus());
+        this.navigationGoalStatus = NavigationGoalStatus.getByStatusCodeNumber(goalStatus.getStatus());
     }
 
-    @Nonnull
-    private ZonedDateTime parseTimestampFromGoalStatus(GoalStatus goalStatus) {
+    private ZonedDateTime parseTimestampFromGoalStatus(@Nonnull GoalStatus goalStatus) {
         Time stamp = goalStatus.getGoalInfo().getStamp();
         return Instant
                 .ofEpochSecond(stamp.getSec(), stamp.getNanosec())
@@ -46,6 +52,6 @@ public class NavigationGoal implements Comparable<NavigationGoal> {
 
     @Override
     public int compareTo(NavigationGoal otherNavigationGoal) {
-        return this.lastUpdated.compareTo(otherNavigationGoal.lastUpdated);
+        return this.lastUpdated.compareTo(otherNavigationGoal.lastUpdated); // Newest first.
     }
 }

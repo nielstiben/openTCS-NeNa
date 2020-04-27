@@ -9,6 +9,8 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * A serializable representation of a {@link Ros2ProcessModel}.
+ *
+ * @author Niels Tiben
  */
 @Getter
 @Setter

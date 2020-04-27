@@ -73,7 +73,7 @@ public abstract class InputPanel
   public void addValidationListener(ValidationListener listener) {
     validationListeners.add(listener);
     // Fire initial validation event for this listener
-    listener.validityChanged(new ValidationEvent(this, inputValid));
+    listener.onValidityChanged(new ValidationEvent(this, inputValid));
   }
 
   /**
@@ -89,7 +89,7 @@ public abstract class InputPanel
     if (changed) {
       ValidationEvent e = new ValidationEvent(this, valid);
       for (ValidationListener l : validationListeners) {
-        l.validityChanged(e);
+        l.onValidityChanged(e);
       }
     }
   }

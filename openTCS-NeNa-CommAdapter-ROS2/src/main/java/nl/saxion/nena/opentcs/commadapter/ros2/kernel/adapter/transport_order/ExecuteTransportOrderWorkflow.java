@@ -31,7 +31,7 @@ public class ExecuteTransportOrderWorkflow implements NavigationGoalListener, Op
     private final Queue<MovementCommand> sentQueue;
 
     //================================================================================
-    // Class variables
+    // Workflow variables
     //================================================================================
 
     @Getter
@@ -64,7 +64,7 @@ public class ExecuteTransportOrderWorkflow implements NavigationGoalListener, Op
     // Next step (1) is activated on demand (when there is a new transport order).
 
     //================================================================================
-    // 1: Initiate Movement Command
+    // 1: Initiate Movement Command.
     //================================================================================
 
     public void processMovementCommand(MovementCommand movementCommand) {
@@ -147,7 +147,7 @@ public class ExecuteTransportOrderWorkflow implements NavigationGoalListener, Op
             // No operation in this command => skip this step.
             setCommandWorkflowSucceeded();
         } else {
-            this.executeOperationWorkflow.executeActionByName(this.currentCommand.getOperation());
+            this.executeOperationWorkflow.executeOperationByName(this.currentCommand.getOperation());
         }
     }
     // Next step (5) is activated by callback. Step 5 is skipped when there are no operations.

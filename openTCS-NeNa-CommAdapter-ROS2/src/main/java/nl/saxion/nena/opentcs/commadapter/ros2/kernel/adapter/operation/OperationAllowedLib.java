@@ -13,7 +13,9 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Library for meant validating incoming operations.
+ * Library class for validating operations requests.
+ *
+ * @author Niels Tiben
  */
 public class OperationAllowedLib {
     private static LoadState lastKnownLoadState = LoadState.EMPTY;
@@ -117,7 +119,6 @@ public class OperationAllowedLib {
     }
 
     private static boolean isVehicleLoadedByLoadState(LoadState loadState) {
-
         return loadState == LoadState.FULL;
     }
 

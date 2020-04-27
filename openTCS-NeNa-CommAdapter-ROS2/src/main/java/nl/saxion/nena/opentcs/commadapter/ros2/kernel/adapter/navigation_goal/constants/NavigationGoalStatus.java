@@ -4,7 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * 
+ * Enum representing the Navigation Goal Status.
+ * A status can be parsed using ROS2 status codes numbers, that is provided with each navigation Goal.
+ *
+ * @author Niels Tiben
  */
 @AllArgsConstructor
 public enum NavigationGoalStatus {
@@ -23,8 +26,8 @@ public enum NavigationGoalStatus {
     @Getter
     private final String description;
 
-    public static NavigationGoalStatus getByStatusCode(byte statusCode) {
-        switch (statusCode) {
+    public static NavigationGoalStatus getByStatusCodeNumber(byte statusCodeNumber) {
+        switch (statusCodeNumber) {
             case 1:
                 return PENDING;
             case 2:

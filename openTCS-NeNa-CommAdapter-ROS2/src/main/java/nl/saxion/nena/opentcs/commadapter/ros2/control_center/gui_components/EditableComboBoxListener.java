@@ -61,7 +61,7 @@ public class EditableComboBoxListener<E> implements DocumentListener {
 
   private void notifyValidationListeners(boolean isValid) {
     for (ValidationListener valListener : validationListeners) {
-      valListener.validityChanged(new ValidationEvent(this, isValid));
+      valListener.onValidityChanged(new ValidationEvent(this, isValid));
     }
   }
 

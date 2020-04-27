@@ -5,6 +5,9 @@ import org.opentcs.data.model.Point;
 import javax.annotation.Nonnull;
 
 /**
+ * Listener for notifying about an updated navigation goal.
+ * The particular navigation goal has initiated by openTCS.
+ *
  * @author Niels Tiben
  */
 public interface NavigationGoalListener {

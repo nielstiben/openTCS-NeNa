@@ -3,6 +3,8 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal;
 import action_msgs.msg.GoalStatus;
 import action_msgs.msg.GoalStatusArray;
 import lombok.Setter;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.Node;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.constants.NavigationGoalStatus;
 import org.opentcs.data.model.Point;
 
@@ -13,18 +15,31 @@ import java.util.*;
 import static nl.saxion.nena.opentcs.commadapter.ros2.I18nROS2CommAdapter.BUNDLE_PATH;
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.constants.NavigationGoalStatus.ACTIVE;
 
+/**
+ * The Navigation Goal Tracker is used for parsing, storing
+ * and handling a list of navigation goals that are submitted by the
+ * {@link Node} via the {@link Ros2ProcessModel}.
+ * TODO | Niels Tiben : write activity diagram.
+ *
+ * @author Niels Tiben
+ */
 public class NavigationGoalTracker {
     private static final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_PATH);
-    private HashMap<List<Byte>, NavigationGoal> navigationGoalMap = new HashMap<>(); // Pair UUID - Navigation Goal
     private final NavigationGoalListener navigationGoalListener;
     private final ExternalNavigationGoalListener externalNavigationGoalListener;
 
+    //================================================================================
+    // Class variables.
+    //================================================================================
+    private HashMap<List<Byte>, NavigationGoal> navigationGoalMap = new HashMap<>(); // key-val pair: UUID - Navigation Goal
     @Setter
     private NavigationGoalListener commandExecutorListener = null;
-
     @Setter
     private Point destinationPointIncomingGoal = null;
 
+    //================================================================================
+    // Constructor
+    //================================================================================
     public NavigationGoalTracker(
             NavigationGoalListener navigationGoalListener,
             ExternalNavigationGoalListener externalNavigationGoalListener
@@ -33,14 +48,22 @@ public class NavigationGoalTracker {
         this.externalNavigationGoalListener = externalNavigationGoalListener;
     }
 
+    //================================================================================
+    // Methods for updating (and notifying about) the navigation goal map.
+    //================================================================================
+
+    /**
+     * Update the Navigation Goal Tracker by a (new) incoming GoalStatusArray from rcljava.
+     *
+     * @param goalStatusArray The ros2 navigation stack..
+     */
     public void updateByGoalStatusArray(@Nonnull GoalStatusArray goalStatusArray) {
         for (GoalStatus goalStatus : goalStatusArray.getStatusList()) {
             processNavigationGoal(goalStatus);
         }
-
         this.navigationGoalMap = sortByNewestDate(this.navigationGoalMap);
 
-        // Notify other instances if needed.
+        // Take the 'newest' navigation goal, and notify other instances if needed.
         Optional<List<Byte>> firstNavigationGoalKey = this.navigationGoalMap.keySet().stream().findFirst();
         firstNavigationGoalKey.ifPresent(key -> notifyListenersIfNeeded(this.navigationGoalMap.get((key))));
     }
@@ -57,58 +80,22 @@ public class NavigationGoalTracker {
         }
     }
 
-    private void addNewNavigationGoal(GoalStatus goalStatusToProcess) {
-        if (isNavigationGoalInitiatedByOpenTCS(goalStatusToProcess)) {
+    private static HashMap<List<Byte>, NavigationGoal> sortByNewestDate(
+            @Nonnull HashMap<List<Byte>, NavigationGoal> unsortedNavigationGoalMap
+    ) {
+        // Create a list from elements of HashMap
+        List<Map.Entry<List<Byte>, NavigationGoal>> list = new LinkedList<>(unsortedNavigationGoalMap.entrySet());
 
-            // Navigation goal initiated by OpenTCS => include the known destination.
-            NavigationGoal navigationGoal = new NavigationGoal(goalStatusToProcess, destinationPointIncomingGoal);
-            this.navigationGoalMap.put(navigationGoal.getUuid(), navigationGoal);
+        // Sort the list
+        list.sort(Map.Entry.comparingByValue());
+        Collections.reverse(list);
 
-            // Notify listeners
-            this.navigationGoalListener.onNavigationGoalActive(destinationPointIncomingGoal);
-            this.commandExecutorListener.onNavigationGoalActive(destinationPointIncomingGoal);
-
-            // Reset destination point for new incoming navigation goals.
-            resetDestinationPoint();
-
-        } else {
-            // Navigation goal not initiated by OpenTCS => destination is not known.
-            NavigationGoal navigationGoal = new NavigationGoal(goalStatusToProcess, null);
-            this.navigationGoalMap.put(navigationGoal.getUuid(), navigationGoal);
-            this.externalNavigationGoalListener.onExternalNavigationGoalActive();
+        // Put data from the sorted list back into hashmap
+        HashMap<List<Byte>, NavigationGoal> temp = new LinkedHashMap<>();
+        for (Map.Entry<List<Byte>, NavigationGoal> aa : list) {
+            temp.put(aa.getKey(), aa.getValue());
         }
-    }
-
-    private boolean isNavigationGoalInitiatedByOpenTCS(@Nonnull GoalStatus goalStatus) {
-        NavigationGoalStatus navigationStatus = NavigationGoalStatus.getByStatusCode(goalStatus.getStatus());
-        if (navigationStatus.equals(ACTIVE) && this.destinationPointIncomingGoal != null && isTimeStampMatching()) {
-            // Initiated by OpenTCS
-            return true;
-        } else {
-            // Not initiated by OpenTCS
-            return false;
-        }
-    }
-
-    private boolean isTimeStampMatching() {
-        // TODO: implement timestamp comparitor for extra validation.
-        return true;
-    }
-
-    private void resetDestinationPoint() {
-        this.destinationPointIncomingGoal = null;
-    }
-
-
-    private void updateExistingNavigationGoal(@Nonnull GoalStatus goalStatusToProcess) {
-        List<Byte> goalStatusToProcessUuid = goalStatusToProcess.getGoalInfo().getGoalId().getUuid();
-
-        // Get navigation goal
-        NavigationGoal navigationGoalToUpdate = this.navigationGoalMap.get(goalStatusToProcessUuid);
-
-        // Update navigation goal
-        navigationGoalToUpdate.setNavigationGoalStatusByGoalStatus(goalStatusToProcess);
-        navigationGoalToUpdate.setLastUpdatedByGoalStatus(goalStatusToProcess);
+        return temp;
     }
 
     private void notifyListenersIfNeeded(@Nonnull NavigationGoal navigationGoal) {
@@ -123,22 +110,67 @@ public class NavigationGoalTracker {
         }
     }
 
-    @Nonnull
-    public static HashMap<List<Byte>, NavigationGoal> sortByNewestDate(@Nonnull HashMap<List<Byte>, NavigationGoal> hm) {
-        // Create a list from elements of HashMap
-        List<Map.Entry<List<Byte>, NavigationGoal>> list = new LinkedList<>(hm.entrySet());
+    //================================================================================
+    // Method for updating a single existing navigation goal.
+    //================================================================================
 
-        // Sort the list
-        list.sort(Map.Entry.comparingByValue());
-        Collections.reverse(list);
+    private void updateExistingNavigationGoal(@Nonnull GoalStatus goalStatusToProcess) {
+        List<Byte> goalStatusToProcessUuid = goalStatusToProcess.getGoalInfo().getGoalId().getUuid();
 
-        // Put data from sorted list to hashmap
-        HashMap<List<Byte>, NavigationGoal> temp = new LinkedHashMap<>();
-        for (Map.Entry<List<Byte>, NavigationGoal> aa : list) {
-            temp.put(aa.getKey(), aa.getValue());
-        }
-        return temp;
+        // Get navigation goal
+        NavigationGoal navigationGoalToUpdate = this.navigationGoalMap.get(goalStatusToProcessUuid);
+
+        // Update navigation goal
+        navigationGoalToUpdate.setNavigationGoalStatusByGoalStatus(goalStatusToProcess);
+        navigationGoalToUpdate.setLastUpdatedByGoalStatus(goalStatusToProcess);
     }
+
+    //================================================================================
+    // Methods for adding a new navigation goal.
+    //================================================================================
+
+    private void addNewNavigationGoal(@Nonnull GoalStatus goalStatusToProcess) {
+        if (isNavigationGoalInitiatedByOpenTCS(goalStatusToProcess)) {
+
+            // Navigation goal initiated by OpenTCS => include the known destination.
+            NavigationGoal navigationGoal = new NavigationGoal(goalStatusToProcess, this.destinationPointIncomingGoal);
+            this.navigationGoalMap.put(navigationGoal.getUuid(), navigationGoal);
+
+            // Notify listeners
+            this.navigationGoalListener.onNavigationGoalActive(this.destinationPointIncomingGoal);
+            this.commandExecutorListener.onNavigationGoalActive(this.destinationPointIncomingGoal);
+
+            // Reset destination point for new incoming navigation goals.
+            resetDestinationPoint();
+
+        } else {
+            // Navigation goal not initiated by OpenTCS => destination is not known.
+            NavigationGoal navigationGoal = new NavigationGoal(goalStatusToProcess, null);
+            this.navigationGoalMap.put(navigationGoal.getUuid(), navigationGoal);
+            this.externalNavigationGoalListener.onExternalNavigationGoalActive();
+        }
+    }
+
+    private boolean isNavigationGoalInitiatedByOpenTCS(@Nonnull GoalStatus goalStatus) {
+        NavigationGoalStatus navigationStatus = NavigationGoalStatus.getByStatusCodeNumber(goalStatus.getStatus());
+
+        return navigationStatus.equals(ACTIVE)
+                && this.destinationPointIncomingGoal != null
+                && isTimeStampMatching();
+    }
+
+    private boolean isTimeStampMatching() {
+        // TODO: implement timestamp comparator for extra validation.
+        return true;
+    }
+
+    private void resetDestinationPoint() {
+        this.destinationPointIncomingGoal = null;
+    }
+
+    //================================================================================
+    // Parser / stringify methods
+    //================================================================================
 
     /**
      * Converts a map of strings that can be used in a JTable.
@@ -148,7 +180,7 @@ public class NavigationGoalTracker {
     public String[][] toStringTable() {
         if (navigationGoalMap.isEmpty()) {
             // No navigation goals, return nothing.
-            return null; //TODO better
+            return null;
         }
 
         ArrayList<String[]> stringMatrixList = new ArrayList<>();
@@ -174,7 +206,11 @@ public class NavigationGoalTracker {
         }
     }
 
-    public void reset(){
+    //================================================================================
+    // Reset method
+    //================================================================================
+
+    public void reset() {
         this.navigationGoalMap = new HashMap<>();
         this.destinationPointIncomingGoal = null;
     }

@@ -25,6 +25,7 @@ import org.opentcs.util.gui.StringListCellRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -41,18 +42,24 @@ import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.E
 /**
  * The panel corresponding to the Ros2CommAdapter.
  *
- * @author Iryna Felko (Fraunhofer IML)
- * @author Stefan Walter (Fraunhofer IML)
- * @author Martin Grzenia (Fraunhofer IML)
+ * @author Niels Tiben
  */
 public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
-    private boolean isAdapterEnabled = false;
     private static final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_PATH);
     private static final Logger LOG = LoggerFactory.getLogger(Ros2CommAdapterPanel.class);
     private final VehicleService vehicleService;
-    private Ros2ProcessModelTO processModel;
     private final CallWrapper callWrapper;
 
+    //================================================================================
+    // Class variables.
+    //================================================================================
+
+    private boolean isAdapterEnabled = false;
+    private Ros2ProcessModelTO processModel;
+
+    //================================================================================
+    // Methods for construction / initiation.
+    //================================================================================
 
     /**
      * Creates new Ros2CommAdapterPanel.
@@ -76,12 +83,16 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
 
     private void initGuiContent() {
         for (VehicleProcessModel.Attribute attribute : VehicleProcessModel.Attribute.values()) {
-            processModelChange(attribute.name(), processModel);
+            processModelChange(attribute.name(), this.processModel);
         }
         for (Ros2ProcessModel.Attribute attribute : Ros2ProcessModel.Attribute.values()) {
-            processModelChange(attribute.name(), processModel);
+            processModelChange(attribute.name(), this.processModel);
         }
     }
+
+    //================================================================================
+    // Methods for updating GUI based on given attributes.
+    //================================================================================
 
     /**
      * Callback method when a vehicle's attribute has changed.
@@ -95,12 +106,28 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
             return;
         }
 
-        processModel = (Ros2ProcessModelTO) newProcessModel;
-        updateRos2ProcessModelData(attributeChanged, processModel);
-        updateVehicleProcessModelData(attributeChanged, processModel);
+        this.processModel = (Ros2ProcessModelTO) newProcessModel;
+        updateRos2ProcessModelData(attributeChanged, this.processModel);
+        updateVehicleProcessModelData(attributeChanged, this.processModel);
     }
 
-    private void updateRos2ProcessModelData(String attributeChanged, Ros2ProcessModelTO processModel) {
+    /* --------------- Attribute switch: general attributes ---------------*/
+    private void updateVehicleProcessModelData(String attributeChanged, VehicleProcessModelTO processModel) {
+        if (attributeChanged.equals(VehicleProcessModel.Attribute.COMM_ADAPTER_ENABLED.name())) {
+            updateIsAdapterEnabled(processModel.isCommAdapterEnabled());
+        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.POSITION.name())) {
+            updatePositionPointValueLabel(processModel.getVehiclePosition());
+        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.PRECISE_POSITION.name())) {
+            updatePositionCoordinateValueLabel(processModel.getPrecisePosition());
+        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.ORIENTATION_ANGLE.name())) {
+            updateOrientationAngleValueLabel(processModel.getOrientationAngle());
+        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.LOAD_HANDLING_DEVICES.name())) {
+            updateVehicleLoadHandlingDevice(processModel.getLoadHandlingDevices());
+        }
+    }
+
+    /* --------------- Attribute switch: driver specific attributes ---------------*/
+    private void updateRos2ProcessModelData(@Nonnull String attributeChanged, @Nonnull Ros2ProcessModelTO processModel) {
 
         if (attributeChanged.equals(NODE_STATUS.name())) {
             updateNodeStatus(processModel.getNodeStatus());
@@ -111,7 +138,14 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         }
     }
 
-    private void updateNodeStatus(String nodeStatus) {
+    /* --------------- Attribute change: Enabled ---------------*/
+    private void updateIsAdapterEnabled(boolean isEnabled) {
+        this.isAdapterEnabled = isEnabled;
+        SwingUtilities.invokeLater(() -> setStatePanelEnabled(this.isAdapterEnabled));
+    }
+
+    /* --------------- Attribute change: Node Status ---------------*/
+    private void updateNodeStatus(@Nonnull String nodeStatus) {
         if (nodeStatus.equals(NodeRunningStatus.NOT_ACTIVE.name())) {
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node is not active"));
             SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.BLACK));
@@ -134,26 +168,14 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         }
     }
 
-    private void updateVehicleProcessModelData(String attributeChanged, VehicleProcessModelTO processModel) {
-        if (attributeChanged.equals(VehicleProcessModel.Attribute.COMM_ADAPTER_ENABLED.name())) {
-            updateIsAdapterEnabled(processModel.isCommAdapterEnabled());
-        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.POSITION.name())) {
-            updatePositionPointValueLabel(processModel.getVehiclePosition());
-        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.PRECISE_POSITION.name())) {
-            updatePositionCoordinateValueLabel(processModel.getPrecisePosition());
-        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.ORIENTATION_ANGLE.name())) {
-            updateOrientationAngleValueLabel(processModel.getOrientationAngle());
-        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.LOAD_HANDLING_DEVICES.name())) {
-            updateVehicleLoadHandlingDevice(processModel.getLoadHandlingDevices());
-        }
-    }
-
+    /* --------------- Attribute change: Position point ---------------*/
     private void updatePositionPointValueLabel(String updatedPointName) {
         if (updatedPointName != null && !updatedPointName.isEmpty()) {
             SwingUtilities.invokeLater(() -> positionPointValueLabel.setText(updatedPointName));
         }
     }
 
+    /* --------------- Attribute change: Position coordinate ---------------*/
     private void updatePositionCoordinateValueLabel(Triple updatedCoordinate) {
         if (updatedCoordinate != null) {
             double[] xyz = UnitConverterLib.convertTripleToCoordinatesInMeter(updatedCoordinate);
@@ -162,6 +184,16 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         }
     }
 
+    /* --------------- Attribute change: Position coordinate (estimation) ---------------*/
+    private void updatePositionEstimateValueLabel(Triple updatedEstimate) {
+        if (updatedEstimate != null) {
+            double[] xyz = UnitConverterLib.convertTripleToCoordinatesInMeter(updatedEstimate);
+            String coordinateText = String.format("%.2f, %.2f, %.2f", xyz[0], xyz[1], xyz[2]); // Print as two-decimal numbers
+            SwingUtilities.invokeLater(() -> positionEstimateValueLabel.setText(coordinateText));
+        }
+    }
+
+    /* --------------- Attribute change: Rotation ---------------*/
     private void updateOrientationAngleValueLabel(double updatedOrientationAngle) {
         if (!Double.isNaN(updatedOrientationAngle)) {
             SwingUtilities.invokeLater(() -> orientationDegreesValueLabel.setText(
@@ -171,6 +203,7 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
 
     }
 
+    /* --------------- Attribute change: Navigation Goal Table ---------------*/
     private void updateNavigationGoalsTable(Object[][] navigationGoalData) {
         final String[] navigationGoalColumnNames = {
                 bundle.getString("ros2CommAdapterPanel.navigation_goal_table_column_uuid.text"),
@@ -187,30 +220,21 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         SwingUtilities.invokeLater(() -> navigationGoalTable.setModel(tableModel));
     }
 
-    private void updatePositionEstimateValueLabel(Triple updatedEstimate) {
-        if (updatedEstimate != null) {
-            double[] xyz = UnitConverterLib.convertTripleToCoordinatesInMeter(updatedEstimate);
-            String coordinateText = String.format("%.2f, %.2f, %.2f", xyz[0], xyz[1], xyz[2]); // Print as two-decimal numbers
-            SwingUtilities.invokeLater(() -> positionEstimateValueLabel.setText(coordinateText));
-        }
-    }
-
+    /* --------------- Attribute change: Load handling device ---------------*/
     private void updateVehicleLoadHandlingDevice(List<LoadHandlingDevice> devices) {
         if (devices.size() > 1) {
             LOG.warn("size of load handling devices greater than 1 ({})", devices.size());
         }
         boolean loaded = devices.stream()
                 .findFirst()
-                .map(lhd -> lhd.isFull())
+                .map(LoadHandlingDevice::isFull)
                 .orElse(false);
         SwingUtilities.invokeLater(() -> loadHandlingDeviceCheckbox.setSelected(loaded));
     }
 
-
-    private void updateIsAdapterEnabled(boolean isEnabled) {
-        this.isAdapterEnabled = isEnabled;
-        SwingUtilities.invokeLater(() -> setStatePanelEnabled(this.isAdapterEnabled));
-    }
+    //================================================================================
+    // Methods executed on driver enable / disable
+    //================================================================================
 
     /**
      * Enable/disable the input fields and buttons in the "Current position/state" panel.
@@ -242,11 +266,9 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
 
     }
 
-    private TCSObjectReference<Vehicle> getVehicleReference()
-            throws Exception {
-        return callWrapper.call(() -> vehicleService.
-                fetchObject(Vehicle.class, processModel.getVehicleName())).getReference();
-    }
+    //================================================================================
+    // Methods for sending commands
+    //================================================================================
 
     private void sendCommand(AdapterCommand command) {
         try {
@@ -256,6 +278,13 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
             LOG.warn("Error sending adapter command '{}'", command, ex);
         }
     }
+
+    private TCSObjectReference<Vehicle> getVehicleReference()
+            throws Exception {
+        return callWrapper.call(() -> vehicleService.
+                fetchObject(Vehicle.class, processModel.getVehicleName())).getReference();
+    }
+
 
     // CHECKSTYLE:OFF
 
@@ -455,15 +484,15 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         testPanel.setLayout(new java.awt.BorderLayout());
 
         navigationGoalTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
+                new Object[][]{
+                        {null, null, null, null},
+                        {null, null, null, null},
+                        {null, null, null, null},
+                        {null, null, null, null}
+                },
+                new String[]{
+                        "Title 1", "Title 2", "Title 3", "Title 4"
+                }
         ));
         navigationGoalTable.setShowGrid(true);
         navigationGoalTableScrollPane.setViewportView(navigationGoalTable);

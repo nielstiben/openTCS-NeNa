@@ -193,8 +193,9 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     }
 
     //================================================================================
-    // Node running status callback method/
+    // Node running status callback method.
     //================================================================================
+
     @Override
     public void onNodeRunningStatusUpdate(@Nonnull NodeRunningStatus newNodeRunningStatus) {
         getPropertyChangeSupport().firePropertyChange(NODE_STATUS.name(), null, newNodeRunningStatus);

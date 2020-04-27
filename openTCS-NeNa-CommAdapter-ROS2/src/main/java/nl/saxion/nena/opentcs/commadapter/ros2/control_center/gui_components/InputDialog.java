@@ -74,8 +74,8 @@ public class InputDialog
   }
 
   @Override
-  public void validityChanged(ValidationEvent e) {
-    okButton.setEnabled(e.valid());
+  public void onValidityChanged(ValidationEvent validationEvent) {
+    okButton.setEnabled(validationEvent.isValid());
   }
 
   /**
