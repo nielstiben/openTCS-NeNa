@@ -1,18 +1,13 @@
-/**
- * Copyright (c) The openTCS Authors.
- *
- * This program is free software and subject to the MIT license. (For details,
- * see the licensing information (LICENSE.txt) you should have received with
- * this copy of the software.)
- */
 package nl.saxion.nena.opentcs.commadapter.ros2.control_center;
 
 import com.google.inject.assistedinject.Assisted;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.*;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components.*;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter;
+import nl.saxion.nena.opentcs.commadapter.ros2.control_center.library.InputValidationLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel;
-import nl.saxion.nena.opentcs.commadapter.ros2.virtual_vehicle.Ros2ProcessModelTO;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModelTO;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.constants.NodeRunningStatus;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.UnitConverterLib;
 import org.opentcs.components.kernel.services.VehicleService;
 import org.opentcs.customizations.ServiceCallWrapper;
 import org.opentcs.data.TCSObjectReference;
@@ -21,7 +16,6 @@ import org.opentcs.data.model.Triple;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.drivers.vehicle.AdapterCommand;
 import org.opentcs.drivers.vehicle.LoadHandlingDevice;
-import org.opentcs.drivers.vehicle.VehicleCommAdapterEvent;
 import org.opentcs.drivers.vehicle.VehicleProcessModel;
 import org.opentcs.drivers.vehicle.management.VehicleCommAdapterPanel;
 import org.opentcs.drivers.vehicle.management.VehicleProcessModelTO;
@@ -31,1317 +25,697 @@ import org.opentcs.util.gui.StringListCellRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 import static java.util.Objects.requireNonNull;
-import static nl.saxion.nena.opentcs.commadapter.ros2.common.I18nLoopbackCommAdapter.BUNDLE_PATH;
+import static javax.swing.JOptionPane.showMessageDialog;
+import static nl.saxion.nena.opentcs.commadapter.ros2.I18nROS2CommAdapter.BUNDLE_PATH;
+import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModelAttribute.*;
+import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.ExecuteOperationWorkflow.LOAD_HANDLING_DEVICE_NAME;
 
 /**
  * The panel corresponding to the Ros2CommAdapter.
  *
- * @author Iryna Felko (Fraunhofer IML)
- * @author Stefan Walter (Fraunhofer IML)
- * @author Martin Grzenia (Fraunhofer IML)
+ * @author Niels Tiben
  */
-public class Ros2CommAdapterPanel
-    extends VehicleCommAdapterPanel {
+public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
+    private static final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_PATH);
+    private static final Logger LOG = LoggerFactory.getLogger(Ros2CommAdapterPanel.class);
+    private final VehicleService vehicleService;
+    private final CallWrapper callWrapper;
 
-  /**
-   * The resource bundle.
-   */
-  private static final ResourceBundle BUNDLE = ResourceBundle.getBundle(BUNDLE_PATH);
-  /**
-   * This class's Logger.
-   */
-  private static final Logger LOG = LoggerFactory.getLogger(Ros2CommAdapterPanel.class);
-  /**
-   * The vehicle service used for interaction with the comm adapter.
-   */
-  private final VehicleService vehicleService;
-  /**
-   * The comm adapter's process model.
-   */
-  private Ros2ProcessModelTO processModel;
-  /**
-   * The call wrapper to use for service calls.
-   */
-  private final CallWrapper callWrapper;
+    //================================================================================
+    // Class variables.
+    //================================================================================
 
-  /**
-   * Creates new Ros2CommAdapterPanel.
-   *
-   * @param processModel The comm adapter's process model.
-   * @param vehicleService The vehicle service.
-   * @param callWrapper The call wrapper to use for service calls.
-   */
-  @Inject
-  public Ros2CommAdapterPanel(@Assisted Ros2ProcessModelTO processModel,
-                              @Assisted VehicleService vehicleService,
-                              @ServiceCallWrapper CallWrapper callWrapper) {
+    private boolean isAdapterEnabled = false;
+    private Ros2ProcessModelTO processModel;
 
-    this.processModel = requireNonNull(processModel, "processModel");
-    this.vehicleService = requireNonNull(vehicleService, "vehicleService");
-    this.callWrapper = requireNonNull(callWrapper, "callWrapper");
+    //================================================================================
+    // Methods for construction / initiation.
+    //================================================================================
 
-    initComponents();
-    initGuiContent();
-  }
+    /**
+     * Creates new Ros2CommAdapterPanel.
+     *
+     * @param processModel   The comm adapter's process model.
+     * @param vehicleService The vehicle service.
+     * @param callWrapper    The call wrapper to use for service calls.
+     */
+    @Inject
+    public Ros2CommAdapterPanel(@Assisted Ros2ProcessModelTO processModel,
+                                @Assisted VehicleService vehicleService,
+                                @ServiceCallWrapper CallWrapper callWrapper) {
 
-  @Override
-  public void processModelChange(String attributeChanged, VehicleProcessModelTO newProcessModel) {
-    if (!(newProcessModel instanceof Ros2ProcessModelTO)) {
-      return;
+        this.processModel = requireNonNull(processModel, "processModel");
+        this.vehicleService = requireNonNull(vehicleService, "vehicleService");
+        this.callWrapper = requireNonNull(callWrapper, "callWrapper");
+
+        initComponents();
+        initGuiContent();
     }
 
-    processModel = (Ros2ProcessModelTO) newProcessModel;
-    updateRos2ProcessModelData(attributeChanged, processModel);
-    updateVehicleProcessModelData(attributeChanged, processModel);
-  }
-
-  private void initGuiContent() {
-    for (VehicleProcessModel.Attribute attribute : VehicleProcessModel.Attribute.values()) {
-      processModelChange(attribute.name(), processModel);
-    }
-    for (Ros2ProcessModel.Attribute attribute : Ros2ProcessModel.Attribute.values()) {
-      processModelChange(attribute.name(), processModel);
-    }
-  }
-
-  private void updateRos2ProcessModelData(String attributeChanged,
-                                              Ros2ProcessModelTO processModel) {
-    if (Objects.equals(attributeChanged,
-                       Ros2ProcessModel.Attribute.OPERATING_TIME.name())) {
-      updateOperatingTime(processModel.getOperatingTime());
-    }
-    else if (Objects.equals(attributeChanged,
-                            Ros2ProcessModel.Attribute.ACCELERATION.name())) {
-      updateMaxAcceleration(processModel.getMaxAcceleration());
-    }
-    else if (Objects.equals(attributeChanged,
-                            Ros2ProcessModel.Attribute.DECELERATION.name())) {
-      updateMaxDeceleration(processModel.getMaxDeceleration());
-    }
-    else if (Objects.equals(attributeChanged,
-                            Ros2ProcessModel.Attribute.MAX_FORWARD_VELOCITY.name())) {
-      updateMaxForwardVelocity(processModel.getMaxFwdVelocity());
-    }
-    else if (Objects.equals(attributeChanged,
-                            Ros2ProcessModel.Attribute.MAX_REVERSE_VELOCITY.name())) {
-      updateMaxReverseVelocity(processModel.getMaxRevVelocity());
-    }
-    else if (Objects.equals(attributeChanged,
-                            Ros2ProcessModel.Attribute.SINGLE_STEP_MODE.name())) {
-      updateSingleStepMode(processModel.isSingleStepModeEnabled());
-    }
-    else if (Objects.equals(attributeChanged,
-                            Ros2ProcessModel.Attribute.VEHICLE_PAUSED.name())) {
-      updateVehiclePaused(processModel.isVehiclePaused());
-    }
-  }
-
-  private void updateVehicleProcessModelData(String attributeChanged,
-                                             VehicleProcessModelTO processModel) {
-    if (Objects.equals(attributeChanged,
-                       VehicleProcessModel.Attribute.COMM_ADAPTER_ENABLED.name())) {
-      updateCommAdapterEnabled(processModel.isCommAdapterEnabled());
-    }
-    else if (Objects.equals(attributeChanged,
-                            VehicleProcessModel.Attribute.POSITION.name())) {
-      updatePosition(processModel.getVehiclePosition());
-    }
-    else if (Objects.equals(attributeChanged,
-                            VehicleProcessModel.Attribute.STATE.name())) {
-      updateVehicleState(processModel.getVehicleState());
-    }
-    else if (Objects.equals(attributeChanged,
-                            VehicleProcessModel.Attribute.PRECISE_POSITION.name())) {
-      updatePrecisePosition(processModel.getPrecisePosition());
-    }
-    else if (Objects.equals(attributeChanged,
-                            VehicleProcessModel.Attribute.ORIENTATION_ANGLE.name())) {
-      updateOrientationAngle(processModel.getOrientationAngle());
-    }
-    else if (Objects.equals(attributeChanged,
-                            VehicleProcessModel.Attribute.ENERGY_LEVEL.name())) {
-      updateEnergyLevel(processModel.getEnergyLevel());
-    }
-    else if (Objects.equals(attributeChanged,
-                            VehicleProcessModel.Attribute.LOAD_HANDLING_DEVICES.name())) {
-      updateVehicleLoadHandlingDevice(processModel.getLoadHandlingDevices());
-    }
-  }
-
-  private void updateVehicleLoadHandlingDevice(List<LoadHandlingDevice> devices) {
-    if (devices.size() > 1) {
-      LOG.warn("size of load handling devices greater than 1 ({})", devices.size());
-    }
-    boolean loaded = devices.stream()
-        .findFirst()
-        .map(lhd -> lhd.isFull())
-        .orElse(false);
-    SwingUtilities.invokeLater(() -> lHDCheckbox.setSelected(loaded));
-  }
-
-  private void updateEnergyLevel(int energy) {
-    SwingUtilities.invokeLater(() -> energyLevelTxt.setText(Integer.toString(energy)));
-  }
-
-  private void updateCommAdapterEnabled(boolean isEnabled) {
-    SwingUtilities.invokeLater(() -> {
-      setStatePanelEnabled(isEnabled);
-      chkBoxEnable.setSelected(isEnabled);
-    });
-  }
-
-  private void updatePosition(String vehiclePosition) {
-    SwingUtilities.invokeLater(() -> {
-      if (vehiclePosition == null) {
-        positionTxt.setText("");
-        return;
-      }
-
-      try {
-        for (Point curPoint : callWrapper.call(() -> vehicleService.fetchObjects(Point.class))) {
-          if (curPoint.getName().equals(vehiclePosition)) {
-            positionTxt.setText(curPoint.getName());
-            break;
-          }
+    private void initGuiContent() {
+        for (VehicleProcessModel.Attribute attribute : VehicleProcessModel.Attribute.values()) {
+            processModelChange(attribute.name(), this.processModel);
         }
-      }
-      catch (Exception ex) {
-        LOG.warn("Error fetching points", ex);
-      }
-    });
-  }
-
-  private void updateVehicleState(Vehicle.State vehicleState) {
-    SwingUtilities.invokeLater(() -> stateTxt.setText(vehicleState.toString()));
-  }
-
-  private void updatePrecisePosition(Triple precisePos) {
-    SwingUtilities.invokeLater(() -> setPrecisePosText(precisePos));
-  }
-
-  private void updateOrientationAngle(double orientation) {
-    SwingUtilities.invokeLater(() -> {
-      if (Double.isNaN(orientation)) {
-        orientationAngleTxt.setText(BUNDLE.getString("ros2CommAdapterPanel.textField_orientationAngle.angleNotSetPlaceholder"));
-      }
-      else {
-        orientationAngleTxt.setText(Double.toString(orientation));
-      }
-    });
-  }
-
-  private void updateOperatingTime(int defaultOperatingTime) {
-    SwingUtilities.invokeLater(() -> opTimeTxt.setText(Integer.toString(defaultOperatingTime)));
-  }
-
-  private void updateMaxAcceleration(int maxAcceleration) {
-    SwingUtilities.invokeLater(() -> maxAccelTxt.setText(Integer.toString(maxAcceleration)));
-  }
-
-  private void updateMaxDeceleration(int maxDeceleration) {
-    SwingUtilities.invokeLater(() -> maxDecelTxt.setText(Integer.toString(maxDeceleration)));
-  }
-
-  private void updateMaxForwardVelocity(int maxFwdVelocity) {
-    SwingUtilities.invokeLater(() -> maxFwdVeloTxt.setText(Integer.toString(maxFwdVelocity)));
-  }
-
-  private void updateMaxReverseVelocity(int maxRevVelocity) {
-    SwingUtilities.invokeLater(() -> maxRevVeloTxt.setText(Integer.toString(maxRevVelocity)));
-  }
-
-  private void updateSingleStepMode(boolean singleStepMode) {
-    SwingUtilities.invokeLater(() -> {
-      triggerButton.setEnabled(singleStepMode);
-      singleModeRadioButton.setSelected(singleStepMode);
-      flowModeRadioButton.setSelected(!singleStepMode);
-    });
-  }
-
-  private void updateVehiclePaused(boolean isVehiclePaused) {
-    SwingUtilities.invokeLater(() -> pauseVehicleCheckBox.setSelected(isVehiclePaused));
-  }
-
-  /**
-   * Enable/disable the input fields and buttons in the "Current position/state" panel.
-   * If disabled the user can not change any values or modify the vehicles state.
-   *
-   * @param enabled boolean indicating if the panel should be enabled
-   */
-  private void setStatePanelEnabled(boolean enabled) {
-    SwingUtilities.invokeLater(() -> positionTxt.setEnabled(enabled));
-    SwingUtilities.invokeLater(() -> stateTxt.setEnabled(enabled));
-    SwingUtilities.invokeLater(() -> energyLevelTxt.setEnabled(enabled));
-    SwingUtilities.invokeLater(() -> precisePosTextArea.setEnabled(enabled));
-    SwingUtilities.invokeLater(() -> orientationAngleTxt.setEnabled(enabled));
-    SwingUtilities.invokeLater(() -> pauseVehicleCheckBox.setEnabled(enabled));
-  }
-
-  private TCSObjectReference<Vehicle> getVehicleReference()
-      throws Exception {
-    return callWrapper.call(() -> vehicleService.
-        fetchObject(Vehicle.class, processModel.getVehicleName())).getReference();
-  }
-
-  private void sendCommAdapterCommand(AdapterCommand command) {
-    try {
-      TCSObjectReference<Vehicle> vehicleRef = getVehicleReference();
-      callWrapper.call(() -> vehicleService.sendCommAdapterCommand(vehicleRef, command));
-    }
-    catch (Exception ex) {
-      LOG.warn("Error sending comm adapter command '{}'", command, ex);
-    }
-  }
-
-  // CHECKSTYLE:OFF
-  /**
-   * This method is called from within the constructor to initialize the form.
-   * WARNING: Do NOT modify this code. The content of this method is always
-   * regenerated by the Form Editor.
-   */
-  // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-  private void initComponents() {
-    java.awt.GridBagConstraints gridBagConstraints;
-
-    modeButtonGroup = new javax.swing.ButtonGroup();
-    propertyEditorGroup = new javax.swing.ButtonGroup();
-    vehicleBahaviourPanel = new javax.swing.JPanel();
-    PropsPowerOuterContainerPanel = new javax.swing.JPanel();
-    PropsPowerInnerContainerPanel = new javax.swing.JPanel();
-    vehiclePropsPanel = new javax.swing.JPanel();
-    maxFwdVeloLbl = new javax.swing.JLabel();
-    maxFwdVeloTxt = new javax.swing.JTextField();
-    maxFwdVeloUnitLbl = new javax.swing.JLabel();
-    maxRevVeloLbl = new javax.swing.JLabel();
-    maxRevVeloTxt = new javax.swing.JTextField();
-    maxRevVeloUnitLbl = new javax.swing.JLabel();
-    maxAccelLbl = new javax.swing.JLabel();
-    maxAccelTxt = new javax.swing.JTextField();
-    maxAccelUnitLbl = new javax.swing.JLabel();
-    maxDecelTxt = new javax.swing.JTextField();
-    maxDecelLbl = new javax.swing.JLabel();
-    maxDecelUnitLbl = new javax.swing.JLabel();
-    defaultOpTimeLbl = new javax.swing.JLabel();
-    defaultOpTimeUntiLbl = new javax.swing.JLabel();
-    opTimeTxt = new javax.swing.JTextField();
-    profilesContainerPanel = new javax.swing.JPanel();
-    filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
-    vehicleStatePanel = new javax.swing.JPanel();
-    stateContainerPanel = new javax.swing.JPanel();
-    connectionPanel = new javax.swing.JPanel();
-    chkBoxEnable = new javax.swing.JCheckBox();
-    curPosPanel = new javax.swing.JPanel();
-    energyLevelTxt = new javax.swing.JTextField();
-    energyLevelLbl = new javax.swing.JLabel();
-    pauseVehicleCheckBox = new javax.swing.JCheckBox();
-    orientationAngleLbl = new javax.swing.JLabel();
-    precisePosUnitLabel = new javax.swing.JLabel();
-    orientationAngleTxt = new javax.swing.JTextField();
-    energyLevelLabel = new javax.swing.JLabel();
-    orientationLabel = new javax.swing.JLabel();
-    positionTxt = new javax.swing.JTextField();
-    positionLabel = new javax.swing.JLabel();
-    pauseVehicleLabel = new javax.swing.JLabel();
-    jLabel2 = new javax.swing.JLabel();
-    stateTxt = new javax.swing.JTextField();
-    jLabel3 = new javax.swing.JLabel();
-    precisePosTextArea = new javax.swing.JTextArea();
-    propertySetterPanel = new javax.swing.JPanel();
-    keyLabel = new javax.swing.JLabel();
-    valueTextField = new javax.swing.JTextField();
-    propSetButton = new javax.swing.JButton();
-    removePropRadioBtn = new javax.swing.JRadioButton();
-    setPropValueRadioBtn = new javax.swing.JRadioButton();
-    jPanel3 = new javax.swing.JPanel();
-    keyTextField = new javax.swing.JTextField();
-    eventPanel = new javax.swing.JPanel();
-    includeAppendixCheckBox = new javax.swing.JCheckBox();
-    appendixTxt = new javax.swing.JTextField();
-    dispatchEventButton = new javax.swing.JButton();
-    dispatchCommandFailedButton = new javax.swing.JButton();
-    controlTabPanel = new javax.swing.JPanel();
-    singleModeRadioButton = new javax.swing.JRadioButton();
-    flowModeRadioButton = new javax.swing.JRadioButton();
-    triggerButton = new javax.swing.JButton();
-    loadDevicePanel = new javax.swing.JPanel();
-    jPanel1 = new javax.swing.JPanel();
-    jPanel2 = new javax.swing.JPanel();
-    lHDCheckbox = new javax.swing.JCheckBox();
-
-    setName("Ros2CommAdapterPanel"); // NOI18N
-    setLayout(new java.awt.BorderLayout());
-
-    vehicleBahaviourPanel.setLayout(new java.awt.BorderLayout());
-
-    PropsPowerOuterContainerPanel.setLayout(new java.awt.BorderLayout());
-
-    PropsPowerInnerContainerPanel.setLayout(new javax.swing.BoxLayout(PropsPowerInnerContainerPanel, javax.swing.BoxLayout.X_AXIS));
-
-    vehiclePropsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(BUNDLE.getString("ros2CommAdapterPanel.panel_vehicleProperties.border.title"))); // NOI18N
-    vehiclePropsPanel.setLayout(new java.awt.GridBagLayout());
-
-    maxFwdVeloLbl.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-    maxFwdVeloLbl.setText(BUNDLE.getString("ros2CommAdapterPanel.label_maximumForwardVelocity.text")); // NOI18N
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-    gridBagConstraints.weightx = 1.0;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    vehiclePropsPanel.add(maxFwdVeloLbl, gridBagConstraints);
-
-    maxFwdVeloTxt.setEditable(false);
-    maxFwdVeloTxt.setColumns(5);
-    maxFwdVeloTxt.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-    maxFwdVeloTxt.setText("0");
-    maxFwdVeloTxt.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-    maxFwdVeloTxt.setEnabled(false);
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    vehiclePropsPanel.add(maxFwdVeloTxt, gridBagConstraints);
-
-    maxFwdVeloUnitLbl.setText("mm/s");
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    vehiclePropsPanel.add(maxFwdVeloUnitLbl, gridBagConstraints);
-
-    maxRevVeloLbl.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-    maxRevVeloLbl.setText(BUNDLE.getString("ros2CommAdapterPanel.label_maximumReverseVelocity.text")); // NOI18N
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 1;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-    gridBagConstraints.weightx = 1.0;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    vehiclePropsPanel.add(maxRevVeloLbl, gridBagConstraints);
-
-    maxRevVeloTxt.setEditable(false);
-    maxRevVeloTxt.setColumns(5);
-    maxRevVeloTxt.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-    maxRevVeloTxt.setText("0");
-    maxRevVeloTxt.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-    maxRevVeloTxt.setEnabled(false);
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 1;
-    gridBagConstraints.gridy = 1;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    vehiclePropsPanel.add(maxRevVeloTxt, gridBagConstraints);
-
-    maxRevVeloUnitLbl.setText("mm/s");
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 1;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    vehiclePropsPanel.add(maxRevVeloUnitLbl, gridBagConstraints);
-
-    maxAccelLbl.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-    maxAccelLbl.setText(BUNDLE.getString("ros2CommAdapterPanel.label_maximumAcceleration.text")); // NOI18N
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 2;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-    gridBagConstraints.weightx = 1.0;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    vehiclePropsPanel.add(maxAccelLbl, gridBagConstraints);
-
-    maxAccelTxt.setEditable(false);
-    maxAccelTxt.setColumns(5);
-    maxAccelTxt.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-    maxAccelTxt.setText("1000");
-    maxAccelTxt.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-    maxAccelTxt.setEnabled(false);
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 1;
-    gridBagConstraints.gridy = 2;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    vehiclePropsPanel.add(maxAccelTxt, gridBagConstraints);
-
-    maxAccelUnitLbl.setText("<html>mm/s<sup>2</sup>");
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 2;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    vehiclePropsPanel.add(maxAccelUnitLbl, gridBagConstraints);
-
-    maxDecelTxt.setEditable(false);
-    maxDecelTxt.setColumns(5);
-    maxDecelTxt.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-    maxDecelTxt.setText("1000");
-    maxDecelTxt.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-    maxDecelTxt.setEnabled(false);
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 1;
-    gridBagConstraints.gridy = 3;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    vehiclePropsPanel.add(maxDecelTxt, gridBagConstraints);
-
-    maxDecelLbl.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-    maxDecelLbl.setText(BUNDLE.getString("ros2CommAdapterPanel.label_maximumDeceleration.text")); // NOI18N
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 3;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-    gridBagConstraints.weightx = 1.0;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    vehiclePropsPanel.add(maxDecelLbl, gridBagConstraints);
-
-    maxDecelUnitLbl.setText("<html>mm/s<sup>2</sup>");
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 3;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    vehiclePropsPanel.add(maxDecelUnitLbl, gridBagConstraints);
-
-    defaultOpTimeLbl.setText(BUNDLE.getString("ros2CommAdapterPanel.label_operatingTime.text")); // NOI18N
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 4;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-    gridBagConstraints.weightx = 1.0;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    vehiclePropsPanel.add(defaultOpTimeLbl, gridBagConstraints);
-
-    defaultOpTimeUntiLbl.setText("ms");
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 4;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    vehiclePropsPanel.add(defaultOpTimeUntiLbl, gridBagConstraints);
-
-    opTimeTxt.setEditable(false);
-    opTimeTxt.setColumns(5);
-    opTimeTxt.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-    opTimeTxt.setText("1000");
-    opTimeTxt.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-    opTimeTxt.setEnabled(false);
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 1;
-    gridBagConstraints.gridy = 4;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    vehiclePropsPanel.add(opTimeTxt, gridBagConstraints);
-
-    PropsPowerInnerContainerPanel.add(vehiclePropsPanel);
-
-    PropsPowerOuterContainerPanel.add(PropsPowerInnerContainerPanel, java.awt.BorderLayout.WEST);
-
-    vehicleBahaviourPanel.add(PropsPowerOuterContainerPanel, java.awt.BorderLayout.NORTH);
-
-    profilesContainerPanel.setLayout(new java.awt.BorderLayout());
-    profilesContainerPanel.add(filler1, java.awt.BorderLayout.CENTER);
-
-    vehicleBahaviourPanel.add(profilesContainerPanel, java.awt.BorderLayout.SOUTH);
-
-    add(vehicleBahaviourPanel, java.awt.BorderLayout.CENTER);
-
-    vehicleStatePanel.setLayout(new java.awt.BorderLayout());
-
-    stateContainerPanel.setLayout(new javax.swing.BoxLayout(stateContainerPanel, javax.swing.BoxLayout.Y_AXIS));
-
-    connectionPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(BUNDLE.getString("ros2CommAdapterPanel.panel_adapterStatus.border.title"))); // NOI18N
-    connectionPanel.setName("connectionPanel"); // NOI18N
-    connectionPanel.setLayout(new java.awt.GridBagLayout());
-
-    chkBoxEnable.setText(BUNDLE.getString("ros2CommAdapterPanel.checkBox_enableAdapter.text")); // NOI18N
-    chkBoxEnable.setName("chkBoxEnable"); // NOI18N
-    chkBoxEnable.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        chkBoxEnableActionPerformed(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    gridBagConstraints.weightx = 1.0;
-    connectionPanel.add(chkBoxEnable, gridBagConstraints);
-
-    stateContainerPanel.add(connectionPanel);
-
-    curPosPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(BUNDLE.getString("ros2CommAdapterPanel.panel_vehicleStatus.border.title"))); // NOI18N
-    curPosPanel.setName("curPosPanel"); // NOI18N
-    curPosPanel.setLayout(new java.awt.GridBagLayout());
-
-    energyLevelTxt.setEditable(false);
-    energyLevelTxt.setBackground(new java.awt.Color(255, 255, 255));
-    energyLevelTxt.setText("100");
-    energyLevelTxt.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-    energyLevelTxt.setName("energyLevelTxt"); // NOI18N
-    energyLevelTxt.addMouseListener(new java.awt.event.MouseAdapter() {
-      public void mouseClicked(java.awt.event.MouseEvent evt) {
-        energyLevelTxtMouseClicked(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 1;
-    gridBagConstraints.gridy = 2;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.weightx = 1.0;
-    gridBagConstraints.insets = new java.awt.Insets(3, 0, 0, 0);
-    curPosPanel.add(energyLevelTxt, gridBagConstraints);
-
-    energyLevelLbl.setText("%");
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 2;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.insets = new java.awt.Insets(0, 3, 0, 0);
-    curPosPanel.add(energyLevelLbl, gridBagConstraints);
-
-    pauseVehicleCheckBox.setEnabled(false);
-    pauseVehicleCheckBox.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-    pauseVehicleCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-    pauseVehicleCheckBox.setName("pauseVehicleCheckBox"); // NOI18N
-    pauseVehicleCheckBox.addItemListener(new java.awt.event.ItemListener() {
-      public void itemStateChanged(java.awt.event.ItemEvent evt) {
-        pauseVehicleCheckBoxItemStateChanged(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 1;
-    gridBagConstraints.gridy = 5;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    curPosPanel.add(pauseVehicleCheckBox, gridBagConstraints);
-
-    orientationAngleLbl.setText("<html>&#186;");
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 4;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.insets = new java.awt.Insets(0, 3, 0, 0);
-    curPosPanel.add(orientationAngleLbl, gridBagConstraints);
-
-    precisePosUnitLabel.setText("mm");
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 2;
-    gridBagConstraints.gridy = 3;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.insets = new java.awt.Insets(0, 3, 0, 0);
-    curPosPanel.add(precisePosUnitLabel, gridBagConstraints);
-
-    orientationAngleTxt.setEditable(false);
-    orientationAngleTxt.setBackground(new java.awt.Color(255, 255, 255));
-      java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("nl/saxion/nena/opentcs/commadapter/ros2/Bundle"); // NOI18N
-    orientationAngleTxt.setText(bundle.getString("ros2CommAdapterPanel.textField_orientationAngle.angleNotSetPlaceholder")); // NOI18N
-    orientationAngleTxt.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-    orientationAngleTxt.setName("orientationAngleTxt"); // NOI18N
-    orientationAngleTxt.addMouseListener(new java.awt.event.MouseAdapter() {
-      public void mouseClicked(java.awt.event.MouseEvent evt) {
-        orientationAngleTxtMouseClicked(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 1;
-    gridBagConstraints.gridy = 4;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.insets = new java.awt.Insets(3, 0, 0, 0);
-    curPosPanel.add(orientationAngleTxt, gridBagConstraints);
-
-    energyLevelLabel.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-    energyLevelLabel.setText(bundle.getString("ros2CommAdapterPanel.label_energyLevel.text")); // NOI18N
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 2;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    gridBagConstraints.insets = new java.awt.Insets(3, 3, 0, 3);
-    curPosPanel.add(energyLevelLabel, gridBagConstraints);
-
-    orientationLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-    orientationLabel.setText(bundle.getString("ros2CommAdapterPanel.label_orientationAngle.text")); // NOI18N
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 4;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    gridBagConstraints.insets = new java.awt.Insets(3, 3, 0, 3);
-    curPosPanel.add(orientationLabel, gridBagConstraints);
-
-    positionTxt.setEditable(false);
-    positionTxt.setBackground(new java.awt.Color(255, 255, 255));
-    positionTxt.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-    positionTxt.setName("positionTxt"); // NOI18N
-    positionTxt.addMouseListener(new java.awt.event.MouseAdapter() {
-      public void mouseClicked(java.awt.event.MouseEvent evt) {
-        positionTxtMouseClicked(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 1;
-    gridBagConstraints.gridy = 0;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    curPosPanel.add(positionTxt, gridBagConstraints);
-
-    positionLabel.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-    positionLabel.setText(bundle.getString("ros2CommAdapterPanel.label_position.text")); // NOI18N
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 0;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    gridBagConstraints.insets = new java.awt.Insets(3, 3, 0, 3);
-    curPosPanel.add(positionLabel, gridBagConstraints);
-
-    pauseVehicleLabel.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-    pauseVehicleLabel.setText(bundle.getString("ros2CommAdapterPanel.label_pauseVehicle.text")); // NOI18N
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 5;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    gridBagConstraints.insets = new java.awt.Insets(3, 3, 0, 3);
-    curPosPanel.add(pauseVehicleLabel, gridBagConstraints);
-
-    jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-    jLabel2.setText(bundle.getString("ros2CommAdapterPanel.label_state.text")); // NOI18N
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 1;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    gridBagConstraints.insets = new java.awt.Insets(3, 3, 0, 3);
-    curPosPanel.add(jLabel2, gridBagConstraints);
-
-    stateTxt.setEditable(false);
-    stateTxt.setBackground(new java.awt.Color(255, 255, 255));
-    stateTxt.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-    stateTxt.setName("stateTxt"); // NOI18N
-    stateTxt.addMouseListener(new java.awt.event.MouseAdapter() {
-      public void mouseClicked(java.awt.event.MouseEvent evt) {
-        stateTxtMouseClicked(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 1;
-    gridBagConstraints.gridy = 1;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.weightx = 1.0;
-    gridBagConstraints.insets = new java.awt.Insets(3, 0, 0, 0);
-    curPosPanel.add(stateTxt, gridBagConstraints);
-
-    jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-    jLabel3.setText(bundle.getString("ros2CommAdapterPanel.label_precisePosition.text")); // NOI18N
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 3;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    gridBagConstraints.insets = new java.awt.Insets(3, 3, 0, 3);
-    curPosPanel.add(jLabel3, gridBagConstraints);
-
-    precisePosTextArea.setEditable(false);
-    precisePosTextArea.setFont(positionTxt.getFont());
-    precisePosTextArea.setRows(3);
-    precisePosTextArea.setText("X:\nY:\nZ:");
-    precisePosTextArea.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-    precisePosTextArea.setName("precisePosTextArea"); // NOI18N
-    precisePosTextArea.addMouseListener(new java.awt.event.MouseAdapter() {
-      public void mouseClicked(java.awt.event.MouseEvent evt) {
-        precisePosTextAreaMouseClicked(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 1;
-    gridBagConstraints.gridy = 3;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-    gridBagConstraints.insets = new java.awt.Insets(3, 0, 0, 0);
-    curPosPanel.add(precisePosTextArea, gridBagConstraints);
-
-    stateContainerPanel.add(curPosPanel);
-    curPosPanel.getAccessibleContext().setAccessibleName("Change");
-
-    propertySetterPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(bundle.getString("ros2CommAdapterPanel.panel_vehicleProperty.border.title"))); // NOI18N
-    propertySetterPanel.setLayout(new java.awt.GridBagLayout());
-
-    keyLabel.setText(bundle.getString("ros2CommAdapterPanel.label_propertyKey.text")); // NOI18N
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 1;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-    gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 3);
-    propertySetterPanel.add(keyLabel, gridBagConstraints);
-
-    valueTextField.setMaximumSize(new java.awt.Dimension(4, 18));
-    valueTextField.setMinimumSize(new java.awt.Dimension(4, 18));
-    valueTextField.setPreferredSize(new java.awt.Dimension(100, 20));
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 1;
-    gridBagConstraints.gridy = 2;
-    propertySetterPanel.add(valueTextField, gridBagConstraints);
-
-    propSetButton.setText(bundle.getString("ros2CommAdapterPanel.button_setProperty.text")); // NOI18N
-    propSetButton.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        propSetButtonActionPerformed(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 4;
-    gridBagConstraints.gridwidth = 2;
-    propertySetterPanel.add(propSetButton, gridBagConstraints);
-
-    propertyEditorGroup.add(removePropRadioBtn);
-    removePropRadioBtn.setText(bundle.getString("ros2CommAdapterPanel.radioButton_removeProperty.text")); // NOI18N
-    removePropRadioBtn.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        removePropRadioBtnActionPerformed(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 3;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-    propertySetterPanel.add(removePropRadioBtn, gridBagConstraints);
-
-    propertyEditorGroup.add(setPropValueRadioBtn);
-    setPropValueRadioBtn.setSelected(true);
-    setPropValueRadioBtn.setText(bundle.getString("ros2CommAdapterPanel.radioButton_setProperty.text")); // NOI18N
-    setPropValueRadioBtn.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        setPropValueRadioBtnActionPerformed(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 2;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-    propertySetterPanel.add(setPropValueRadioBtn, gridBagConstraints);
-
-    jPanel3.setLayout(new java.awt.GridBagLayout());
-
-    keyTextField.setPreferredSize(new java.awt.Dimension(100, 20));
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 0;
-    jPanel3.add(keyTextField, gridBagConstraints);
-
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 1;
-    gridBagConstraints.gridy = 1;
-    propertySetterPanel.add(jPanel3, gridBagConstraints);
-
-    stateContainerPanel.add(propertySetterPanel);
-
-    eventPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(bundle.getString("ros2CommAdapterPanel.panel_eventDispatching.title"))); // NOI18N
-    eventPanel.setLayout(new java.awt.GridBagLayout());
-
-    includeAppendixCheckBox.setText(bundle.getString("ros2CommAdapterPanel.checkBox_includeAppendix.text")); // NOI18N
-    includeAppendixCheckBox.addItemListener(new java.awt.event.ItemListener() {
-      public void itemStateChanged(java.awt.event.ItemEvent evt) {
-        includeAppendixCheckBoxItemStateChanged(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.weightx = 1.0;
-    eventPanel.add(includeAppendixCheckBox, gridBagConstraints);
-
-    appendixTxt.setEditable(false);
-    appendixTxt.setColumns(10);
-    appendixTxt.setText("XYZ");
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.weightx = 1.0;
-    gridBagConstraints.insets = new java.awt.Insets(0, 3, 0, 0);
-    eventPanel.add(appendixTxt, gridBagConstraints);
-
-    dispatchEventButton.setText(bundle.getString("ros2CommAdapterPanel.button_dispatchEvent.text")); // NOI18N
-    dispatchEventButton.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        dispatchEventButtonActionPerformed(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 1;
-    gridBagConstraints.gridwidth = 2;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    gridBagConstraints.weightx = 1.0;
-    gridBagConstraints.insets = new java.awt.Insets(3, 3, 3, 3);
-    eventPanel.add(dispatchEventButton, gridBagConstraints);
-
-    dispatchCommandFailedButton.setText(bundle.getString("ros2CommAdapterPanel.button_failCurrentCommand.text")); // NOI18N
-    dispatchCommandFailedButton.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        dispatchCommandFailedButtonActionPerformed(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 2;
-    gridBagConstraints.gridwidth = 2;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    gridBagConstraints.insets = new java.awt.Insets(3, 3, 3, 3);
-    eventPanel.add(dispatchCommandFailedButton, gridBagConstraints);
-
-    stateContainerPanel.add(eventPanel);
-
-    controlTabPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(BUNDLE.getString("ros2CommAdapterPanel.panel_commandProcessing.border.title"))); // NOI18N
-    controlTabPanel.setLayout(new java.awt.GridBagLayout());
-
-    modeButtonGroup.add(singleModeRadioButton);
-    singleModeRadioButton.setText(BUNDLE.getString("ros2CommAdapterPanel.checkBox_commandProcessingManual.text")); // NOI18N
-    singleModeRadioButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-    singleModeRadioButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
-    singleModeRadioButton.setName("singleModeRadioButton"); // NOI18N
-    singleModeRadioButton.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        singleModeRadioButtonActionPerformed(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 1;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.weightx = 1.0;
-    gridBagConstraints.insets = new java.awt.Insets(0, 3, 0, 0);
-    controlTabPanel.add(singleModeRadioButton, gridBagConstraints);
-
-    modeButtonGroup.add(flowModeRadioButton);
-    flowModeRadioButton.setSelected(true);
-    flowModeRadioButton.setText(BUNDLE.getString("ros2CommAdapterPanel.checkBox_commandProcessingAutomatic.text")); // NOI18N
-    flowModeRadioButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-    flowModeRadioButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
-    flowModeRadioButton.setName("flowModeRadioButton"); // NOI18N
-    flowModeRadioButton.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        flowModeRadioButtonActionPerformed(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 0;
-    gridBagConstraints.gridy = 0;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-    gridBagConstraints.weightx = 1.0;
-    gridBagConstraints.insets = new java.awt.Insets(0, 3, 0, 0);
-    controlTabPanel.add(flowModeRadioButton, gridBagConstraints);
-
-    triggerButton.setText(BUNDLE.getString("ros2CommAdapterPanel.button_nextStep.text")); // NOI18N
-    triggerButton.setEnabled(false);
-    triggerButton.setName("triggerButton"); // NOI18N
-    triggerButton.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        triggerButtonActionPerformed(evt);
-      }
-    });
-    gridBagConstraints = new java.awt.GridBagConstraints();
-    gridBagConstraints.gridx = 1;
-    gridBagConstraints.gridy = 1;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-    gridBagConstraints.weightx = 1.0;
-    gridBagConstraints.insets = new java.awt.Insets(0, 3, 0, 3);
-    controlTabPanel.add(triggerButton, gridBagConstraints);
-
-    stateContainerPanel.add(controlTabPanel);
-
-    vehicleStatePanel.add(stateContainerPanel, java.awt.BorderLayout.NORTH);
-
-    loadDevicePanel.setBorder(javax.swing.BorderFactory.createTitledBorder(bundle.getString("ros2CommAdapterPanel.panel_loadHandlingDevice.border.title"))); // NOI18N
-    loadDevicePanel.setLayout(new java.awt.BorderLayout());
-
-    jPanel1.setLayout(new java.awt.GridBagLayout());
-    loadDevicePanel.add(jPanel1, java.awt.BorderLayout.SOUTH);
-
-    lHDCheckbox.setText("Device loaded");
-    lHDCheckbox.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        lHDCheckboxClicked(evt);
-      }
-    });
-    jPanel2.add(lHDCheckbox);
-
-    loadDevicePanel.add(jPanel2, java.awt.BorderLayout.WEST);
-
-    vehicleStatePanel.add(loadDevicePanel, java.awt.BorderLayout.CENTER);
-
-    add(vehicleStatePanel, java.awt.BorderLayout.WEST);
-
-    getAccessibleContext().setAccessibleName(bundle.getString("ros2CommAdapterPanel.accessibleName")); // NOI18N
-  }// </editor-fold>//GEN-END:initComponents
-
-  private void singleModeRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_singleModeRadioButtonActionPerformed
-    if (singleModeRadioButton.isSelected()) {
-      triggerButton.setEnabled(true);
-
-      sendCommAdapterCommand(new SetSingleStepModeEnabledCommand(true));
-    }
-  }//GEN-LAST:event_singleModeRadioButtonActionPerformed
-
-  private void flowModeRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_flowModeRadioButtonActionPerformed
-    if (flowModeRadioButton.isSelected()) {
-      triggerButton.setEnabled(false);
-
-      sendCommAdapterCommand(new SetSingleStepModeEnabledCommand(false));
-      sendCommAdapterCommand(new TriggerCommand());
-    }
-  }//GEN-LAST:event_flowModeRadioButtonActionPerformed
-
-  private void triggerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_triggerButtonActionPerformed
-    sendCommAdapterCommand(new TriggerCommand());
-  }//GEN-LAST:event_triggerButtonActionPerformed
-
-private void chkBoxEnableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkBoxEnableActionPerformed
-  try {
-    Vehicle vehicle = callWrapper.call(() -> vehicleService.fetchObject(Vehicle.class, processModel.getVehicleName()));
-
-    if (chkBoxEnable.isSelected()) {
-      callWrapper.call(() -> vehicleService.enableCommAdapter(vehicle.getReference()));
-    }
-    else {
-      callWrapper.call(() -> vehicleService.disableCommAdapter(vehicle.getReference()));
-    }
-
-    setStatePanelEnabled(chkBoxEnable.isSelected());
-  }
-  catch (Exception ex) {
-    LOG.warn("Error enabling/disabling comm adapter", ex);
-  }
-}//GEN-LAST:event_chkBoxEnableActionPerformed
-
-
-  private void precisePosTextAreaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_precisePosTextAreaMouseClicked
-    if (precisePosTextArea.isEnabled()) {
-      Triple pos = processModel.getPrecisePosition();
-      // Create panel and dialog
-      TripleTextInputPanel.Builder builder
-          = new TripleTextInputPanel.Builder(BUNDLE.getString("ros2CommAdapterPanel.dialog_setPrecisePosition.title"));
-      builder.setUnitLabels("mm");
-      builder.setLabels("X:", "Y:", "Z:");
-      builder.enableResetButton(null);
-      builder.enableValidation(TextInputPanel.TextInputValidator.REGEX_INT);
-      if (pos != null) {
-        builder.setInitialValues(Long.toString(pos.getX()),
-                                 Long.toString(pos.getY()),
-                                 Long.toString(pos.getZ()));
-      }
-      InputPanel panel = builder.build();
-      InputDialog dialog = new InputDialog(panel);
-      dialog.setVisible(true);
-      // Get dialog result and set vehicle precise position
-      if (dialog.getReturnStatus() == InputDialog.ReturnStatus.ACCEPTED) {
-        if (dialog.getInput() == null) {
-          // Clear precise position
-          sendCommAdapterCommand(new SetPrecisePositionCommand(null));
+        for (Ros2ProcessModel.Attribute attribute : Ros2ProcessModel.Attribute.values()) {
+            processModelChange(attribute.name(), this.processModel);
         }
-        else {
-          // Set new precise position
-          long x, y, z;
-          String[] newPos = (String[]) dialog.getInput();
-          try {
-            x = Long.parseLong(newPos[0]);
-            y = Long.parseLong(newPos[1]);
-            z = Long.parseLong(newPos[2]);
-          }
-          catch (NumberFormatException | NullPointerException e) {
+    }
+
+    //================================================================================
+    // Methods for updating GUI based on given attributes.
+    //================================================================================
+
+    /**
+     * Callback method when a vehicle's attribute has changed.
+     *
+     * @param attributeChanged The changed attribute.
+     * @param newProcessModel  Updated processModel
+     */
+    @Override
+    public void processModelChange(String attributeChanged, VehicleProcessModelTO newProcessModel) {
+        if (!(newProcessModel instanceof Ros2ProcessModelTO)) {
             return;
-          }
-
-          sendCommAdapterCommand(new SetPrecisePositionCommand(new Triple(x, y, z)));
         }
-      }
-    }
-  }//GEN-LAST:event_precisePosTextAreaMouseClicked
 
-  private void stateTxtMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_stateTxtMouseClicked
-    if (!stateTxt.isEnabled()) {
-      return;
+        this.processModel = (Ros2ProcessModelTO) newProcessModel;
+        updateRos2ProcessModelData(attributeChanged, this.processModel);
+        updateVehicleProcessModelData(attributeChanged, this.processModel);
     }
 
-    Vehicle.State currentState = processModel.getVehicleState();
-    // Create panel and dialog
-    InputPanel panel = new DropdownListInputPanel.Builder<>(BUNDLE.getString("ros2CommAdapterPanel.dialog_setState.title"),
-                                                            Arrays.asList(Vehicle.State.values()))
-        .setSelectionRepresenter(x -> x == null ? "" : x.name())
-        .setLabel(BUNDLE.getString("ros2CommAdapterPanel.label_state.text"))
-        .setInitialSelection(currentState)
-        .build();
-    InputDialog dialog = new InputDialog(panel);
-    dialog.setVisible(true);
-    // Get dialog results and set vahicle stare
-    if (dialog.getReturnStatus() == InputDialog.ReturnStatus.ACCEPTED) {
-      Vehicle.State newState = (Vehicle.State) dialog.getInput();
-      if (newState != currentState) {
-        sendCommAdapterCommand(new SetStateCommand(newState));
-      }
-    }
-  }//GEN-LAST:event_stateTxtMouseClicked
-
-  private void positionTxtMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_positionTxtMouseClicked
-    if (!positionTxt.isEnabled()) {
-      return;
-    }
-
-    // Prepare list of model points
-    Set<Point> pointSet;
-    try {
-      pointSet = callWrapper.call(() -> vehicleService.fetchObjects(Point.class));
-    }
-    catch (Exception ex) {
-      LOG.warn("Error fetching points", ex);
-      return;
-    }
-
-    List<Point> pointList = new ArrayList<>(pointSet);
-    Collections.sort(pointList, Comparators.objectsByName());
-    pointList.add(0, null);
-    // Get currently selected point
-    // TODO is there a better way to do this?
-    Point currentPoint = null;
-    String currentPointName = processModel.getVehiclePosition();
-    for (Point p : pointList) {
-      if (p != null && p.getName().equals(currentPointName)) {
-        currentPoint = p;
-        break;
-      }
-    }
-    // Create panel and dialog
-    InputPanel panel = new DropdownListInputPanel.Builder<>(
-        BUNDLE.getString("ros2CommAdapterPanel.dialog_setPosition.title"), pointList)
-        .setSelectionRepresenter(x -> x == null ? "" : x.getName())
-        .setLabel(BUNDLE.getString("ros2CommAdapterPanel.label_position.text"))
-        .setEditable(true)
-        .setInitialSelection(currentPoint)
-        .setRenderer(new StringListCellRenderer<>(x -> x == null ? "" : x.getName()))
-        .build();
-    InputDialog dialog = new InputDialog(panel);
-    dialog.setVisible(true);
-    // Get result from dialog and set vehicle position
-    if (dialog.getReturnStatus() == InputDialog.ReturnStatus.ACCEPTED) {
-      Object item = dialog.getInput();
-      if (item == null) {
-        sendCommAdapterCommand(new SetPositionCommand(null));
-      }
-      else {
-        sendCommAdapterCommand(new SetPositionCommand(((Point) item).getName()));
-      }
-    }
-  }//GEN-LAST:event_positionTxtMouseClicked
-
-  private void orientationAngleTxtMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_orientationAngleTxtMouseClicked
-    if (!orientationAngleTxt.isEnabled()) {
-      return;
-    }
-
-    double currentAngle = processModel.getOrientationAngle();
-    String initialValue = (Double.isNaN(currentAngle) ? "" : Double.toString(currentAngle));
-    // Create dialog and panel
-    InputPanel panel = new SingleTextInputPanel.Builder(
-        BUNDLE.getString("ros2CommAdapterPanel.dialog_setOrientationAngle.title"))
-        .setLabel(BUNDLE.getString("ros2CommAdapterPanel.label_orientationAngle.text"))
-        .setUnitLabel("<html>&#186;")
-        .setInitialValue(initialValue)
-        .enableResetButton(null)
-        .enableValidation(TextInputPanel.TextInputValidator.REGEX_FLOAT)
-        .build();
-    InputDialog dialog = new InputDialog(panel);
-    dialog.setVisible(true);
-    // Get input from dialog
-    InputDialog.ReturnStatus returnStatus = dialog.getReturnStatus();
-    if (returnStatus == InputDialog.ReturnStatus.ACCEPTED) {
-      String input = (String) dialog.getInput();
-      if (input == null) {
-        // The reset button was pressed
-        if (!Double.isNaN(processModel.getOrientationAngle())) {
-          sendCommAdapterCommand(new SetOrientationAngleCommand(Double.NaN));
+    /* --------------- Attribute switch: general attributes ---------------*/
+    private void updateVehicleProcessModelData(String attributeChanged, VehicleProcessModelTO processModel) {
+        if (attributeChanged.equals(VehicleProcessModel.Attribute.COMM_ADAPTER_ENABLED.name())) {
+            updateIsAdapterEnabled(processModel.isCommAdapterEnabled());
+        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.POSITION.name())) {
+            updatePositionPointValueLabel(processModel.getVehiclePosition());
+        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.PRECISE_POSITION.name())) {
+            updatePositionCoordinateValueLabel(processModel.getPrecisePosition());
+        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.ORIENTATION_ANGLE.name())) {
+            updateOrientationAngleValueLabel(processModel.getOrientationAngle());
+        } else if (attributeChanged.equals(VehicleProcessModel.Attribute.LOAD_HANDLING_DEVICES.name())) {
+            updateVehicleLoadHandlingDevice(processModel.getLoadHandlingDevices());
         }
-      }
-      else {
-        // Set orientation provided by the user
-        double angle;
+    }
+
+    /* --------------- Attribute switch: driver specific attributes ---------------*/
+    private void updateRos2ProcessModelData(@Nonnull String attributeChanged, @Nonnull Ros2ProcessModelTO processModel) {
+
+        if (attributeChanged.equals(NODE_STATUS.name())) {
+            updateNodeStatus(processModel.getNodeStatus());
+        } else if (attributeChanged.equals(NAVIGATION_GOALS.name())) {
+            updateNavigationGoalsTable(processModel.getNavigationGoalTable());
+        } else if (attributeChanged.equals(POSITION_ESTIMATE.name())) {
+            updatePositionEstimateValueLabel(processModel.getEstimatePosition());
+        }
+    }
+
+    /* --------------- Attribute change: Enabled ---------------*/
+    private void updateIsAdapterEnabled(boolean isEnabled) {
+        this.isAdapterEnabled = isEnabled;
+        SwingUtilities.invokeLater(() -> setStatePanelEnabled(this.isAdapterEnabled));
+    }
+
+    /* --------------- Attribute change: Node Status ---------------*/
+    private void updateNodeStatus(@Nonnull String nodeStatus) {
+        if (nodeStatus.equals(NodeRunningStatus.NOT_ACTIVE.name())) {
+            SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node is not active"));
+            SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.BLACK));
+            SwingUtilities.invokeLater(() -> enableButton.setEnabled(true)); // Release the enabled button.
+        } else if (nodeStatus.equals(NodeRunningStatus.INITIATING.name())) {
+            SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node is initiating"));
+            SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.ORANGE));
+            SwingUtilities.invokeLater(() -> enableButton.setEnabled(false)); // Lock the enabled button.
+        } else if (nodeStatus.equals(NodeRunningStatus.ACTIVE.name())) {
+            SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node is active"));
+            SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.GREEN));
+            SwingUtilities.invokeLater(() -> enableButton.setEnabled(true)); // Release the enabled button.
+        } else if (nodeStatus.equals(NodeRunningStatus.TERMINATING.name())) {
+            SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node is shutting down"));
+            SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.ORANGE));
+            SwingUtilities.invokeLater(() -> enableButton.setEnabled(false)); // Lock the enabled button.
+        } else {
+            SwingUtilities.invokeLater(() -> nodeStatusLabel.setText("Node has an unknown state"));
+            SwingUtilities.invokeLater(() -> nodeStatusLabel.setForeground(Color.RED));
+        }
+    }
+
+    /* --------------- Attribute change: Position point ---------------*/
+    private void updatePositionPointValueLabel(String updatedPointName) {
+        if (updatedPointName != null && !updatedPointName.isEmpty()) {
+            SwingUtilities.invokeLater(() -> positionPointValueLabel.setText(updatedPointName));
+        }
+    }
+
+    /* --------------- Attribute change: Position coordinate ---------------*/
+    private void updatePositionCoordinateValueLabel(Triple updatedCoordinate) {
+        if (updatedCoordinate != null) {
+            double[] xyz = UnitConverterLib.convertTripleToCoordinatesInMeter(updatedCoordinate);
+            String coordinateText = String.format("%.2f, %.2f, %.2f", xyz[0], xyz[1], xyz[2]); // Print as two-decimal numbers
+            SwingUtilities.invokeLater(() -> positionCoordinateValueLabel.setText(coordinateText));
+        }
+    }
+
+    /* --------------- Attribute change: Position coordinate (estimation) ---------------*/
+    private void updatePositionEstimateValueLabel(Triple updatedEstimate) {
+        if (updatedEstimate != null) {
+            double[] xyz = UnitConverterLib.convertTripleToCoordinatesInMeter(updatedEstimate);
+            String coordinateText = String.format("%.2f, %.2f, %.2f", xyz[0], xyz[1], xyz[2]); // Print as two-decimal numbers
+            SwingUtilities.invokeLater(() -> positionEstimateValueLabel.setText(coordinateText));
+        }
+    }
+
+    /* --------------- Attribute change: Rotation ---------------*/
+    private void updateOrientationAngleValueLabel(double updatedOrientationAngle) {
+        if (!Double.isNaN(updatedOrientationAngle)) {
+            SwingUtilities.invokeLater(() -> orientationDegreesValueLabel.setText(
+                    String.format("%.2f°", updatedOrientationAngle))
+            );
+        }
+
+    }
+
+    /* --------------- Attribute change: Navigation Goal Table ---------------*/
+    private void updateNavigationGoalsTable(Object[][] navigationGoalData) {
+        final String[] navigationGoalColumnNames = {
+                bundle.getString("ros2CommAdapterPanel.navigation_goal_table_column_uuid.text"),
+                bundle.getString("ros2CommAdapterPanel.navigation_goal_table_column_last_updated.text"),
+                bundle.getString("ros2CommAdapterPanel.navigation_goal_table_column_destination.text"),
+                bundle.getString("ros2CommAdapterPanel.navigation_goal_table_column_status.text")
+        };
+        DefaultTableModel tableModel = new DefaultTableModel(navigationGoalData, navigationGoalColumnNames) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        SwingUtilities.invokeLater(() -> navigationGoalTable.setModel(tableModel));
+    }
+
+    /* --------------- Attribute change: Load handling device ---------------*/
+    private void updateVehicleLoadHandlingDevice(List<LoadHandlingDevice> devices) {
+        if (devices.size() > 1) {
+            LOG.warn("size of load handling devices greater than 1 ({})", devices.size());
+        }
+        boolean loaded = devices.stream()
+                .findFirst()
+                .map(LoadHandlingDevice::isFull)
+                .orElse(false);
+        SwingUtilities.invokeLater(() -> loadHandlingDeviceCheckbox.setSelected(loaded));
+    }
+
+    //================================================================================
+    // Methods executed on driver enable / disable
+    //================================================================================
+
+    /**
+     * Enable/disable the input fields and buttons in the "Current position/state" panel.
+     * If disabled the user can not change any values or modify the vehicles state.
+     *
+     * @param enabled boolean indicating if the panel should be enabled
+     */
+    private void setStatePanelEnabled(boolean enabled) {
+        // Top panel pane
+        SwingUtilities.invokeLater(() -> namespaceLabel.setEnabled(!enabled));
+        SwingUtilities.invokeLater(() -> namespaceTextField.setEnabled(!enabled));
+        SwingUtilities.invokeLater(() -> setEnableButtonTextByEnabledBoolean(enabled));
+
+        // Navigation goals pane
+        SwingUtilities.invokeLater(() -> setInitialPointButton.setEnabled(enabled));
+        SwingUtilities.invokeLater(() -> dispatchToCoordinateButton.setEnabled(enabled));
+        SwingUtilities.invokeLater(() -> dispatchToPointButton.setEnabled(enabled));
+        SwingUtilities.invokeLater(() -> navigationGoalTable.setEnabled(enabled));
+
+        // Load handling device
+        SwingUtilities.invokeLater(() -> loadHandlingDeviceCheckbox.setEnabled(enabled));
+    }
+
+    private void setEnableButtonTextByEnabledBoolean(boolean isDriverEnabled) {
+        if (isDriverEnabled)
+            enableButton.setText(bundle.getString("ros2CommAdapterPanel.button_disable.text"));
+        else
+            enableButton.setText(bundle.getString("ros2CommAdapterPanel.button_enable.text"));
+
+    }
+
+    //================================================================================
+    // Methods for sending commands
+    //================================================================================
+
+    private void sendCommand(AdapterCommand command) {
         try {
-          angle = Double.parseDouble(input);
+            TCSObjectReference<Vehicle> vehicleRef = getVehicleReference();
+            callWrapper.call(() -> vehicleService.sendCommAdapterCommand(vehicleRef, command));
+        } catch (Exception ex) {
+            LOG.warn("Error sending adapter command '{}'", command, ex);
         }
-        catch (NumberFormatException e) {
-          LOG.warn("Exception parsing orientation angle value '{}'", input, e);
-          return;
+    }
+
+    private TCSObjectReference<Vehicle> getVehicleReference()
+            throws Exception {
+        return callWrapper.call(() -> vehicleService.
+                fetchObject(Vehicle.class, processModel.getVehicleName())).getReference();
+    }
+
+
+    // CHECKSTYLE:OFF
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jPanel3 = new javax.swing.JPanel();
+        jMenuBar1 = new javax.swing.JMenuBar();
+        jMenu1 = new javax.swing.JMenu();
+        jMenu2 = new javax.swing.JMenu();
+        mainPanel = new javax.swing.JPanel();
+        topPanel = new javax.swing.JPanel();
+        topPanelLeft = new javax.swing.JPanel();
+        namespacePanel = new javax.swing.JPanel();
+        namespaceLabel = new javax.swing.JLabel();
+        namespaceTextField = new javax.swing.JTextField();
+        enableButtonWrapper = new javax.swing.JPanel();
+        enableButton = new javax.swing.JButton();
+        nodeStatusLabel = new javax.swing.JLabel();
+        topPanelRight = new javax.swing.JPanel();
+        saxionLogoLabel = new javax.swing.JLabel();
+        bottomPanel = new javax.swing.JPanel();
+        loadDevicePanel = new javax.swing.JPanel();
+        loadHandlingDeviceCheckbox = new javax.swing.JCheckBox();
+        vehiclePropertiesPanel = new javax.swing.JPanel();
+        vehiclePropertiesLeftPanel = new javax.swing.JPanel();
+        vehiclePropertiesLabelsPanel = new javax.swing.JPanel();
+        positionPointLabelLabel = new javax.swing.JLabel();
+        positionCoordinateLabelLabel = new javax.swing.JLabel();
+        positionEstimateLabelLabel = new javax.swing.JLabel();
+        orientationDegreesLabelLabel = new javax.swing.JLabel();
+        vehiclePropertiesValuesPanel = new javax.swing.JPanel();
+        positionPointValueLabel = new javax.swing.JLabel();
+        positionCoordinateValueLabel = new javax.swing.JLabel();
+        positionEstimateValueLabel = new javax.swing.JLabel();
+        orientationDegreesValueLabel = new javax.swing.JLabel();
+        testPanel = new javax.swing.JPanel();
+        navigationGoalTableScrollPane = new javax.swing.JScrollPane();
+        navigationGoalTable = new javax.swing.JTable();
+        dispatchPanel = new javax.swing.JPanel();
+        setInitialPointButton = new javax.swing.JButton();
+        dispatchToCoordinateButton = new javax.swing.JButton();
+        dispatchToPointButton = new javax.swing.JButton();
+
+        jMenu1.setText("File");
+        jMenuBar1.add(jMenu1);
+
+        jMenu2.setText("Edit");
+        jMenuBar1.add(jMenu2);
+
+        setName("Ros2CommAdapterPanel"); // NOI18N
+        setLayout(new java.awt.BorderLayout());
+
+        mainPanel.setBackground(new java.awt.Color(0, 156, 130));
+        mainPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 156, 130), 15));
+        mainPanel.setLayout(new java.awt.BorderLayout());
+
+        topPanel.setBackground(new java.awt.Color(254, 254, 254));
+        topPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 10, 15));
+        topPanel.setLayout(new java.awt.BorderLayout());
+
+        topPanelLeft.setBackground(new java.awt.Color(254, 254, 254));
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("nl/saxion/nena/opentcs/commadapter/ros2/Bundle"); // NOI18N
+        topPanelLeft.setBorder(javax.swing.BorderFactory.createTitledBorder(bundle.getString("EnableAdapter"))); // NOI18N
+        topPanelLeft.setPreferredSize(new java.awt.Dimension(300, 110));
+        topPanelLeft.setLayout(new java.awt.BorderLayout());
+
+        namespacePanel.setBackground(new java.awt.Color(254, 254, 254));
+        namespacePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 0, 5));
+        namespacePanel.setMaximumSize(new java.awt.Dimension(2147483647, 25));
+        namespacePanel.setLayout(new java.awt.BorderLayout());
+
+        namespaceLabel.setText(bundle.getString("ros2CommAdapterPanel.label_namespace.text")); // NOI18N
+        namespacePanel.add(namespaceLabel, java.awt.BorderLayout.WEST);
+
+        namespaceTextField.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        namespacePanel.add(namespaceTextField, java.awt.BorderLayout.CENTER);
+
+        topPanelLeft.add(namespacePanel, java.awt.BorderLayout.PAGE_START);
+
+        enableButtonWrapper.setBackground(new java.awt.Color(255, 255, 255));
+        enableButtonWrapper.setLayout(new java.awt.BorderLayout());
+
+        enableButton.setText(bundle.getString("ros2CommAdapterPanel.button_enable.text")); // NOI18N
+        enableButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                enableButtonActionPerformed(evt);
+            }
+        });
+        enableButtonWrapper.add(enableButton, java.awt.BorderLayout.CENTER);
+
+        topPanelLeft.add(enableButtonWrapper, java.awt.BorderLayout.CENTER);
+
+        nodeStatusLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        nodeStatusLabel.setText(bundle.getString("ros2CommAdapterPanel.label_nodeInactive.text")); // NOI18N
+        nodeStatusLabel.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        topPanelLeft.add(nodeStatusLabel, java.awt.BorderLayout.PAGE_END);
+
+        topPanel.add(topPanelLeft, java.awt.BorderLayout.WEST);
+
+        topPanelRight.setBackground(new java.awt.Color(254, 254, 254));
+        topPanelRight.setLayout(new java.awt.BorderLayout());
+
+        saxionLogoLabel.setBackground(new java.awt.Color(254, 254, 254));
+        saxionLogoLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/nl/saxion/nena/opentcs/commadapter/ros2/res/logos/saxion.png"))); // NOI18N
+        topPanelRight.add(saxionLogoLabel, java.awt.BorderLayout.CENTER);
+
+        topPanel.add(topPanelRight, java.awt.BorderLayout.EAST);
+
+        mainPanel.add(topPanel, java.awt.BorderLayout.PAGE_START);
+
+        bottomPanel.setBackground(new java.awt.Color(254, 254, 254));
+        bottomPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 5, 0, 5));
+        bottomPanel.setPreferredSize(new java.awt.Dimension(200, 50));
+        bottomPanel.setLayout(new java.awt.BorderLayout());
+
+        loadDevicePanel.setBackground(new java.awt.Color(254, 254, 254));
+        loadDevicePanel.setBorder(javax.swing.BorderFactory.createTitledBorder(bundle.getString("ros2CommAdapterPanel.panel_loadHandlingDevice.border.title"))); // NOI18N
+        loadDevicePanel.setLayout(new java.awt.BorderLayout());
+
+        loadHandlingDeviceCheckbox.setBackground(new java.awt.Color(254, 254, 254));
+        loadHandlingDeviceCheckbox.setText("Device loaded");
+        loadHandlingDeviceCheckbox.setEnabled(false);
+        loadHandlingDeviceCheckbox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                loadHandlingDeviceCheckboxClicked(evt);
+            }
+        });
+        loadDevicePanel.add(loadHandlingDeviceCheckbox, java.awt.BorderLayout.PAGE_END);
+
+        bottomPanel.add(loadDevicePanel, java.awt.BorderLayout.PAGE_END);
+
+        vehiclePropertiesPanel.setBackground(new java.awt.Color(254, 254, 254));
+        vehiclePropertiesPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(bundle.getString("ros2CommAdapterPanel.panel_vehicle.border.title"))); // NOI18N
+        vehiclePropertiesPanel.setName(""); // NOI18N
+        vehiclePropertiesPanel.setPreferredSize(new java.awt.Dimension(500, 150));
+        vehiclePropertiesPanel.setLayout(new java.awt.BorderLayout());
+
+        vehiclePropertiesLeftPanel.setBackground(new java.awt.Color(255, 255, 255));
+        vehiclePropertiesLeftPanel.setPreferredSize(new java.awt.Dimension(340, 100));
+        vehiclePropertiesLeftPanel.setLayout(new java.awt.BorderLayout());
+
+        vehiclePropertiesLabelsPanel.setBackground(new java.awt.Color(255, 255, 255));
+        vehiclePropertiesLabelsPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        vehiclePropertiesLabelsPanel.setPreferredSize(new java.awt.Dimension(170, 100));
+        vehiclePropertiesLabelsPanel.setLayout(new javax.swing.BoxLayout(vehiclePropertiesLabelsPanel, javax.swing.BoxLayout.PAGE_AXIS));
+
+        positionPointLabelLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        positionPointLabelLabel.setText(bundle.getString("ros2CommAdapterPanel.label_position_point.text")); // NOI18N
+        vehiclePropertiesLabelsPanel.add(positionPointLabelLabel);
+
+        positionCoordinateLabelLabel.setText(bundle.getString("ros2CommAdapterPanel.label_position_coordinate.text")); // NOI18N
+        vehiclePropertiesLabelsPanel.add(positionCoordinateLabelLabel);
+
+        positionEstimateLabelLabel.setText(bundle.getString("ros2CommAdapterPanel.label_position_estimate.text")); // NOI18N
+        vehiclePropertiesLabelsPanel.add(positionEstimateLabelLabel);
+
+        orientationDegreesLabelLabel.setText(bundle.getString("ros2CommAdapterPanel.label_orientation_degrees.text")); // NOI18N
+        vehiclePropertiesLabelsPanel.add(orientationDegreesLabelLabel);
+
+        vehiclePropertiesLeftPanel.add(vehiclePropertiesLabelsPanel, java.awt.BorderLayout.WEST);
+
+        vehiclePropertiesValuesPanel.setBackground(new java.awt.Color(255, 255, 255));
+        vehiclePropertiesValuesPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        vehiclePropertiesValuesPanel.setPreferredSize(new java.awt.Dimension(170, 100));
+        vehiclePropertiesValuesPanel.setLayout(new javax.swing.BoxLayout(vehiclePropertiesValuesPanel, javax.swing.BoxLayout.PAGE_AXIS));
+
+        positionPointValueLabel.setFont(new java.awt.Font("Ubuntu", 2, 15)); // NOI18N
+        positionPointValueLabel.setText(" ");
+        vehiclePropertiesValuesPanel.add(positionPointValueLabel);
+
+        positionCoordinateValueLabel.setFont(new java.awt.Font("Ubuntu", 2, 15)); // NOI18N
+        positionCoordinateValueLabel.setText(" ");
+        vehiclePropertiesValuesPanel.add(positionCoordinateValueLabel);
+
+        positionEstimateValueLabel.setFont(new java.awt.Font("Ubuntu", 2, 15)); // NOI18N
+        positionEstimateValueLabel.setText(" ");
+        vehiclePropertiesValuesPanel.add(positionEstimateValueLabel);
+
+        orientationDegreesValueLabel.setFont(new java.awt.Font("Ubuntu", 2, 15)); // NOI18N
+        orientationDegreesValueLabel.setText(" ");
+        vehiclePropertiesValuesPanel.add(orientationDegreesValueLabel);
+
+        vehiclePropertiesLeftPanel.add(vehiclePropertiesValuesPanel, java.awt.BorderLayout.LINE_END);
+
+        vehiclePropertiesPanel.add(vehiclePropertiesLeftPanel, java.awt.BorderLayout.WEST);
+
+        bottomPanel.add(vehiclePropertiesPanel, java.awt.BorderLayout.NORTH);
+
+        testPanel.setBackground(new java.awt.Color(254, 254, 254));
+        testPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(bundle.getString("ros2CommAdapterPanel.panel_navigationGoals.border.title"))); // NOI18N
+        testPanel.setLayout(new java.awt.BorderLayout());
+
+        navigationGoalTable.setModel(new javax.swing.table.DefaultTableModel(
+                new Object[][]{
+                        {null, null, null, null},
+                        {null, null, null, null},
+                        {null, null, null, null},
+                        {null, null, null, null}
+                },
+                new String[]{
+                        "Title 1", "Title 2", "Title 3", "Title 4"
+                }
+        ));
+        navigationGoalTable.setShowGrid(true);
+        navigationGoalTableScrollPane.setViewportView(navigationGoalTable);
+
+        testPanel.add(navigationGoalTableScrollPane, java.awt.BorderLayout.CENTER);
+
+        dispatchPanel.setBackground(new java.awt.Color(255, 255, 255));
+        dispatchPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+
+        setInitialPointButton.setText(bundle.getString("ros2CommAdapterPanel.dialog_setInitialPoint.title")); // NOI18N
+        setInitialPointButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                setInitialPointButtonActionPerformed(evt);
+            }
+        });
+        dispatchPanel.add(setInitialPointButton);
+
+        dispatchToCoordinateButton.setText(bundle.getString("ros2CommAdapterPanel.button_dispatch_to_coordinate.text")); // NOI18N
+        dispatchToCoordinateButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dispatchToCoordinateButtonActionPerformed(evt);
+            }
+        });
+        dispatchPanel.add(dispatchToCoordinateButton);
+
+        dispatchToPointButton.setText(bundle.getString("ros2CommAdapterPanel.button_dispatch_to_point.text")); // NOI18N
+        dispatchToPointButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dispatchToPointButtonActionPerformed(evt);
+            }
+        });
+        dispatchPanel.add(dispatchToPointButton);
+
+        testPanel.add(dispatchPanel, java.awt.BorderLayout.PAGE_START);
+
+        bottomPanel.add(testPanel, java.awt.BorderLayout.CENTER);
+
+        mainPanel.add(bottomPanel, java.awt.BorderLayout.CENTER);
+
+        add(mainPanel, java.awt.BorderLayout.CENTER);
+
+        getAccessibleContext().setAccessibleName(bundle.getString("ros2CommAdapterPanel.accessibleName")); // NOI18N
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void loadHandlingDeviceCheckboxClicked(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadHandlingDeviceCheckboxClicked
+        List<LoadHandlingDevice> devices = Arrays.asList(
+                new LoadHandlingDevice(LOAD_HANDLING_DEVICE_NAME, loadHandlingDeviceCheckbox.isSelected()));
+        sendCommand(new SetLoadHandlingDevicesCommand(devices));
+    }//GEN-LAST:event_loadHandlingDeviceCheckboxClicked
+
+    private void enableButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enableButtonActionPerformed
+        try {
+            Vehicle vehicle = callWrapper.call(() -> vehicleService.fetchObject(Vehicle.class, processModel.getVehicleName()));
+
+            if (this.isAdapterEnabled) {
+                // Disable adapter
+                callWrapper.call(() -> vehicleService.disableCommAdapter(vehicle.getReference()));
+                updateIsAdapterEnabled(false);
+
+            } else {
+                // Enable adapter:
+                String namespaceString = namespaceTextField.getText();
+                if (!InputValidationLib.isValidNamespace(namespaceString)) {
+                    // Invalid namespace
+                    showMessageDialog(this, bundle.getString("ros2CommAdapterPanel.messageDialog.text"));
+                    return;
+                }
+
+                sendCommand(new SetNamespaceCommand(namespaceString));
+
+                callWrapper.call(() -> vehicleService.enableCommAdapter(vehicle.getReference()));
+            }
+        } catch (Exception exception) {
+            LOG.error("Error enabling/disabling ROS2 adapter: ", exception);
         }
 
-        sendCommAdapterCommand(new SetOrientationAngleCommand(angle));
-      }
-    }
-  }//GEN-LAST:event_orientationAngleTxtMouseClicked
 
-  private void pauseVehicleCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_pauseVehicleCheckBoxItemStateChanged
-    if (evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) {
-      sendCommAdapterCommand(new SetVehiclePausedCommand(true));
-    }
-    else if (evt.getStateChange() == java.awt.event.ItemEvent.DESELECTED) {
-      sendCommAdapterCommand(new SetVehiclePausedCommand(false));
-    }
-  }//GEN-LAST:event_pauseVehicleCheckBoxItemStateChanged
+    }//GEN-LAST:event_enableButtonActionPerformed
 
-  private void energyLevelTxtMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_energyLevelTxtMouseClicked
-    if (!energyLevelTxt.isEnabled()) {
-      return;
-    }
+    private void dispatchToCoordinateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dispatchToCoordinateButtonActionPerformed
+        if (!dispatchToCoordinateButton.isEnabled()) {
+            return; // Button is not enabled.
+        }
 
-    // Create panel and dialog
-    InputPanel panel = new SingleTextInputPanel.Builder(
-        BUNDLE.getString("ros2CommAdapterPanel.dialog_setEnergyLevel.title"))
-        .setLabel(BUNDLE.getString("ros2CommAdapterPanel.label_energyLevel.text"))
-        .setUnitLabel("%")
-        .setInitialValue(energyLevelTxt.getText())
-        .enableValidation(TextInputPanel.TextInputValidator.REGEX_INT_RANGE_0_100)
-        .build();
-    InputDialog dialog = new InputDialog(panel);
-    dialog.setVisible(true);
-    // Get result from dialog and set energy level
-    if (dialog.getReturnStatus() == InputDialog.ReturnStatus.ACCEPTED) {
-      String input = (String) dialog.getInput();
-      int energy;
-      try {
-        energy = Integer.parseInt(input);
-      }
-      catch (NumberFormatException e) {
-        return;
-      }
+        InputPanel panel = new CoordinateInputPanel.Builder(bundle.getString("ros2CommAdapterPanel.dialog_dispatchVehicleToCoordinate.title")).build();
+        InputDialog dialog = new InputDialog(panel);
+        dialog.setVisible(true);
 
-      sendCommAdapterCommand(new SetEnergyLevelCommand(energy));
-    }
-  }//GEN-LAST:event_energyLevelTxtMouseClicked
+        // Get dialog result and set vehicle precise position
+        if (dialog.getReturnStatus() == InputDialog.ReturnStatus.ACCEPTED) {
+            // Set new precise position
+            Triple triple;
+            String[] newPos = (String[]) dialog.getInput();
+            try {
+                triple = UnitConverterLib.convertCoordinatesInMeterToTriple(
+                        Double.parseDouble(newPos[0]),
+                        Double.parseDouble(newPos[1]),
+                        Double.parseDouble(newPos[2])
+                );
+            } catch (NumberFormatException | NullPointerException e) {
+                return;
+            }
+            sendCommand(new DispatchToCoordinateCommand(triple));
+        }
 
-  private void includeAppendixCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_includeAppendixCheckBoxItemStateChanged
-    appendixTxt.setEditable(includeAppendixCheckBox.isSelected());
-  }//GEN-LAST:event_includeAppendixCheckBoxItemStateChanged
+    }//GEN-LAST:event_dispatchToCoordinateButtonActionPerformed
 
-  private void dispatchEventButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dispatchEventButtonActionPerformed
-    String appendix = includeAppendixCheckBox.isSelected() ? appendixTxt.getText() : null;
-    VehicleCommAdapterEvent event = new VehicleCommAdapterEvent(processModel.getVehicleName(),
-                                                                appendix);
-    sendCommAdapterCommand(new PublishEventCommand(event));
-  }//GEN-LAST:event_dispatchEventButtonActionPerformed
+    private void dispatchToPointButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dispatchToPointButtonActionPerformed
+        // Prepare list of model points
+        Set<org.opentcs.data.model.Point> pointSet;
+        try {
+            pointSet = callWrapper.call(() -> vehicleService.fetchObjects(org.opentcs.data.model.Point.class));
+        } catch (Exception ex) {
+            LOG.warn("Error fetching points", ex);
+            return;
+        }
 
-  private void dispatchCommandFailedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dispatchCommandFailedButtonActionPerformed
-    sendCommAdapterCommand(new CurrentMovementCommandFailedCommand());
-  }//GEN-LAST:event_dispatchCommandFailedButtonActionPerformed
+        List<org.opentcs.data.model.Point> pointList = new ArrayList<>(pointSet);
+        pointList.sort(Comparators.objectsByName());
+        pointList.add(0, null);
+        // Get currently selected point
+        // TODO is there a better way to do this?
+        Point currentPoint = null;
+        String currentPointName = processModel.getVehiclePosition();
+        for (org.opentcs.data.model.Point p : pointList) {
+            if (p != null && p.getName().equals(currentPointName)) {
+                currentPoint = p;
+                break;
+            }
+        }
+        // Create panel and dialog
+        InputPanel panel = new PointListInputPanel.Builder<>(bundle.getString("ros2CommAdapterPanel.dialog_dispatchToPoint.title"), pointList)
+                .setSelectionRepresenter(x -> x == null ? "" : x.getName())
+                .setLabel(bundle.getString("ros2CommAdapterPanel.label_position.text"))
+                .setEditable(true)
+                .setInitialSelection(currentPoint)
+                .setRenderer(new StringListCellRenderer<>(x -> x == null ? "" : x.getName()))
+                .build();
+        InputDialog dialog = new InputDialog(panel);
+        dialog.setVisible(true);
+        // Get result from dialog and set vehicle position
+        if (dialog.getReturnStatus() == InputDialog.ReturnStatus.ACCEPTED) {
+            Object item = dialog.getInput();
+            if (item == null) {
+                // Do nothing
+            } else {
+                sendCommand(new DispatchToPointCommand(((Point) item)));
+            }
+        }
+    }//GEN-LAST:event_dispatchToPointButtonActionPerformed
 
-  private void propSetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_propSetButtonActionPerformed
-    sendCommAdapterCommand(new SetVehiclePropertyCommand(keyTextField.getText(),
-                                                         setPropValueRadioBtn.isSelected()
-                                                         ? valueTextField.getText() : null));
-  }//GEN-LAST:event_propSetButtonActionPerformed
+    private void setInitialPointButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setInitialPointButtonActionPerformed
+        // Prepare list of model points
+        Set<org.opentcs.data.model.Point> pointSet;
+        try {
+            pointSet = callWrapper.call(() -> vehicleService.fetchObjects(org.opentcs.data.model.Point.class));
+        } catch (Exception ex) {
+            LOG.warn("Error fetching points", ex);
+            return;
+        }
 
-  private void removePropRadioBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removePropRadioBtnActionPerformed
-    valueTextField.setEnabled(false);
-  }//GEN-LAST:event_removePropRadioBtnActionPerformed
+        List<org.opentcs.data.model.Point> pointList = new ArrayList<>(pointSet);
+        pointList.sort(Comparators.objectsByName());
+        pointList.add(0, null);
 
-  private void setPropValueRadioBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setPropValueRadioBtnActionPerformed
-    valueTextField.setEnabled(true);
-  }//GEN-LAST:event_setPropValueRadioBtnActionPerformed
+        // Create panel and dialog
+        InputPanel panel = new PointListInputPanel.Builder<>(bundle.getString("ros2CommAdapterPanel.dialog_setInitialPoint.title"), pointList)
+                .setSelectionRepresenter(x -> x == null ? "" : x.getName())
+                .setLabel(bundle.getString("ros2CommAdapterPanel.label_position.text"))
+                .setEditable(true)
+                .setRenderer(new StringListCellRenderer<>(x -> x == null ? "" : x.getName()))
+                .build();
+        InputDialog dialog = new InputDialog(panel);
+        dialog.setVisible(true);
+        // Get result from dialog and set vehicle position
+        if (dialog.getReturnStatus() == InputDialog.ReturnStatus.ACCEPTED) {
+            Object item = dialog.getInput();
+            if (item == null) {
+                // Do nothing
+            } else {
+                sendCommand(new SetInitialPointCommand(((Point) item)));
+            }
+        }
+    }//GEN-LAST:event_setInitialPointButtonActionPerformed
 
-  private void lHDCheckboxClicked(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lHDCheckboxClicked
-    List<LoadHandlingDevice> devices = Arrays.asList(
-        new LoadHandlingDevice(Ros2CommAdapter.LHD_NAME, lHDCheckbox.isSelected()));
-    sendCommAdapterCommand(new SetLoadHandlingDevicesCommand(devices));
-  }//GEN-LAST:event_lHDCheckboxClicked
-
-  /**
-   * Set the specified precise position to the text area. The method takes care
-   * of the formatting. If any of the parameters is null all values will be set
-   * to the "clear"-value.
-   *
-   * @param x x-position
-   * @param y y-position
-   * @param z z-poition
-   */
-  private void setPrecisePosText(Triple precisePos) {
-    // Convert values to strings
-    String xS = BUNDLE.getString("ros2CommAdapterPanel.textArea_precisePosition.positionNotSetPlaceholder");
-    String yS = BUNDLE.getString("ros2CommAdapterPanel.textArea_precisePosition.positionNotSetPlaceholder");
-    String zS = BUNDLE.getString("ros2CommAdapterPanel.textArea_precisePosition.positionNotSetPlaceholder");
-
-    if (precisePos != null) {
-      xS = String.valueOf(precisePos.getX());
-      yS = String.valueOf(precisePos.getY());
-      zS = String.valueOf(precisePos.getZ());
-    }
-
-    // Clip extremely long string values
-    xS = (xS.length() > 20) ? (xS.substring(0, 20) + "...") : xS;
-    yS = (yS.length() > 20) ? (yS.substring(0, 20) + "...") : yS;
-    zS = (zS.length() > 20) ? (zS.substring(0, 20) + "...") : zS;
-
-    // Build formatted text
-    StringBuilder text = new StringBuilder("");
-    text.append("X: ").append(xS).append("\n")
-        .append("Y: ").append(yS).append("\n")
-        .append("Z: ").append(zS);
-    precisePosTextArea.setText(text.toString());
-  }
-
-  // Variables declaration - do not modify//GEN-BEGIN:variables
-  private javax.swing.JPanel PropsPowerInnerContainerPanel;
-  private javax.swing.JPanel PropsPowerOuterContainerPanel;
-  private javax.swing.JTextField appendixTxt;
-  private javax.swing.JCheckBox chkBoxEnable;
-  private javax.swing.JPanel connectionPanel;
-  private javax.swing.JPanel controlTabPanel;
-  private javax.swing.JPanel curPosPanel;
-  private javax.swing.JLabel defaultOpTimeLbl;
-  private javax.swing.JLabel defaultOpTimeUntiLbl;
-  private javax.swing.JButton dispatchCommandFailedButton;
-  private javax.swing.JButton dispatchEventButton;
-  private javax.swing.JLabel energyLevelLabel;
-  private javax.swing.JLabel energyLevelLbl;
-  private javax.swing.JTextField energyLevelTxt;
-  private javax.swing.JPanel eventPanel;
-  private javax.swing.Box.Filler filler1;
-  private javax.swing.JRadioButton flowModeRadioButton;
-  private javax.swing.JCheckBox includeAppendixCheckBox;
-  private javax.swing.JLabel jLabel2;
-  private javax.swing.JLabel jLabel3;
-  private javax.swing.JPanel jPanel1;
-  private javax.swing.JPanel jPanel2;
-  private javax.swing.JPanel jPanel3;
-  private javax.swing.JLabel keyLabel;
-  private javax.swing.JTextField keyTextField;
-  private javax.swing.JCheckBox lHDCheckbox;
-  private javax.swing.JPanel loadDevicePanel;
-  private javax.swing.JLabel maxAccelLbl;
-  private javax.swing.JTextField maxAccelTxt;
-  private javax.swing.JLabel maxAccelUnitLbl;
-  private javax.swing.JLabel maxDecelLbl;
-  private javax.swing.JTextField maxDecelTxt;
-  private javax.swing.JLabel maxDecelUnitLbl;
-  private javax.swing.JLabel maxFwdVeloLbl;
-  private javax.swing.JTextField maxFwdVeloTxt;
-  private javax.swing.JLabel maxFwdVeloUnitLbl;
-  private javax.swing.JLabel maxRevVeloLbl;
-  private javax.swing.JTextField maxRevVeloTxt;
-  private javax.swing.JLabel maxRevVeloUnitLbl;
-  private javax.swing.ButtonGroup modeButtonGroup;
-  private javax.swing.JTextField opTimeTxt;
-  private javax.swing.JLabel orientationAngleLbl;
-  private javax.swing.JTextField orientationAngleTxt;
-  private javax.swing.JLabel orientationLabel;
-  private javax.swing.JCheckBox pauseVehicleCheckBox;
-  private javax.swing.JLabel pauseVehicleLabel;
-  private javax.swing.JLabel positionLabel;
-  private javax.swing.JTextField positionTxt;
-  private javax.swing.JTextArea precisePosTextArea;
-  private javax.swing.JLabel precisePosUnitLabel;
-  private javax.swing.JPanel profilesContainerPanel;
-  private javax.swing.JButton propSetButton;
-  private javax.swing.ButtonGroup propertyEditorGroup;
-  private javax.swing.JPanel propertySetterPanel;
-  private javax.swing.JRadioButton removePropRadioBtn;
-  private javax.swing.JRadioButton setPropValueRadioBtn;
-  private javax.swing.JRadioButton singleModeRadioButton;
-  private javax.swing.JPanel stateContainerPanel;
-  private javax.swing.JTextField stateTxt;
-  private javax.swing.JButton triggerButton;
-  private javax.swing.JTextField valueTextField;
-  private javax.swing.JPanel vehicleBahaviourPanel;
-  private javax.swing.JPanel vehiclePropsPanel;
-  private javax.swing.JPanel vehicleStatePanel;
-  // End of variables declaration//GEN-END:variables
-  // CHECKSTYLE:ON
-
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel bottomPanel;
+    private javax.swing.JPanel dispatchPanel;
+    private javax.swing.JButton dispatchToCoordinateButton;
+    private javax.swing.JButton dispatchToPointButton;
+    private javax.swing.JButton enableButton;
+    private javax.swing.JPanel enableButtonWrapper;
+    private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel loadDevicePanel;
+    private javax.swing.JCheckBox loadHandlingDeviceCheckbox;
+    private javax.swing.JPanel mainPanel;
+    private javax.swing.JLabel namespaceLabel;
+    private javax.swing.JPanel namespacePanel;
+    private javax.swing.JTextField namespaceTextField;
+    private javax.swing.JTable navigationGoalTable;
+    private javax.swing.JScrollPane navigationGoalTableScrollPane;
+    private javax.swing.JLabel nodeStatusLabel;
+    private javax.swing.JLabel orientationDegreesLabelLabel;
+    private javax.swing.JLabel orientationDegreesValueLabel;
+    private javax.swing.JLabel positionCoordinateLabelLabel;
+    private javax.swing.JLabel positionCoordinateValueLabel;
+    private javax.swing.JLabel positionEstimateLabelLabel;
+    private javax.swing.JLabel positionEstimateValueLabel;
+    private javax.swing.JLabel positionPointLabelLabel;
+    private javax.swing.JLabel positionPointValueLabel;
+    private javax.swing.JLabel saxionLogoLabel;
+    private javax.swing.JButton setInitialPointButton;
+    private javax.swing.JPanel testPanel;
+    private javax.swing.JPanel topPanel;
+    private javax.swing.JPanel topPanelLeft;
+    private javax.swing.JPanel topPanelRight;
+    private javax.swing.JPanel vehiclePropertiesLabelsPanel;
+    private javax.swing.JPanel vehiclePropertiesLeftPanel;
+    private javax.swing.JPanel vehiclePropertiesPanel;
+    private javax.swing.JPanel vehiclePropertiesValuesPanel;
+    // End of variables declaration//GEN-END:variables
+    // CHECKSTYLE:ON
 }

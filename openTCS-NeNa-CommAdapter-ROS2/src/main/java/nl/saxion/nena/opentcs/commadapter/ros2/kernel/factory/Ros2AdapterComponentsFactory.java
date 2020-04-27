@@ -9,11 +9,5 @@ import org.opentcs.data.model.Vehicle;
  * @author Niels Tiben
  */
 public interface Ros2AdapterComponentsFactory {
-    /**
-     * Creates a new Ros2CommAdapter for the given vehicle.
-     *
-     * @param vehicle The vehicle
-     * @return A new Ros2CommAdapter
-     */
     Ros2CommAdapter createRos2CommAdapter(Vehicle vehicle);
 }

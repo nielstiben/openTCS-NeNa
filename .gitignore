@@ -10,6 +10,19 @@
 /openTCS-NeNa-Common/build/classes/java/main/
 /openTCS-NeNa-Common/build/classes/java/test/
 /openTCS-NeNa-Documentation/build/
+/openTCS-NeNa-Kernel/src/dist/
 /openTCS-NeNa-Kernel/build/
+/openTCS-NeNa-KernelControlCenter/src/dist/
 /openTCS-NeNa-KernelControlCenter/build/
+/openTCS-NeNa-PlantOverview/src/dist/
 /openTCS-NeNa-PlantOverview/build/
+
+# ament exclusions
+/openTCS-NeNa-ROS2-Java/ament_ws/build_isolated/
+/openTCS-NeNa-ROS2-Java/ament_ws/install_isolated/
+/openTCS-NeNa-ROS2-Java/ament_ws/src/
+
+# ros2_java exclusions
+/openTCS-NeNa-ROS2-Java/ros2_java_ws/build_isolated/
+/openTCS-NeNa-ROS2-Java/ros2_java_ws/install_isolated/
+/openTCS-NeNa-ROS2-Java/ros2_java_ws/src/

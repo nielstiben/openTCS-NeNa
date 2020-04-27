@@ -73,7 +73,7 @@ public abstract class InputPanel
   public void addValidationListener(ValidationListener listener) {
     validationListeners.add(listener);
     // Fire initial validation event for this listener
-    listener.validityChanged(new ValidationEvent(this, inputValid));
+    listener.onValidityChanged(new ValidationEvent(this, inputValid));
   }
 
   /**
@@ -89,7 +89,7 @@ public abstract class InputPanel
     if (changed) {
       ValidationEvent e = new ValidationEvent(this, valid);
       for (ValidationListener l : validationListeners) {
-        l.validityChanged(e);
+        l.onValidityChanged(e);
       }
     }
   }
@@ -152,37 +152,6 @@ public abstract class InputPanel
     // Do nothing here.
   }
 
-  /**
-   * <p>
-   * An interface that can be used to implement the builder-pattern
-   * (see Joshua Bloch's <i>Effective Java</i>).
-   * <br />
-   * As an <code>InputPanel</code> might have many required and/or optional
-   * parameters it can be more convinient to use a Builder class instead of
-   * public constructors.
-   * A builder should implement a public constructor with required parameters
-   * for the panel and public setters for optional parameters.
-   * The <code>InputPanel</code> is created by the {@link #build} method.
-   * <br />
-   * For an example implementation see {@link SingleTextInputPanel.Builder}.
-   * </p>
-   * <p>
-   * <b>Usage</b>:
-   * <ol>
-   * <li>Instanciate the builder, passing required parameters to the 
-   * constructor.</li>
-   * <li>Set optional parameters via the other public methods.</li>
-   * <li>Actually build the panel according to the previously specified 
-   * parameters using the build() method.</li>
-   * </ol>
-   * </p>
-   * <p>
-   * <b>Note</b>: 
-   * The parameter methods should always return the builder itself, so the 
-   * creation of a panel can be done in a single statement (see the 
-   * <i>Builder-Pattern</i> in Joshua Bloch's <i>Effective Java</i>).
-   * </p>
-   */
   public interface Builder {
 
     /**

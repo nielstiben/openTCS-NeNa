@@ -1,42 +1,20 @@
-/**
- * Copyright (c) The openTCS Authors.
- *
- * This program is free software and subject to the MIT license. (For details,
- * see the licensing information (LICENSE.txt) you should have received with
- * this copy of the software.)
- */
 package nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components;
+
+import lombok.Getter;
 
 import java.util.EventObject;
 
 /**
  * An event holding a single boolean variable indicating if something is valid.
  *
- * @author Tobias Marquardt (Fraunhofer IML)
+ * @author Niels Tiben
  */
-public class ValidationEvent
-    extends EventObject {
+public class ValidationEvent extends EventObject {
+    @Getter
+    private final boolean isValid;
 
-  /**
-   * Validation state.
-   */
-  private final boolean valid;
-
-  /**
-   * Create a new <code>ValidationEvent</code>.
-   * @param source The source of the event.
-   * @param valid The state of validation that should be reported by this event.
-   */
-  public ValidationEvent(Object source, boolean valid) {
-    super(source);
-    this.valid = valid;
-  }
-
-  /**
-   * Return the state of validation.
-   * @return valid
-   */
-  public boolean valid() {
-    return valid;
-  }
+    public ValidationEvent(Object source, boolean isValid) {
+        super(source);
+        this.isValid = isValid;
+    }
 }
