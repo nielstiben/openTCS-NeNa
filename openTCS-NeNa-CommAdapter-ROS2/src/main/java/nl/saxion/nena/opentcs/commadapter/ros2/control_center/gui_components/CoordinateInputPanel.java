@@ -1,95 +1,81 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components;
-import nl.saxion.nena.opentcs.commadapter.ros2.control_center.lib.InputValidationLib;
+
+import lombok.AllArgsConstructor;
+import nl.saxion.nena.opentcs.commadapter.ros2.control_center.library.InputValidationLib;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.Node;
+
 import javax.swing.text.Document;
 
-public final class CoordinateInputPanel
-        extends TextInputPanel {
+/**
+ * Instruct the kernel to use the given namespace when a {@link Node} is initiated.
+ *
+ * @author Niels Tiben
+ */
+public final class CoordinateInputPanel extends TextInputPanel {
+    private boolean isXInputFieldValid = true;
+    private boolean isYInputFieldValid = true;
+    private boolean isZInputFieldValid = true;
 
-    /**
-     * If the panel is resetable this is the value the input is set to when
-     * doReset() is called.
-     */
-    private Object resetValue;
-    private boolean xInputFieldValid = true;
-    private boolean yInputFieldValid = true;
-    private boolean zInputFieldValid = true;
-
-    /**
-     * Create a new <code>TripleTextInputPanel</code>.
-     * @param title Title of the panel
-     */
-    private CoordinateInputPanel(String title) {
-        super(title);
+    private CoordinateInputPanel(String panelTitle) {
+        super(panelTitle);
         initComponents();
     }
 
     /**
-     * Enable input validation against the given regular expressions.
-     * If a format string is <code>null</code> the related text field is not
-     * validated.
-     * @see InputPanel#addValidationListener
+     * Enable input validation against the {@link InputValidationLib#getIsDoubleRegex()} regular expression.
      */
     private void enableInputValidation() {
-        String format = InputValidationLib.getIsDoubleRegex();
-
-        xInputField.getDocument().addDocumentListener(new TextInputValidator(format));
-        yInputField.getDocument().addDocumentListener(new TextInputValidator(format));
-        zInputField.getDocument().addDocumentListener(new TextInputValidator(format));
+        String isDoubleRegex = InputValidationLib.getIsDoubleRegex();
+        this.xInputField.getDocument().addDocumentListener(new TextInputValidator(isDoubleRegex));
+        this.yInputField.getDocument().addDocumentListener(new TextInputValidator(isDoubleRegex));
+        this.zInputField.getDocument().addDocumentListener(new TextInputValidator(isDoubleRegex));
     }
 
     @Override
     protected void captureInput() {
-        input = new String[] {xInputField.getText(),
-                yInputField.getText(),
-                zInputField.getText()};
-    }
-
-    @Override
-    public void doReset() {
-        input = resetValue;
+        this.input = new String[]{
+                this.xInputField.getText(),
+                this.yInputField.getText(),
+                this.zInputField.getText()
+        };
     }
 
     /**
-     * Mark the input of the specified <code>Document</code> as valid, if this
-     * Document belongs to one of the three text fields in this panel.
-     * If <code>valid</code> is <code>true</code> the validity of the other
-     * two documents is checked, too. Only if all three text fields contain valid
-     * input, the whole input of the panel is marked as valid.
+     * Mark the document as valid, but only if all three text input field match the criteria of a valid coordinate.
      *
-     * @see TextInputPanel#setInputValid(boolean, javax.swing.text.Document)
-     * @param valid true, if the content of the <code>Document</code> is valid
-     * @param doc the <code>Document</code>
+     * @param valid Whether the document is valid.
+     * @param doc   The document
      */
     @Override
     protected void setInputValid(boolean valid, Document doc) {
         // Find out to which input field the document belongs and check the others
         boolean allValid = valid;
         if (doc == xInputField.getDocument()) {
-            xInputFieldValid = valid;
-            if (!(yInputFieldValid && zInputFieldValid)) {
+            isXInputFieldValid = valid;
+            if (!(isYInputFieldValid && isZInputFieldValid)) {
                 allValid = false;
             }
-        }
-        else if (doc == yInputField.getDocument()) {
-            yInputFieldValid = valid;
-            if (!(xInputFieldValid && zInputFieldValid)) {
+        } else if (doc == yInputField.getDocument()) {
+            isYInputFieldValid = valid;
+            if (!(isXInputFieldValid && isZInputFieldValid)) {
                 allValid = false;
             }
-        }
-        else if (doc == zInputField.getDocument()) {
-            zInputFieldValid = valid;
-            if (!(xInputFieldValid && yInputFieldValid)) {
+        } else if (doc == zInputField.getDocument()) {
+            isZInputFieldValid = valid;
+            if (!(isXInputFieldValid && isYInputFieldValid)) {
                 allValid = false;
             }
-        }
-        else {
+        } else {
             allValid = false;
         }
+
         setInputValid(allValid);
     }
 
     // CHECKSTYLE:OFF
-    /** This method is called from within the constructor to
+
+    /**
+     * This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
@@ -241,6 +227,7 @@ public final class CoordinateInputPanel
     private void zInputFieldFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_zInputFieldFocusGained
         zInputField.selectAll();
     }//GEN-LAST:event_zInputFieldFocusGained
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel instructionLabel;
     private javax.swing.JTextField xInputField;
@@ -258,26 +245,13 @@ public final class CoordinateInputPanel
     /**
      * See {@link InputPanel.Builder}.
      */
-    public static class Builder
-            implements InputPanel.Builder {
-
-        /**
-         * The panel's title.
-         */
-        private final String title;
-
-
-        /**
-         * Create a new builder.
-         * @param title Title of the panel.
-         */
-        public Builder(String title) {
-            this.title = title;
-        }
+    @AllArgsConstructor
+    public static class Builder implements InputPanel.Builder {
+        private final String panelTitle;
 
         @Override
         public InputPanel build() {
-            nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components.CoordinateInputPanel panel = new nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components.CoordinateInputPanel(title);
+            CoordinateInputPanel panel = new CoordinateInputPanel(panelTitle);
             panel.enableInputValidation();
             panel.xInputField.setText(null);
             panel.yInputField.setText(null);

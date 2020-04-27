@@ -14,13 +14,14 @@ import javax.annotation.Nonnull;
  * Class that holds an an instances of a node and of all its publishers and subscriptions.
  * {@link org.ros2.rcljava.node.BaseComposableNode} does not support namespaces,
  * which is the reason for a the development of the Node class.
+ *
+ * @author Niels Tiben
  */
 @Getter
 public class Node implements ComposableNode {
-    private org.ros2.rcljava.node.Node node;
-    private Publisher<PoseWithCovarianceStamped> initialPosePublisher;
-    private Publisher<PoseStamped> goalPublisher;
-
+    private final org.ros2.rcljava.node.Node node;
+    private final Publisher<PoseWithCovarianceStamped> initialPosePublisher;
+    private final Publisher<PoseStamped> goalPublisher;
 
     public Node(@Nonnull NodeMessageListener nodeMessageListener, @Nonnull String namespace) {
         this.node = RCLJava.createNode("opentcs", namespace, RCLJava.getDefaultContext());

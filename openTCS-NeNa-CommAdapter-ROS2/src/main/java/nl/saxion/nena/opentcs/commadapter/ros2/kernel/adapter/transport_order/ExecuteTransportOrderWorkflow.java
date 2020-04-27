@@ -1,4 +1,4 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.task;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.transport_order;
 
 import geometry_msgs.msg.PoseStamped;
 import lombok.Getter;
@@ -19,24 +19,32 @@ import javax.annotation.Nonnull;
 import java.util.Queue;
 
 /**
+ * A workflow class used to sequentially execute a Transport Order.
+ * Each function in this class belongs to a certain step in the workflow of executing a Transport Order.
+ * TODO: Create a sequence diagram for this workflow.
+ *
  * @author Niels Tiben
  */
-public class ExecuteCommandWorkflow implements NavigationGoalListener, OperationExecutorListener {
-    private static final Logger LOG = LoggerFactory.getLogger(ExecuteCommandWorkflow.class);
+public class ExecuteTransportOrderWorkflow implements NavigationGoalListener, OperationExecutorListener {
+    private static final Logger LOG = LoggerFactory.getLogger(ExecuteTransportOrderWorkflow.class);
     private final Ros2ProcessModel processModelInstance;
     private final Queue<MovementCommand> sentQueue;
 
-    @Getter
-    private final ExecuteOperationWorkflow executeOperationWorkflow;
-
-    private MovementCommand currentCommand;
+    //================================================================================
+    // Class variables
+    //================================================================================
 
     @Getter
     private boolean isCommandExecutorActive = false;
+    @Getter
+    private final ExecuteOperationWorkflow executeOperationWorkflow;
+    private MovementCommand currentCommand;
 
-    /* --------------- 0: Construct and enable ---------------*/
+    //================================================================================
+    // 0: Construct and enable
+    //================================================================================
 
-    public ExecuteCommandWorkflow(
+    public ExecuteTransportOrderWorkflow(
             @Nonnull Ros2ProcessModel processModelInstance,
             @Nonnull Queue<MovementCommand> sentQueue
     ) {
@@ -46,15 +54,18 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
     }
 
     public void enableNavigationGoalListener() {
-        NavigationGoalTracker goalTracker = processModelInstance.getNavigationGoalTracker();
+        NavigationGoalTracker goalTracker = this.processModelInstance.getNavigationGoalTracker();
 
         assert goalTracker != null;
 
         goalTracker.setCommandExecutorListener(this);
-        this.processModelInstance.setExecuteCommandWorkflow(this);
+        this.processModelInstance.setExecuteTransportOrderWorkflow(this);
     }
+    // Next step (1) is activated on demand (when there is a new transport order).
 
-    /* --------------- 1: Create Movement Command ---------------*/
+    //================================================================================
+    // 1: Initiate Movement Command
+    //================================================================================
 
     public void processMovementCommand(MovementCommand movementCommand) {
         assert !this.isCommandExecutorActive;
@@ -64,7 +75,7 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
         this.isCommandExecutorActive = true;
 
         // Set vehicle state
-        processModelInstance.setVehicleState(Vehicle.State.EXECUTING);
+        this.processModelInstance.setVehicleState(Vehicle.State.EXECUTING);
 
         // Get Destination
         assert this.currentCommand != null;
@@ -75,52 +86,48 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
         PoseStamped message = OutgoingMessageLib.generateScaledNavigationMessageByPoint(destinationPoint);
 
         // Notify NavigationGoalTracker that we expect a new goal.
-        processModelInstance.getNavigationGoalTracker().setDestinationPointIncomingGoal(destinationPoint);
+        this.processModelInstance.getNavigationGoalTracker().setDestinationPointIncomingGoal(destinationPoint);
 
         // Give dispatch order.
-        processModelInstance.getNodeManager().getNode().getGoalPublisher().publish(message);
-
-        // Next step (2: Current Movement Command Active) is activated by callback.
+        this.processModelInstance.getNodeManager().getNode().getGoalPublisher().publish(message);
     }
+    // Next step (2) is activated by a callback.
 
-    private void processMovementCommand1() {
-
-    }
-
-    /* --------------- 2: Current Movement Command Active ---------------*/
+    //================================================================================
+    // 2: Received callback from NavigationGoalTracker that Movement Command has been effectively picked up.
+    //================================================================================
 
     @Override
-    public void onNavigationGoalActive(@Nonnull Point point) {
+    public void onNavigationGoalActive(@Nonnull Point incomingDestination) {
         // Callback received that a new navigation goal has been activated.
 
         if (this.isCommandExecutorActive) {
             // Let's check if its point equals our destination point.
             Point currentDestination = this.currentCommand.getStep().getDestinationPoint();
-            System.out.println("--Intended-- " + currentDestination.toString());
-            System.out.println("--Found-- " + point.toString());
-            assert currentDestination.equals(point);
+            assert currentDestination.equals(incomingDestination);
         } else {
             // Not intended for CommandExecutor so we don't care, just proceed.
         }
-
-        // Next step (3: Current Movement Command Succeeded) is activated by callback.
     }
+    // Next step (3) is activated by callback.
 
-    /* --------------- 3: Current Movement Command Active ---------------*/
+    //================================================================================
+    // 3: Received callback from NavigationGoalTracker that Movement Command has been finished.
+    //================================================================================
 
     @Override
-    public void onNavigationGoalSucceeded(@Nonnull Point point) {
+    public void onNavigationGoalSucceeded(@Nonnull Point arrivedPoint) {
         if (this.isCommandExecutorActive) {
             Point currentDestination = this.currentCommand.getStep().getDestinationPoint();
 
             // Callback that a new navigation goal has been activated: let's check if its point equals our destination point.
-            if (currentDestination.equals(point)) {
+            if (currentDestination.equals(arrivedPoint)) {
                 // Vehicle reached its intended destination
                 LOG.info("Processing MovementCommand Succeeded: Vehicle reached its intended destination! =>" + currentDestination.toString());
                 executeOperationIfNeeded();
             } else {
                 // Vehicle did not reach its intended destination, but a different destination.
-                String reason = String.format("Processing MovementCommand Failed: Vehicle did not reach its intended destination, but a different destination ('%s' instead of '%s')", point.toString(), currentDestination.toString());
+                String reason = String.format("Processing MovementCommand Failed: Vehicle did not reach its intended destination, but a different destination ('%s' instead of '%s')", arrivedPoint.toString(), currentDestination.toString());
                 onOperationExecutionFailed(reason);
             }
         } else {
@@ -128,8 +135,11 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
         }
 
     }
+    // Next step (4) is activated by step 3 on success.
 
-    /* --------------- 4: Execute Operation (if needed)---------------*/
+    //================================================================================
+    // 4: Execute Operation (if needed)
+    //================================================================================
 
     @SneakyThrows
     private void executeOperationIfNeeded() {
@@ -140,22 +150,30 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
             this.executeOperationWorkflow.executeActionByName(this.currentCommand.getOperation());
         }
     }
+    // Next step (5) is activated by callback. Step 5 is skipped when there are no operations.
 
-    /* --------------- 4a: Operation has finished ---------------*/
+    //================================================================================
+    // 5: Received feedback that operation has been finished (if needed)
+    //================================================================================
 
+    /* --------------- 5a: Operation has succeeded ---------------*/
     @Override
     public void onOperationExecutionSucceeded() {
         LOG.info("Operation succeeded!");
         setCommandWorkflowSucceeded();
     }
 
-    /* --------------- 4b: Operation has failed ---------------*/
-
+    /* --------------- 5b: Operation has failed ---------------*/
     @Override
     public void onOperationExecutionFailed(String reason) {
         LOG.info(String.format("Operation failed: %s", reason));
         setCommandWorkflowFailed();
     }
+    // Next step (6) is activated by step 5a..
+
+    //================================================================================
+    // 6: Succeed Transport Order Workflow
+    //================================================================================
 
     /* --------------- 5: Check if there are already new ---------------*/
     private void setCommandWorkflowSucceeded() {
@@ -172,13 +190,6 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
         }
     }
 
-    private void setCommandWorkflowFailed() {
-        removeExecutedCommandFromSentQueueAndSetWorkflowInactive();
-
-        this.processModelInstance.commandFailed(this.currentCommand);
-        this.processModelInstance.setVehicleState(Vehicle.State.ERROR);
-    }
-
     private boolean hasVehicleReachedFinalDestination() {
         Point finalDestination = this.currentCommand.getFinalDestination();
         Point currentStepDestination = this.currentCommand.getStep().getDestinationPoint();
@@ -186,6 +197,19 @@ public class ExecuteCommandWorkflow implements NavigationGoalListener, Operation
         return currentStepDestination.equals(finalDestination);
     }
 
+    //================================================================================
+    // F: On Transport Order Workflow Failed
+    //================================================================================
+    private void setCommandWorkflowFailed() {
+        removeExecutedCommandFromSentQueueAndSetWorkflowInactive();
+
+        this.processModelInstance.commandFailed(this.currentCommand);
+        this.processModelInstance.setVehicleState(Vehicle.State.ERROR);
+    }
+
+    //================================================================================
+    // Finally
+    //================================================================================
     private void removeExecutedCommandFromSentQueueAndSetWorkflowInactive() {
         // Remove current command from the queue
         MovementCommand movementCommandOnQueue = this.sentQueue.poll();

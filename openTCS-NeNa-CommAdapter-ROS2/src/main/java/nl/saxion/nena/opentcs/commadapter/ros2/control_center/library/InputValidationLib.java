@@ -1,4 +1,4 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.control_center.lib;
+package nl.saxion.nena.opentcs.commadapter.ros2.control_center.library;
 
 /**
  * Library for validating user input.

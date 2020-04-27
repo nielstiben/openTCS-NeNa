@@ -19,6 +19,6 @@ public class SetLoadHandlingDevicesCommand implements AdapterCommand {
 
     @Override
     public void execute(@Nonnull VehicleCommAdapter adapter) {
-        adapter.getProcessModel().setVehicleLoadHandlingDevices(loadHandlingDevices);
+        adapter.getProcessModel().setVehicleLoadHandlingDevices(this.loadHandlingDevices);
     }
 }

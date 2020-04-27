@@ -15,39 +15,45 @@ import javax.inject.Inject;
 
 import static java.util.Objects.requireNonNull;
 
-/*
-describes a factory for VehicleCommAdapter instances.
-The kernel instantiates and uses one such factory per
-vehicle driver to create instances of the respective
-Ros2CommAdapter implementation on demand.
+/**
+ * Factory for providing {@link Ros2CommAdapter} instances.
+ * The factory provides instances on demand, depending on the number of ROS2 vehicles in the model.
+ *
+ * @author Niels Tiben
  */
 public class Ros2CommAdapterFactory implements VehicleCommAdapterFactory {
     private static final Logger LOG = LoggerFactory.getLogger(Ros2CommAdapterFactory.class);
-
     private final Ros2AdapterComponentsFactory componentsFactory;
-    private boolean initialized;
 
+    // Variable for whether the adapter is initialised.
+    private boolean initialised;
+
+    //================================================================================
+    // Constructor
+    //================================================================================
     @Inject
     public Ros2CommAdapterFactory(Ros2AdapterComponentsFactory adapterFactory) {
         this.componentsFactory = requireNonNull(adapterFactory, "componentsFactory");
     }
 
+    //================================================================================
+    // Override methods
+    //================================================================================
+
     @Override
     public boolean providesAdapterFor(@Nonnull Vehicle vehicle) {
-        // TODO: Perform vehicle checks
+        // Any vehicle in an openTCS model plant may be a ROS2 vehicle.
         return true;
     }
 
     @Nullable
     @Override
     public VehicleCommAdapter getAdapterFor(@Nonnull Vehicle vehicle) {
-        if(!providesAdapterFor(vehicle)){
+        if (!providesAdapterFor(vehicle)) {
             return null; // Adapter not allowed
         }
-        Ros2CommAdapter adapter = componentsFactory.createRos2CommAdapter(vehicle);
-        // TODO: Set port, connection etcetera
 
-        return adapter;
+        return componentsFactory.createRos2CommAdapter(vehicle);
     }
 
     @Override
@@ -56,12 +62,12 @@ public class Ros2CommAdapterFactory implements VehicleCommAdapterFactory {
             LOG.warn("The adapter is already initialized.");
             return;
         }
-        initialized = true;
+        initialised = true;
     }
 
     @Override
     public boolean isInitialized() {
-        return initialized;
+        return initialised;
     }
 
     @Override
@@ -70,7 +76,7 @@ public class Ros2CommAdapterFactory implements VehicleCommAdapterFactory {
             LOG.warn("The adapter is not initialized, so it is already terminated.");
             return;
         }
-        initialized = false;
+        initialised = false;
     }
 
     @Override

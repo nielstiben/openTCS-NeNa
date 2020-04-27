@@ -3,6 +3,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal;
 import action_msgs.msg.GoalStatus;
 import builtin_interfaces.msg.Time;
 import lombok.Getter;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.constants.NavigationGoalStatus;
 import org.opentcs.data.model.Point;
 
 import javax.annotation.Nonnull;

@@ -20,6 +20,6 @@ public class SetNamespaceCommand implements AdapterCommand {
     @Override
     public void execute(@Nonnull VehicleCommAdapter adapter) {
         Ros2ProcessModel ros2ProcessModel = (Ros2ProcessModel) adapter.getProcessModel();
-        ros2ProcessModel.setNamespace(namespace);
+        ros2ProcessModel.setNamespace(this.namespace);
     }
 }

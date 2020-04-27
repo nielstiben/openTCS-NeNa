@@ -8,8 +8,12 @@ import org.opentcs.customizations.kernel.KernelInjectionModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A Guice module for ROS2 Driver - Control Center configuration.
+ *
+ * @author Niels Tiben
+ */
 public class Ros2KernelInjectionModule extends KernelInjectionModule {
-
     private static final Logger LOG = LoggerFactory.getLogger(Ros2KernelInjectionModule.class);
 
     @Override
@@ -18,14 +22,12 @@ public class Ros2KernelInjectionModule extends KernelInjectionModule {
                 .get(Ros2CommAdapterConfiguration.PREFIX, Ros2CommAdapterConfiguration.class);
 
         if (!configuration.enable()) {
-            LOG.info("ROS2 communication adapter disabled by configuration.");
+            LOG.info("NeNa ROS2 communication adapter disabled by configuration.");
             return;
         }
 
         LOG.info("NeNa ROS2 communication adapter ENABLED");
-
-        bind(Ros2CommAdapterConfiguration.class).toInstance(configuration); // Similar to LoopBackAdapter.
-
+        bind(Ros2CommAdapterConfiguration.class).toInstance(configuration);
 
         install(new FactoryModuleBuilder().build(Ros2AdapterComponentsFactory.class));
         vehicleCommAdaptersBinder().addBinding().to(Ros2CommAdapterFactory.class);

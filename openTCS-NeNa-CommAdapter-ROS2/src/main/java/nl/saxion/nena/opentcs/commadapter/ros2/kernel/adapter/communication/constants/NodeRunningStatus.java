@@ -1,4 +1,4 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.constants;
 
 public enum NodeRunningStatus {
     NOT_ACTIVE,

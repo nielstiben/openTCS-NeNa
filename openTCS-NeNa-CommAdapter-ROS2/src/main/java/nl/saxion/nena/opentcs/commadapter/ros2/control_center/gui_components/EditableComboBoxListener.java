@@ -1,10 +1,3 @@
-/**
- * Copyright (c) The openTCS Authors.
- *
- * This program is free software and subject to the MIT license. (For details,
- * see the licensing information (LICENSE.txt) you should have received with
- * this copy of the software.)
- */
 package nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components;
 
 import javax.swing.*;
@@ -21,9 +14,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Mustafa Yalciner (Fraunhofer IML)
  */
-public class EditableComboBoxListener<E>
-    implements DocumentListener {
-
+public class EditableComboBoxListener<E> implements DocumentListener {
   private final JTextField textField;
   private final List<ValidationListener> validationListeners;
   private final Set<E> content;

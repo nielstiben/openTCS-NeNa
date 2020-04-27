@@ -7,15 +7,15 @@ import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constant
 import org.opentcs.drivers.vehicle.LoadHandlingDevice;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
 import java.util.Collections;
 
-import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter.LHD_NAME;
 
 /**
  * @author Niels Tiben
  */
 public class ExecuteOperationWorkflow {
+    public static final String LOAD_HANDLING_DEVICE_NAME = "nena-lhd";
+
     private boolean isOperationBeingExecuted = false;
     private final Ros2ProcessModel processModel;
     private final OperationExecutorListener operationExecutorListener;
@@ -56,7 +56,7 @@ public class ExecuteOperationWorkflow {
 
         // Set as full
         processModel.setVehicleLoadHandlingDevices(
-                Collections.singletonList(new LoadHandlingDevice(LHD_NAME, true)));
+                Collections.singletonList(new LoadHandlingDevice(LOAD_HANDLING_DEVICE_NAME, true)));
 
         // Fake that the operation was successful.
         onOperationExecutionFinished();
@@ -69,7 +69,7 @@ public class ExecuteOperationWorkflow {
 
         // Set as not-full
         processModel.setVehicleLoadHandlingDevices(
-                Collections.singletonList(new LoadHandlingDevice(LHD_NAME, false)));
+                Collections.singletonList(new LoadHandlingDevice(LOAD_HANDLING_DEVICE_NAME, false)));
 
         // Fake that the operation was successful.
         onOperationExecutionFinished();

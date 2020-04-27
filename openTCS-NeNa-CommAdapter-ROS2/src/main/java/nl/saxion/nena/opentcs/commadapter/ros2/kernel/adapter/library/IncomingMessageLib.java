@@ -7,11 +7,13 @@ import org.opentcs.data.model.Triple;
 import javax.annotation.Nonnull;
 
 /**
+ * Library class for parsing incoming rcljava messages
+ *
  * @author Niels Tiben
  */
 public class IncomingMessageLib {
     public static Triple generateTripleByAmclPose(@Nonnull PoseWithCovarianceStamped amclPose){
-        geometry_msgs.msg.Point amclPosePoint = amclPose.getPose().getPose().getPosition();
+        Point amclPosePoint = amclPose.getPose().getPose().getPosition();
 
         Triple estimatePositionUnscaled = UnitConverterLib.convertCoordinatesInMeterToTriple(
                 amclPosePoint.getX(),

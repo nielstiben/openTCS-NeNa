@@ -5,6 +5,8 @@ import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.UnitConver
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Triple;
 
+import javax.annotation.Nonnull;
+
 /**
  * Fictional point,used to navigate a AGV to a coordinate. CoordinatePoint instances are not stored in a plant model.
  *
@@ -14,11 +16,11 @@ import org.opentcs.data.model.Triple;
 public class CoordinatePoint extends Point {
     private final Triple position;
 
-    public CoordinatePoint(Triple coordinate) {
+    public CoordinatePoint(@Nonnull Triple coordinate) {
         super(String.format(
                 "coordinate (%.2f, %.2f)",
-                UnitConverterLib.convertMilimetersToMeters(coordinate.getX()),
-                UnitConverterLib.convertMilimetersToMeters(coordinate.getY())
+                UnitConverterLib.convertMillimetersToMeters(coordinate.getX()),
+                UnitConverterLib.convertMillimetersToMeters(coordinate.getY())
         ));
         this.position = coordinate;
     }

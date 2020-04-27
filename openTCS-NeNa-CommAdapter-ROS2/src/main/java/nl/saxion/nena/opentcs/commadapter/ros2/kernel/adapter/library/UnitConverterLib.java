@@ -1,31 +1,30 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library;
 
 import geometry_msgs.msg.Quaternion;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapterConfiguration;
 import org.opentcs.data.model.Triple;
 
 import javax.annotation.Nonnull;
 
 /**
+ * Library class for converting distance and rotation units.
+ *
  * @author Niels Tiben
  */
 public class UnitConverterLib {
-    public static double convertMilimetersToMeters(long millimeters) {
+    public static double convertMillimetersToMeters(long millimeters) {
         double millimetersDouble = (double) millimeters;
 
         return millimetersDouble / 1000;
     }
 
-    @Nonnull
     public static double[] convertTripleToCoordinatesInMeter(@Nonnull Triple triple) {
-        double x = convertMilimetersToMeters(triple.getX());
-        double y = convertMilimetersToMeters(triple.getY());
-        double z = convertMilimetersToMeters(triple.getZ());
+        double x = convertMillimetersToMeters(triple.getX());
+        double y = convertMillimetersToMeters(triple.getY());
+        double z = convertMillimetersToMeters(triple.getZ());
 
         return new double[]{x, y, z};
     }
 
-    @Nonnull
     public static Triple convertCoordinatesInMeterToTriple(double x, double y, double z) {
         long xInMillimeter = convertMetersToMillimeters(x);
         long yInMillimeter = convertMetersToMillimeters(y);
@@ -40,7 +39,7 @@ public class UnitConverterLib {
         return Math.round(millimeters);
     }
 
-    public static double quaternionToAngleDegree(Quaternion quaternion) {
+    public static double quaternionToAngleDegree(@Nonnull Quaternion quaternion) {
         // Convert quaternion to angle radians
         double angleRad = 2.0 * Math.acos(quaternion.getZ());
 

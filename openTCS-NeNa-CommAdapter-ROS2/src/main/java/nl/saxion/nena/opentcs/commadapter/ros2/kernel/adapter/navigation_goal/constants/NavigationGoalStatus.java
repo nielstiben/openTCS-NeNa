@@ -1,8 +1,11 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.constants;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * 
+ */
 @AllArgsConstructor
 public enum NavigationGoalStatus {
     PENDING("The goal has yet to be processed by the action server."),

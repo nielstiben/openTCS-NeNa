@@ -3,6 +3,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal;
 import action_msgs.msg.GoalStatus;
 import action_msgs.msg.GoalStatusArray;
 import lombok.Setter;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.constants.NavigationGoalStatus;
 import org.opentcs.data.model.Point;
 
 import javax.annotation.Nonnull;
@@ -10,7 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static nl.saxion.nena.opentcs.commadapter.ros2.I18nROS2CommAdapter.BUNDLE_PATH;
-import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalStatus.ACTIVE;
+import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.constants.NavigationGoalStatus.ACTIVE;
 
 public class NavigationGoalTracker {
     private static final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_PATH);
@@ -37,11 +38,11 @@ public class NavigationGoalTracker {
             processNavigationGoal(goalStatus);
         }
 
-        this.navigationGoalMap = sortByNewestDate(navigationGoalMap);
+        this.navigationGoalMap = sortByNewestDate(this.navigationGoalMap);
 
         // Notify other instances if needed.
-        Optional<List<Byte>> firstNavigationGoalKey = navigationGoalMap.keySet().stream().findFirst();
-        firstNavigationGoalKey.ifPresent(key -> notifyListenersIfNeeded(navigationGoalMap.get((key))));
+        Optional<List<Byte>> firstNavigationGoalKey = this.navigationGoalMap.keySet().stream().findFirst();
+        firstNavigationGoalKey.ifPresent(key -> notifyListenersIfNeeded(this.navigationGoalMap.get((key))));
     }
 
     private void processNavigationGoal(@Nonnull GoalStatus goalStatusToProcess) {
@@ -171,5 +172,10 @@ public class NavigationGoalTracker {
         } else {
             return bundle.getString("ros2CommAdapterPanel.navigation_goal_unknown_destination.text");
         }
+    }
+
+    public void reset(){
+        this.navigationGoalMap = new HashMap<>();
+        this.destinationPointIncomingGoal = null;
     }
 }

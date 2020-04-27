@@ -1,10 +1,3 @@
-/**
- * Copyright (c) The openTCS Authors.
- *
- * This program is free software and subject to the MIT license. (For details,
- * see the licensing information (LICENSE.txt) you should have received with
- * this copy of the software.)
- */
 package nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components;
 
 import javax.swing.*;
@@ -25,7 +18,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Tobias Marquardt (Fraunhofer IML)
  */
-public final class DropdownListInputPanel<E>
+public final class PointListInputPanel<E>
     extends InputPanel {
 
   /**
@@ -33,14 +26,14 @@ public final class DropdownListInputPanel<E>
    *
    * @param title Title of the panel.
    */
-  private DropdownListInputPanel(String title) {
+  private PointListInputPanel(String title) {
     super(title);
     initComponents();
   }
 
   @Override
   protected void captureInput() {
-    //if the combobox is editable and the input was entered using the jTextField and 
+    //if the combobox is editable and the input was entered using the jTextField and
     //confirmed using the enter button, then the textField's input is not yet saved as the comboBox selection.
     //Thats why it is safer to get the input from the textfield, if the combobox is editable.
     input = comboBox.isEditable() ? comboBox.getEditor().getItem() : comboBox.getSelectedItem();
@@ -157,7 +150,7 @@ public final class DropdownListInputPanel<E>
 
     @Override
     public InputPanel build() {
-      DropdownListInputPanel<E> panel = new DropdownListInputPanel<>(title);
+      PointListInputPanel<E> panel = new PointListInputPanel<>(title);
       panel.messageLabel.setText(message);
       panel.label.setText(label);
       panel.comboBox.setEditable(editable);

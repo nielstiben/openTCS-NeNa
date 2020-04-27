@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeManager;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeMessageListener;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatus;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.constants.NodeRunningStatus;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatusListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.IncomingMessageLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.OutgoingMessageLib;
@@ -17,9 +17,8 @@ import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.Ex
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoalTracker;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.ExecuteOperationWorkflow;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConstants;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.point.CoordinatePoint;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.task.ExecuteCommandWorkflow;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.transport_order.ExecuteTransportOrderWorkflow;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Triple;
 import org.opentcs.data.model.Vehicle;
@@ -29,7 +28,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
+import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModelAttribute.*;
+
 /**
+ * Class for holding data and functionality regarding the connected ROS 2 vehicle.
+ * An instance of the {@link Ros2CommAdapter} holds one instance of the {@link Ros2ProcessModel}.
+ *
  * @author Niels Tiben
  */
 public class Ros2ProcessModel extends VehicleProcessModel implements
@@ -38,51 +42,62 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
         NavigationGoalListener,
         ExternalNavigationGoalListener {
     private static final Logger LOG = LoggerFactory.getLogger(Ros2CommAdapter.class);
-    @Setter
-    private String namespace = "";
-    @Getter
-    private NavigationGoalTracker navigationGoalTracker;
+
+    //================================================================================
+    // Class variables.
+    //================================================================================
+
     @Getter
     private NodeManager nodeManager;
     @Getter
-    private int operatingTime;
+    private NavigationGoalTracker navigationGoalTracker;
     @Getter
-    private Triple estimatePosition;
+    private Triple estimatedPosition;
     @Setter
-    private ExecuteCommandWorkflow executeCommandWorkflow;
+    private String namespace;
+    @Setter
+    private ExecuteTransportOrderWorkflow executeTransportOrderWorkflow;
     @Setter
     private ExecuteOperationWorkflow executeOperationWorkflow;
 
-    public Ros2ProcessModel(Vehicle attachedVehicle) {
+    //================================================================================
+    // Constructor.
+    //================================================================================
+
+    public Ros2ProcessModel(@Nonnull Vehicle attachedVehicle) {
         super(attachedVehicle);
         this.nodeManager = new NodeManager();
+        this.navigationGoalTracker = new NavigationGoalTracker(this, this);
     }
 
-    /* --------------- Navigation ---------------*/
+    //================================================================================
+    // Startup / Shutdown methods.
+    //================================================================================
 
-    /**
-     * Sends the initial position to help a ROS2 node finding its current location on the map.
-     */
-    public void setInitialPoint(Point initialPoint) {
+    public void onDriverEnable() {
+        this.nodeManager.start(this, this, this.namespace);
+    }
+
+    public void onDriverDisable() {
+        this.navigationGoalTracker.reset();
+        getPropertyChangeSupport().firePropertyChange(NAVIGATION_GOALS.name(), null, null);
+        this.nodeManager.stop();
+    }
+
+    //================================================================================
+    // Navigation methods.
+    //================================================================================
+
+    public void setInitialPoint(@Nonnull Point initialPoint) {
         final PoseWithCovarianceStamped message = OutgoingMessageLib.generateInitialPoseMessageByPoint(initialPoint);
         this.nodeManager.getNode().getInitialPosePublisher().publish(message);
     }
 
-    /**
-     * Dispatches the connected ROS2 node to the given coordinates.
-     *
-     * @param coordinate The coordinates.
-     */
     public void dispatchToCoordinate(@Nonnull Triple coordinate) {
         final CoordinatePoint coordinatePoint = new CoordinatePoint(coordinate);
         dispatchToPoint(coordinatePoint);
     }
 
-    /**
-     * Dispatches the connected ROS2 node to the given point.
-     *
-     * @param point The point containing the physical location of the destination.
-     */
     public void dispatchToPoint(@Nonnull Point point) {
         LOG.info("Dispatching vehicle to point '{}'", point.getName());
         PoseStamped message = OutgoingMessageLib.generateScaledNavigationMessageByPoint(point);
@@ -91,103 +106,14 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
         this.nodeManager.getNode().getGoalPublisher().publish(message);
     }
 
-    /* --------------- Misc ---------------*/
+    //================================================================================
+    // Navigation callback methods.
+    //================================================================================
 
-    public String[][] parseNavigationGoalTable() {
-        // todo: fix code smell
-        if (navigationGoalTracker == null) {
-            return null;
-        } else {
-            return navigationGoalTracker.toStringTable();
-        }
-    }
-
-    /* --------------- Enable / Disable ---------------*/
-    public void onDriverEnable() {
-        nodeManager.start(this, this, this.namespace);
-        this.navigationGoalTracker = new NavigationGoalTracker(this, this); // Start navigation goal tracker
-
-    }
-
-    public void onDriverDisable() {
-        this.nodeManager.stop();
-        this.navigationGoalTracker = null;
-        getPropertyChangeSupport().firePropertyChange(Attribute.NAVIGATION_GOALS.name(), null, null);
-    }
-
-    /* --------------- Node message callback methods ---------------*/
-    @Override
-    public void onNewGoalStatusArray(GoalStatusArray goalStatusArray) {
-        Object[][] oldValue = navigationGoalTracker.toStringTable();
-        navigationGoalTracker.updateByGoalStatusArray(goalStatusArray);
-        Object[][] newValue = navigationGoalTracker.toStringTable();
-
-        getPropertyChangeSupport().firePropertyChange(Attribute.NAVIGATION_GOALS.name(), oldValue, newValue);
-    }
-
-    /**
-     * Update Estimate Position
-     *
-     * @param amclPose
-     */
-    @Override
-    public void onNewAmclPose(PoseWithCovarianceStamped amclPose) {
-        Triple oldEstimatePosition = this.estimatePosition;
-        this.estimatePosition = IncomingMessageLib.generateTripleByAmclPose(amclPose);
-
-        // Set precise position
-        setVehiclePrecisePosition(this.estimatePosition);
-        getPropertyChangeSupport().firePropertyChange(Attribute.POSITION_ESTIMATE.name(), oldEstimatePosition, this.estimatePosition);
-
-        // Set orientation angle
-        Quaternion orientationQuaternion = amclPose.getPose().getPose().getOrientation();
-        double orientationDegrees = UnitConverterLib.quaternionToAngleDegree(orientationQuaternion);
-        setVehicleOrientationAngle(orientationDegrees);
-    }
-
-    /* Operations */
-    @Override
-    public void onOperationLoadCargoFeedback(String feedback) {
-        this.executeOperationWorkflow.onExecuteLoadCargoFeedback();
-    }
-
-    @Override
-    public void onOperationUnloadCargoFeedback(String feedback) {
-        this.executeOperationWorkflow.onExecuteUnloadCargoFeedback();
-    }
-
-    @Override
-    public void onNodeStatusChange(NodeRunningStatus newNodeRunningStatus) {
-        getPropertyChangeSupport().firePropertyChange(Attribute.NODE_STATUS.name(), null, newNodeRunningStatus);
-    }
-
-    /**
-     * Update Precise position
-     *
-     * @param point
-     */
-    @Override
-    public void onNavigationGoalSucceeded(@Nonnull Point point) {
-        if (point instanceof CoordinatePoint) {
-            // The vehicle reached a coordinate point.
-            // Since this is a fictional point, the vehicle position should not be modified.
-            setVehiclePosition(null); // Because we are at a given coordinate, which unknown position for our plant.
-            setVehicleState(Vehicle.State.UNAVAILABLE);
-        } else {
-            setVehiclePosition(point.getName());
-            setVehiclePrecisePosition(point.getPosition());
-
-            if (executeCommandWorkflow != null && executeCommandWorkflow.isCommandExecutorActive()){
-                // Vehicle state is set by the ExecuteCommandWorkflow
-            } else {
-                setVehicleState(Vehicle.State.IDLE);
-            }
-        }
-    }
-
+    /* --------------- Navigation goals initiated by OpenTCS ---------------*/
     @Override
     public void onNavigationGoalActive(@Nonnull Point point) {
-        if (executeCommandWorkflow != null && executeCommandWorkflow.isCommandExecutorActive()){
+        if (executeTransportOrderWorkflow != null && executeTransportOrderWorkflow.isCommandExecutorActive()) {
             // Vehicle state is set by the ExecuteCommandWorkflow
         } else {
             setVehicleState(Vehicle.State.EXECUTING);
@@ -195,24 +121,82 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     }
 
     @Override
+    public void onNavigationGoalSucceeded(@Nonnull Point point) {
+        if (point instanceof CoordinatePoint) {
+            // The vehicle reached a coordinate point.
+            // Since this is a fictional point, the vehicle position should be unknown.
+            setVehiclePosition(null);
+            setVehicleState(Vehicle.State.UNAVAILABLE);
+        } else {
+            setVehiclePosition(point.getName());
+            setVehiclePrecisePosition(point.getPosition());
+
+            if (executeTransportOrderWorkflow != null && executeTransportOrderWorkflow.isCommandExecutorActive()) {
+                // Vehicle state is set by the ExecuteCommandWorkflow
+            } else {
+                setVehicleState(Vehicle.State.IDLE);
+            }
+        }
+    }
+
+    /* --------------- Navigation goals initiated an external application ---------------*/
+    @Override
     public void onExternalNavigationGoalActive() {
-        setVehiclePosition(null); // Because we are at a given coordinate, which unknown position for our plant.
+        setVehiclePosition(null); // Because we are at a given coordinate, which is an unknown position for our plant.
         setVehicleState(Vehicle.State.EXECUTING);
     }
 
     @Override
     public void onExternalNavigationGoalSucceeded() {
-        setVehiclePosition(null); // Because we are at a given coordinate, which unknown position for our plant.
+        setVehiclePosition(null); // Because we are at a given coordinate, which is an unknown position for our plant.
         setVehicleState(Vehicle.State.UNAVAILABLE);
     }
 
-    /**
-     * Notification arguments to indicate some change.
-     */
-    public enum Attribute {
-        OPERATING_TIME,
-        NODE_STATUS,
-        NAVIGATION_GOALS,
-        POSITION_ESTIMATE,
+    //================================================================================
+    // Node message callback methods.
+    //================================================================================
+
+    /* --------------- Position update callbacks ---------------*/
+    @Override
+    public void onNewGoalStatusArray(@Nonnull GoalStatusArray goalStatusArray) {
+        Object[][] oldValue = navigationGoalTracker.toStringTable();
+        navigationGoalTracker.updateByGoalStatusArray(goalStatusArray);
+        Object[][] newValue = navigationGoalTracker.toStringTable();
+
+        getPropertyChangeSupport().firePropertyChange(NAVIGATION_GOALS.name(), oldValue, newValue);
+    }
+
+    @Override
+    public void onNewAmclPose(@Nonnull PoseWithCovarianceStamped amclPose) {
+        Triple oldEstimatePosition = this.estimatedPosition;
+        this.estimatedPosition = IncomingMessageLib.generateTripleByAmclPose(amclPose);
+
+        // Set precise position
+        setVehiclePrecisePosition(this.estimatedPosition);
+        getPropertyChangeSupport().firePropertyChange(POSITION_ESTIMATE.name(), oldEstimatePosition, this.estimatedPosition);
+
+        // Set orientation angle
+        Quaternion orientationQuaternion = amclPose.getPose().getPose().getOrientation();
+        double orientationDegrees = UnitConverterLib.quaternionToAngleDegree(orientationQuaternion);
+        setVehicleOrientationAngle(orientationDegrees);
+    }
+
+    /* --------------- Operation update callbacks (to be forwarded to OperationWorkflow) ---------------*/
+    @Override
+    public void onOperationLoadCargoFeedback(@Nonnull String feedback) {
+        this.executeOperationWorkflow.onExecuteLoadCargoFeedback();
+    }
+
+    @Override
+    public void onOperationUnloadCargoFeedback(@Nonnull String feedback) {
+        this.executeOperationWorkflow.onExecuteUnloadCargoFeedback();
+    }
+
+    //================================================================================
+    // Node running status callback method/
+    //================================================================================
+    @Override
+    public void onNodeRunningStatusUpdate(@Nonnull NodeRunningStatus newNodeRunningStatus) {
+        getPropertyChangeSupport().firePropertyChange(NODE_STATUS.name(), null, newNodeRunningStatus);
     }
 }

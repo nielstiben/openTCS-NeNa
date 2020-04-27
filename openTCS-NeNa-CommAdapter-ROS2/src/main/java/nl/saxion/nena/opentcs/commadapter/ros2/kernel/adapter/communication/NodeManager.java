@@ -3,12 +3,13 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.constants.NodeRunningStatus;
 import org.ros2.rcljava.RCLJava;
 import org.ros2.rcljava.executors.SingleThreadedExecutor;
 
 import javax.annotation.Nonnull;
 
-import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatus.*;
+import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.constants.NodeRunningStatus.*;
 
 /**
  * Helper class to start a new ROS2 node in a separate thread.
@@ -21,10 +22,8 @@ import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communicati
 public class NodeManager implements NodeRunnableListener {
     private NodeRunningStatusListener nodeRunningStatusListener;
     private NodeRunnable nodeRunnable;
-
     @Getter
     private Node node;
-
     @Getter
     private NodeRunningStatus nodeRunningStatus = NOT_ACTIVE;
 
@@ -88,7 +87,7 @@ public class NodeManager implements NodeRunnableListener {
      */
     private void changeNodeStatus(NodeRunningStatus newNodeRunningStatus) {
         this.nodeRunningStatus = newNodeRunningStatus;
-        nodeRunningStatusListener.onNodeStatusChange(newNodeRunningStatus);
+        nodeRunningStatusListener.onNodeRunningStatusUpdate(newNodeRunningStatus);
     }
 
     /**

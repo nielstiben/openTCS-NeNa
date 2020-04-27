@@ -1,6 +1,3 @@
-/**
- * Copyright (c) Fraunhofer IML
- */
 package nl.saxion.nena.opentcs.commadapter.ros2;
 
 import com.google.inject.assistedinject.FactoryModuleBuilder;
@@ -8,15 +5,12 @@ import nl.saxion.nena.opentcs.commadapter.ros2.control_center.factory.AdapterPan
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.factory.Ros2CommAdapterPanelFactory;
 import org.opentcs.customizations.controlcenter.ControlCenterInjectionModule;
 
-import javax.swing.*;
-
 /**
- * A custom Guice module for project-specific configuration.
+ * A Guice module for ROS2 Driver - Control Center configuration.
  *
- * @author Martin Grzenia (Fraunhofer IML)
+ * @author Niels Tiben
  */
-public class Ros2ControlCenterInjectionModule
-    extends ControlCenterInjectionModule {
+public class Ros2ControlCenterInjectionModule extends ControlCenterInjectionModule {
 
   @Override
   protected void configure() {

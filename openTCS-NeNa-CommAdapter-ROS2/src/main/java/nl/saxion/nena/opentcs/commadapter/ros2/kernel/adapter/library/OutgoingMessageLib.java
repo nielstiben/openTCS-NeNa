@@ -9,11 +9,16 @@ import std_msgs.msg.Header;
 import javax.annotation.Nonnull;
 import java.time.Instant;
 
+/**
+ * Library class for parsing outgoing rcljava messages
+ *
+ * @author Niels Tiben
+ */
 public class OutgoingMessageLib {
-    public static PoseWithCovarianceStamped generateInitialPoseMessageByPoint(Point point) {
+    public static PoseWithCovarianceStamped generateInitialPoseMessageByPoint(@Nonnull Point point) {
         Pose pose = generatePoseMessageByPoint(point);
         Quaternion quaternion = new Quaternion();
-        quaternion.setW(1.0);
+        quaternion.setW(1.0); // 1.0 = default value for ROS2; Mandatory field
         pose.setOrientation(quaternion);
 
         PoseWithCovariance poseWithCovariance = new PoseWithCovariance();
@@ -23,7 +28,7 @@ public class OutgoingMessageLib {
         poseWithCovarianceStamped.setPose(poseWithCovariance);
 
         Header header = new Header();
-        header.setFrameId("map");
+        header.setFrameId("map"); // Mandatory field
 
         Time time = new Time();
         time.setSec((int) Instant.now().getEpochSecond());
@@ -34,7 +39,7 @@ public class OutgoingMessageLib {
         return poseWithCovarianceStamped;
     }
 
-    public static PoseStamped generateScaledNavigationMessageByPoint(Point point) {
+    public static PoseStamped generateScaledNavigationMessageByPoint(@Nonnull Point point) {
         Pose pose = generatePoseMessageByPoint(point);
 
         geometry_msgs.msg.PoseStamped poseStamped = new geometry_msgs.msg.PoseStamped();
@@ -46,7 +51,7 @@ public class OutgoingMessageLib {
     private static Pose generatePoseMessageByPoint(@Nonnull Point point) {
         Triple triple = point.getPosition();
         double[] xyzUnscaled = UnitConverterLib.convertTripleToCoordinatesInMeter(triple);
-        double[] xyzScaled = ScaleCorrector.getInstance().scaleCoordinatesForDevice(xyzUnscaled);
+        double[] xyzScaled = ScaleCorrector.getInstance().scaleCoordinatesForVehicle(xyzUnscaled);
 
         geometry_msgs.msg.Point position = new geometry_msgs.msg.Point();
         position.setX(xyzScaled[0]);

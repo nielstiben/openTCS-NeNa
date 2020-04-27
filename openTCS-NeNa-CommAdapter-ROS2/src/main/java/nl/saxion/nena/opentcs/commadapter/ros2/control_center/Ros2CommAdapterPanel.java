@@ -3,11 +3,10 @@ package nl.saxion.nena.opentcs.commadapter.ros2.control_center;
 import com.google.inject.assistedinject.Assisted;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.*;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components.*;
-import nl.saxion.nena.opentcs.commadapter.ros2.control_center.lib.InputValidationLib;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter;
+import nl.saxion.nena.opentcs.commadapter.ros2.control_center.library.InputValidationLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModelTO;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatus;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.constants.NodeRunningStatus;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.UnitConverterLib;
 import org.opentcs.components.kernel.services.VehicleService;
 import org.opentcs.customizations.ServiceCallWrapper;
@@ -36,7 +35,8 @@ import java.util.List;
 import static java.util.Objects.requireNonNull;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static nl.saxion.nena.opentcs.commadapter.ros2.I18nROS2CommAdapter.BUNDLE_PATH;
-import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel.Attribute.*;
+import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModelAttribute.*;
+import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.ExecuteOperationWorkflow.LOAD_HANDLING_DEVICE_NAME;
 
 /**
  * The panel corresponding to the Ros2CommAdapter.
@@ -510,7 +510,7 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
 
     private void loadHandlingDeviceCheckboxClicked(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadHandlingDeviceCheckboxClicked
         List<LoadHandlingDevice> devices = Arrays.asList(
-                new LoadHandlingDevice(Ros2CommAdapter.LHD_NAME, loadHandlingDeviceCheckbox.isSelected()));
+                new LoadHandlingDevice(LOAD_HANDLING_DEVICE_NAME, loadHandlingDeviceCheckbox.isSelected()));
         sendCommand(new SetLoadHandlingDevicesCommand(devices));
     }//GEN-LAST:event_loadHandlingDeviceCheckboxClicked
 
@@ -595,7 +595,7 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
             }
         }
         // Create panel and dialog
-        InputPanel panel = new DropdownListInputPanel.Builder<>(bundle.getString("ros2CommAdapterPanel.dialog_dispatchToPoint.title"), pointList)
+        InputPanel panel = new PointListInputPanel.Builder<>(bundle.getString("ros2CommAdapterPanel.dialog_dispatchToPoint.title"), pointList)
                 .setSelectionRepresenter(x -> x == null ? "" : x.getName())
                 .setLabel(bundle.getString("ros2CommAdapterPanel.label_position.text"))
                 .setEditable(true)
@@ -630,7 +630,7 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         pointList.add(0, null);
 
         // Create panel and dialog
-        InputPanel panel = new DropdownListInputPanel.Builder<>(bundle.getString("ros2CommAdapterPanel.dialog_setInitialPoint.title"), pointList)
+        InputPanel panel = new PointListInputPanel.Builder<>(bundle.getString("ros2CommAdapterPanel.dialog_setInitialPoint.title"), pointList)
                 .setSelectionRepresenter(x -> x == null ? "" : x.getName())
                 .setLabel(bundle.getString("ros2CommAdapterPanel.label_position.text"))
                 .setEditable(true)
