@@ -21,8 +21,8 @@ dependencies {
     // Include 'local' ROS2-Java dependencies
     checkRos2JavaPath
     compile fileTree(include: ['*.jar'], dir: dir_rcljava)
-//    compile fileTree(include: ['rcljava_common.jar', 'commons-lang3-3.7.jar','log4j-1.2.17.jar','slf4j-api-1.7.21.jar'], dir: dir_rcljava_common)
-    compile fileTree(include: ['rcljava_common.jar', 'commons-lang3-3.7.jar','log4j-1.2.17.jar','slf4j-api-1.7.21.jar','slf4j-jdk14-1.7.21.jar'], dir: dir_rcljava_common)
+    compile fileTree(include: ['rcljava_common.jar', 'commons-lang3-3.7.jar','log4j-1.2.17.jar','slf4j-api-1.7.21.jar'], dir: dir_rcljava_common)
+//    compile fileTree(include: ['rcljava_common.jar', 'commons-lang3-3.7.jar','log4j-1.2.17.jar','slf4j-api-1.7.21.jar','slf4j-jdk14-1.7.21.jar'], dir: dir_rcljava_common)
     compile fileTree(include: ['*.jar'], dir: dir_std_msgs)
     compile fileTree(include: ['*.jar'], dir: dir_geometry_msgs)
     compile fileTree(include: ['*.jar'], dir: dir_builtin_interfaces)

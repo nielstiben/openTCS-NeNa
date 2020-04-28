@@ -5,6 +5,7 @@ import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.*;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components.*;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.library.InputValidationLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModelAttribute;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModelTO;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.constants.NodeRunningStatus;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.UnitConverterLib;
@@ -85,7 +86,7 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
         for (VehicleProcessModel.Attribute attribute : VehicleProcessModel.Attribute.values()) {
             processModelChange(attribute.name(), this.processModel);
         }
-        for (Ros2ProcessModel.Attribute attribute : Ros2ProcessModel.Attribute.values()) {
+        for (Ros2ProcessModelAttribute attribute : Ros2ProcessModelAttribute.values()) {
             processModelChange(attribute.name(), this.processModel);
         }
     }
@@ -269,13 +270,12 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
 
     }
 
-    private void resetAllPositionValues(){
+    private void resetAllPositionValues() {
         String emptyString = " ";
         SwingUtilities.invokeLater(() -> positionPointValueLabel.setText(emptyString));
         SwingUtilities.invokeLater(() -> positionCoordinateValueLabel.setText(emptyString));
         SwingUtilities.invokeLater(() -> positionEstimateValueLabel.setText(emptyString));
         SwingUtilities.invokeLater(() -> orientationDegreesValueLabel.setText(emptyString));
-
     }
     //================================================================================
     // Methods for sending commands
@@ -612,20 +612,12 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
     }//GEN-LAST:event_dispatchToCoordinateButtonActionPerformed
 
     private void dispatchToPointButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dispatchToPointButtonActionPerformed
-        // Prepare list of model points
-        Set<org.opentcs.data.model.Point> pointSet;
-        try {
-            pointSet = callWrapper.call(() -> vehicleService.fetchObjects(org.opentcs.data.model.Point.class));
-        } catch (Exception ex) {
-            LOG.warn("Error fetching points", ex);
+        List<Point> pointList = getModelPointList();
+        if (pointList == null) {
             return;
         }
 
-        List<org.opentcs.data.model.Point> pointList = new ArrayList<>(pointSet);
-        pointList.sort(Comparators.objectsByName());
-        pointList.add(0, null);
         // Get currently selected point
-        // TODO is there a better way to do this?
         Point currentPoint = null;
         String currentPointName = processModel.getVehiclePosition();
         for (org.opentcs.data.model.Point p : pointList) {
@@ -657,17 +649,10 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
 
     private void setInitialPointButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setInitialPointButtonActionPerformed
         // Prepare list of model points
-        Set<org.opentcs.data.model.Point> pointSet;
-        try {
-            pointSet = callWrapper.call(() -> vehicleService.fetchObjects(org.opentcs.data.model.Point.class));
-        } catch (Exception ex) {
-            LOG.warn("Error fetching points", ex);
+        List<Point> pointList = getModelPointList();
+        if (pointList == null) {
             return;
         }
-
-        List<org.opentcs.data.model.Point> pointList = new ArrayList<>(pointSet);
-        pointList.sort(Comparators.objectsByName());
-        pointList.add(0, null);
 
         // Create panel and dialog
         InputPanel panel = new PointListInputPanel.Builder<>(bundle.getString("ros2CommAdapterPanel.dialog_setInitialPoint.title"), pointList)
@@ -687,7 +672,26 @@ public class Ros2CommAdapterPanel extends VehicleCommAdapterPanel {
                 sendCommand(new SetInitialPointCommand(((Point) item)));
             }
         }
-    }//GEN-LAST:event_setInitialPointButtonActionPerformed
+    }
+
+    private List<Point> getModelPointList() {
+        // Prepare list of model points
+        Set<org.opentcs.data.model.Point> pointSet;
+        try {
+            pointSet = callWrapper.call(() -> vehicleService.fetchObjects(org.opentcs.data.model.Point.class));
+        } catch (Exception ex) {
+            LOG.warn("Error fetching points", ex);
+            return null;
+        }
+
+        List<org.opentcs.data.model.Point> pointList = new ArrayList<>(pointSet);
+        pointList.sort(Comparators.objectsByName());
+        pointList.add(0, null);
+
+        return pointList;
+    }
+
+    //GEN-LAST:event_setInitialPointButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel bottomPanel;
