@@ -11,6 +11,6 @@ import javax.annotation.Nonnull;
  * @author Niels Tiben
  */
 public interface NavigationGoalListener {
-    void onNavigationGoalSucceeded(@Nonnull Point point);
     void onNavigationGoalActive(@Nonnull Point point);
+    void onNavigationGoalSucceeded(@Nonnull Point point);
 }
