@@ -12,6 +12,8 @@ import javax.annotation.Nonnull;
 import java.util.Iterator;
 import java.util.List;
 
+import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConflictConstants.*;
+
 /**
  * Library class for validating operations requests.
  *
@@ -48,6 +50,9 @@ public class OperationAllowedLib {
             isLastOperationAllowed = isOperationAllowed(nextOperation, adapterInstance);
         }
 
+        // Reset last known load state
+        setLastKnownLoadState(adapterInstance.getProcessModel().getVehicleLoadHandlingDevices());
+
         // All operations are checked, thus allowed.
         return isLastOperationAllowed;
     }
@@ -55,11 +60,11 @@ public class OperationAllowedLib {
     /**
      * Check if a single operation is allowed.
      *
-     * @param operation the operation.
+     * @param operation       the operation.
      * @param adapterInstance the adapter instance.
      * @return Whether the operation is allowed.
      */
-    public static ExplainedBoolean isOperationAllowed(@Nonnull String operation, Ros2CommAdapter adapterInstance) {
+    private static ExplainedBoolean isOperationAllowed(@Nonnull String operation, Ros2CommAdapter adapterInstance) {
         switch (operation) {
             case OperationConstants.MOVE:
                 return isMoveAllowed(adapterInstance);
@@ -79,7 +84,7 @@ public class OperationAllowedLib {
 
         if (isVehicleLoaded) {
             // Vehicle already loaded
-            return notAllowed(OperationConflictConstants.LOAD_OPERATION_CONFLICT);
+            return notAllowed(LOAD_OPERATION_CONFLICT);
         } else {
             // Allowed
             lastKnownLoadState = LoadState.FULL; // After loading, our vehicle will be FULL.
@@ -96,7 +101,7 @@ public class OperationAllowedLib {
         } else {
             // Vehicle already unloaded
             lastKnownLoadState = LoadState.EMPTY; // After unloading, our vehicle will be EMPTY.
-            return notAllowed(OperationConflictConstants.UNLOAD_OPERATION_CONFLICT);
+            return notAllowed(UNLOAD_OPERATION_CONFLICT);
         }
     }
 
@@ -104,9 +109,9 @@ public class OperationAllowedLib {
         Vehicle.State currentVehicleState = adapterInstance.getProcessModel().getVehicleState();
 
         if (currentVehicleState.equals(Vehicle.State.IDLE)) {
-            return new ExplainedBoolean(true, "");
+           return allowed();
         } else {
-            return new ExplainedBoolean(false, "Vehicle is not in idle state");
+            return notAllowed(VEHICLE_NOT_IDLE_CONFLICT);
         }
     }
 
@@ -115,7 +120,7 @@ public class OperationAllowedLib {
     }
 
     private static ExplainedBoolean getUnkownOperation() {
-        return new ExplainedBoolean(false, "unknown operation");
+        return notAllowed(UNKNOWN_OPERATION);
     }
 
     private static boolean isVehicleLoadedByLoadState(LoadState loadState) {
