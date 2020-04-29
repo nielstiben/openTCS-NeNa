@@ -10,4 +10,6 @@ import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.Operatio
 public interface OperationConflictConstants {
     String LOAD_OPERATION_CONFLICT = "cannotLoadWhenLoaded";
     String UNLOAD_OPERATION_CONFLICT = "cannotUnloadWhenNotLoaded";
+    String VEHICLE_NOT_IDLE_CONFLICT = "Vehicle is not in idle state";
+    String UNKNOWN_OPERATION = "Unknown operation";
 }

@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 

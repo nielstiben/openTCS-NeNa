@@ -4,7 +4,6 @@ import com.google.inject.assistedinject.Assisted;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.*;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components.*;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.library.InputValidationLib;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModel;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModelAttribute;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModelTO;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.constants.NodeRunningStatus;
