@@ -2,6 +2,15 @@
 String ros2JavaPath = '/opt/ros2-java/ros2_java_ws/'
 // =============================================================================
 
+// JaCoCo
+apply plugin: 'jacoco'
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+    }
+}
+
 apply from: "${rootDir}/gradle/guice-project.gradle"
 
 String dir_rcljava = ros2JavaPath + 'install_isolated/rcljava/share/rcljava/java/'

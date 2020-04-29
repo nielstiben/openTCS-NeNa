@@ -5,8 +5,6 @@ import lombok.Setter;
 import org.opentcs.data.model.Triple;
 import org.opentcs.drivers.vehicle.management.VehicleProcessModelTO;
 
-import static java.util.Objects.requireNonNull;
-
 /**
  * A serializable representation of a {@link Ros2ProcessModel}.
  *

@@ -1,7 +1,66 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.unit.navigation_goal;
 
+import action_msgs.msg.GoalStatus;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoal;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.constants.NavigationGoalStatus;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.point.CoordinatePoint;
+import nl.saxion.nena.opentcs.commadapter.ros2.unit.navigation_goal.test_library.NavigationGoalTestLib;
+import org.junit.Test;
+import org.opentcs.data.model.Triple;
+
 /**
- * @author Niels Tiben <nielstiben@outlook.com>
+ * Unit test to cover {@link NavigationGoal}.
+ *
+ * @author Niels Tiben
  */
 public class NavigationGoalTest {
+    private final byte UUID_LAST_BYTE = 1;
+    private final byte NAV_ACTIVE = 2;
+    private final byte NAV_SUCCEEDED = 4;
+
+    @Test
+    public void testParseGoalStatus() {
+        // Get dummy goal status
+        GoalStatus dummyGoalStatus = NavigationGoalTestLib.createDummyGoalStatus(UUID_LAST_BYTE, NAV_ACTIVE);
+        NavigationGoal dummyNavigationGoal = new NavigationGoal(dummyGoalStatus, null);
+
+        // Assert correct status
+        assert dummyNavigationGoal.getNavigationGoalStatus().equals(NavigationGoalStatus.ACTIVE);
+
+        // Assert destination point is still unknown
+        assert dummyNavigationGoal.getDestinationPoint() == null;
+
+        // Assert UUID matches.
+        assert dummyNavigationGoal.getUuid().get(15) == UUID_LAST_BYTE;
+    }
+
+    @Test
+    public void testUpdateGoalStatus() {
+        // Get dummy goal status
+        GoalStatus initialGoalStatus = NavigationGoalTestLib.createDummyGoalStatus(UUID_LAST_BYTE, NAV_ACTIVE);
+        NavigationGoal dummyNavigationGoal = new NavigationGoal(initialGoalStatus, null);
+
+        // Update navigation goal status
+        GoalStatus updatedGoalStatus = NavigationGoalTestLib.createDummyGoalStatus(UUID_LAST_BYTE, NAV_SUCCEEDED);
+        dummyNavigationGoal.setNavigationGoalStatusByGoalStatus(updatedGoalStatus);
+
+        assert dummyNavigationGoal.getNavigationGoalStatus().equals(NavigationGoalStatus.SUCCEEDED);
+    }
+
+    @Test
+    public void testParseGoalStatusWithDestination() {
+        // Get dummy goal status
+        GoalStatus dummyGoalStatus = NavigationGoalTestLib.createDummyGoalStatus(UUID_LAST_BYTE, NAV_ACTIVE);
+        CoordinatePoint dummyDestination = new CoordinatePoint(new Triple(0, 0, 0));
+        NavigationGoal dummyNavigationGoal = new NavigationGoal(dummyGoalStatus, dummyDestination);
+
+        // Assert correct status
+        assert dummyNavigationGoal.getNavigationGoalStatus().equals(NavigationGoalStatus.ACTIVE);
+
+        // Assert destination point is valid
+        assert dummyNavigationGoal.getDestinationPoint() != null;
+
+        // Assert UUID matches.
+        assert dummyNavigationGoal.getUuid().get(15) == UUID_LAST_BYTE;
+    }
 }
