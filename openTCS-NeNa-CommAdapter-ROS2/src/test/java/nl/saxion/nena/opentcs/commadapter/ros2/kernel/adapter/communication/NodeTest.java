@@ -1,12 +1,10 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.unit.communication;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication;
 
 import action_msgs.msg.GoalStatusArray;
 import geometry_msgs.msg.PoseStamped;
 import geometry_msgs.msg.PoseWithCovarianceStamped;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.Node;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeMessageListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.OutgoingMessageLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.point.CoordinatePoint;
 import org.junit.After;
@@ -15,6 +13,8 @@ import org.junit.Test;
 import org.opentcs.data.model.Triple;
 import org.ros2.rcljava.RCLJava;
 import org.ros2.rcljava.executors.SingleThreadedExecutor;
+
+import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.test_library.Ros2CommAdapterTestLib.TIME_NEEDED_FOR_NODE_INITIALISATION;
 
 /**
  * Unit test to cover {@link Node}.
@@ -74,7 +74,7 @@ public class NodeTest {
     public void testPublishNavigationMessage() {
         NodeStarterForTesting nodeStarter = new NodeStarterForTesting(this.nodeMessageListener);
         new Thread(nodeStarter).start();
-        Thread.sleep(600); // wait until the node get's available.
+        Thread.sleep(TIME_NEEDED_FOR_NODE_INITIALISATION); // wait until the node get's available.
 
         // Build message
         CoordinatePoint testPoint = new CoordinatePoint(new Triple(100, -150, 0));
@@ -90,7 +90,7 @@ public class NodeTest {
         assert this.lastReceivedGoalStatusArray == null;
         testPublishNavigationMessage();
 
-        Thread.sleep(600); // Give the vehicle 600 milliseconds to send its navigation stack.
+        Thread.sleep(TIME_NEEDED_FOR_NODE_INITIALISATION); // Give the vehicle 600 milliseconds to send its navigation stack.
         assert lastReceivedGoalStatusArray != null;
     }
 
@@ -110,7 +110,7 @@ public class NodeTest {
     /**
      * Simple inner class for starting a node in a new thread.
      */
-    private static class NodeStarterForTesting implements Runnable {
+    public static class NodeStarterForTesting implements Runnable {
         private final NodeMessageListener nodeMessageListener;
 
         @Getter

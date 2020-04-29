@@ -75,6 +75,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     //================================================================================
 
     public void onDriverEnable() {
+        assert namespace != null;
         this.nodeManager.start(this, this, this.namespace);
     }
 
@@ -160,7 +161,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     @Override
     public void onNewGoalStatusArray(@Nonnull GoalStatusArray goalStatusArray) {
         Object[][] oldValue = navigationGoalTracker.toStringTable();
-        navigationGoalTracker.updateByGoalStatusArray(goalStatusArray);
+        this.navigationGoalTracker.updateByGoalStatusArray(goalStatusArray);
         Object[][] newValue = navigationGoalTracker.toStringTable();
 
         getPropertyChangeSupport().firePropertyChange(NAVIGATION_GOALS.name(), oldValue, newValue);

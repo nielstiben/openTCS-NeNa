@@ -1,13 +1,10 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.unit.communication;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication;
 
 
 import action_msgs.msg.GoalStatusArray;
 import geometry_msgs.msg.PoseStamped;
 import geometry_msgs.msg.PoseWithCovarianceStamped;
 import lombok.SneakyThrows;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeManager;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeMessageListener;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.NodeRunningStatusListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.communication.constants.NodeRunningStatus;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.OutgoingMessageLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.point.CoordinatePoint;
@@ -38,7 +35,6 @@ public class NodeManagerTest {
 
     @Before
     public void setUpListeners() {
-
         this.nodeRunningStatusListener = nodeRunningStatus -> this.lastKnownNodeRunningStatus = nodeRunningStatus;
 
         // Ignore message callbacks

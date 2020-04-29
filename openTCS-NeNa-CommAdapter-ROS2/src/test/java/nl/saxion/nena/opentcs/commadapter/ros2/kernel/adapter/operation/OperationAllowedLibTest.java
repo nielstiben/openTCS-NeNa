@@ -1,8 +1,7 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.unit.transport_order;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation;
 
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.OperationAllowedLib;
-import nl.saxion.nena.opentcs.commadapter.ros2.unit.transport_order.test_library.Ros2CommAdapterTestLib;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.test_library.Ros2CommAdapterTestLib;
 import org.junit.Test;
 import org.opentcs.util.ExplainedBoolean;
 

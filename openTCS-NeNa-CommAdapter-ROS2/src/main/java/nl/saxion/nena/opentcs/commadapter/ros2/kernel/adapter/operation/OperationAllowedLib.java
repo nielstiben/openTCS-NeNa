@@ -2,7 +2,6 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation;
 
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.LoadState;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConflictConstants;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.constants.OperationConstants;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.drivers.vehicle.LoadHandlingDevice;
