@@ -1,4 +1,4 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.unit.transport_order.test_library;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.operation.test_library;
 
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapterConfiguration;
