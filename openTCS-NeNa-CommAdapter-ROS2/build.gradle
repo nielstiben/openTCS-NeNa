@@ -4,10 +4,18 @@ String ros2JavaPath = '/opt/ros2-java/ros2_java_ws/'
 
 // JaCoCo
 apply plugin: 'jacoco'
+
 jacocoTestReport {
     reports {
         xml.enabled false
         csv.enabled false
+    }
+
+    afterEvaluate {
+        classDirectories = files(classDirectories.files.collect {
+            // Exclude Control Center components
+            fileTree(dir: it, exclude: 'nl/saxion/nena/opentcs/commadapter/ros2/control_center/*')
+        })
     }
 }
 

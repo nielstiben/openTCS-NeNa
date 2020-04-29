@@ -1,10 +1,9 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.unit.navigation_goal;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal;
 
 import action_msgs.msg.GoalStatus;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.NavigationGoal;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.constants.NavigationGoalStatus;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.test_library.NavigationGoalTestLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.point.CoordinatePoint;
-import nl.saxion.nena.opentcs.commadapter.ros2.unit.navigation_goal.test_library.NavigationGoalTestLib;
 import org.junit.Test;
 import org.opentcs.data.model.Triple;
 

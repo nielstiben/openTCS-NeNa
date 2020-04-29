@@ -71,6 +71,7 @@ public class ScaleCorrector {
      * @return A scaled value meant for the vehicle
      */
     private double scaleDoubleForVehicle(double fromFleetManager) {
+        assert scale != 0;
         return fromFleetManager * this.scale;
     }
 
@@ -81,6 +82,7 @@ public class ScaleCorrector {
      * @return A scaled value meant for the fleet manager (openTCS)
      */
     private long scaleLongForFleetManager(long fromVehicle) {
+        assert scale != 0;
         double fromVehicleDouble = (double) fromVehicle;
 
         return Math.round(fromVehicleDouble / this.scale);

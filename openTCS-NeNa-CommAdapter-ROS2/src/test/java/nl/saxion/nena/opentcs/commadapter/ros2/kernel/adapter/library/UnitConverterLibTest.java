@@ -1,4 +1,4 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.unit.library;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library;
 
 import geometry_msgs.msg.Quaternion;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.library.UnitConverterLib;

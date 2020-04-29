@@ -1,7 +1,7 @@
 /**
  * Copyright (c) Fraunhofer IML
  */
-package nl.saxion.nena.opentcs.commadapter.ros2.unit;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory;
 
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2AdapterComponentsFactory;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2CommAdapterFactory;
@@ -13,12 +13,11 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 /**
- * Unit test to cover
+ * Unit test to cover {@link Ros2CommAdapterFactory}
  *
  * @author Niels Tiben
  */
-public class ExampleCommAdapterFactoryTest {
-
+public class Ros2CommAdapterFactoryTest {
     private Ros2CommAdapterFactory ros2AdapterFactory;
 
     @Before

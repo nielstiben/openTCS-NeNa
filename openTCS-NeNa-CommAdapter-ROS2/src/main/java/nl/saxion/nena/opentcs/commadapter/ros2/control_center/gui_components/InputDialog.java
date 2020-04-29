@@ -36,7 +36,6 @@ public class InputDialog
   /**
    * Enum values to indicate if the dialog accepted input from the user or
    * if the input was canceled.
-   * TODO: no enum needed here?
    */
   public enum ReturnStatus {
 

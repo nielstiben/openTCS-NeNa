@@ -213,7 +213,9 @@ public class ExecuteTransportOrderWorkflow implements NavigationGoalListener, Op
     private void removeExecutedCommandFromSentQueueAndSetWorkflowInactive() {
         // Remove current command from the queue
         MovementCommand movementCommandOnQueue = this.sentQueue.poll();
-        assert movementCommandOnQueue != null && movementCommandOnQueue.equals(this.currentCommand);
+
+        assert movementCommandOnQueue != null;
+        assert movementCommandOnQueue.equals(this.currentCommand);
 
         // Release the workflow for other commands.
         this.isCommandExecutorActive = false;

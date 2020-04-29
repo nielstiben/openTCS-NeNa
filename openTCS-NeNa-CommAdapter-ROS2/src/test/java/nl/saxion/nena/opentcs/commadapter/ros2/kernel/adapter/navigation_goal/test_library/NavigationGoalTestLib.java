@@ -1,4 +1,4 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.unit.navigation_goal.test_library;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.navigation_goal.test_library;
 
 import action_msgs.msg.GoalInfo;
 import action_msgs.msg.GoalStatus;
