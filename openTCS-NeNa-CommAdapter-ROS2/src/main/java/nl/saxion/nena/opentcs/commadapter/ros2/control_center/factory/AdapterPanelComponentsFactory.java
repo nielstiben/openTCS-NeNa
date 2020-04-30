@@ -1,7 +1,7 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.control_center.factory;
 
-import nl.saxion.nena.opentcs.commadapter.ros2.control_center.Ros2CommAdapterPanel;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2ProcessModelTO;
+import nl.saxion.nena.opentcs.commadapter.ros2.control_center.control_panel.Ros2CommAdapterPanel;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.Ros2ProcessModelTO;
 import org.opentcs.components.kernel.services.VehicleService;
 
 import javax.annotation.Nonnull;

@@ -2,7 +2,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2;
 
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2AdapterComponentsFactory;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapterConfiguration;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.Ros2CommAdapterConfiguration;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2CommAdapterFactory;
 import org.opentcs.customizations.kernel.KernelInjectionModule;
 import org.slf4j.Logger;

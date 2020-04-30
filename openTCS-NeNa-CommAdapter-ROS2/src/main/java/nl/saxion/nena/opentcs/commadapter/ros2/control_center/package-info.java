@@ -1,5 +1,5 @@
 /**
- * Package containing classes meant for the driver's Kernel Control Center panel.
+ * Package containing classes meant for the driver's Kernel Control Center Center.
  *
  * @author Niels Tiben
  */
