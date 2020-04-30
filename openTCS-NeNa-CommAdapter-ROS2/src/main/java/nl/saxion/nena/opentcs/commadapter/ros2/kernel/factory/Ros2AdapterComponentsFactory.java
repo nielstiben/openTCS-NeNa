@@ -1,6 +1,6 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory;
 
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.adapter.Ros2CommAdapter;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.Ros2CommAdapter;
 import org.opentcs.data.model.Vehicle;
 
 /**
