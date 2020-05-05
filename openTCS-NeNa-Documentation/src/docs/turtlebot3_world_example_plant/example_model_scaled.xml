@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model version="0.0.2" name="a">
+    <point name="point-almelo" xPosition="4500" yPosition="19200" zPosition="0" vehicleOrientationAngle="0.0" type="HALT_POSITION">
+        <outgoingPath name="point-almelo --- point-hengelo"/>
+        <outgoingPath name="point-almelo --- point-oldenzaal"/>
+    </point>
+    <point name="point-enschede" xPosition="36700" yPosition="-6800" zPosition="0" vehicleOrientationAngle="NaN" type="HALT_POSITION">
+        <outgoingPath name="point-enschede --- point-haaksbergen"/>
+        <outgoingPath name="point-enschede --- point-oldenzaal"/>
+    </point>
+    <point name="point-enschede-k" xPosition="21900" yPosition="-800" zPosition="0" vehicleOrientationAngle="NaN" type="HALT_POSITION">
+        <outgoingPath name="point-enschede-k --- point-hengelo"/>
+    </point>
+    <point name="point-haaksbergen" xPosition="6800" yPosition="-11300" zPosition="0" vehicleOrientationAngle="NaN" type="HALT_POSITION">
+        <outgoingPath name="point-haaksbergen --- point-enschede"/>
+    </point>
+    <point name="point-hengelo" xPosition="1000" yPosition="1000" zPosition="0" vehicleOrientationAngle="NaN" type="HALT_POSITION">
+        <outgoingPath name="point-hengelo --- point-almelo"/>
+        <outgoingPath name="point-hengelo --- point-enschede-k"/>
+    </point>
+    <point name="point-oldenzaal" xPosition="30300" yPosition="21800" zPosition="0" vehicleOrientationAngle="NaN" type="HALT_POSITION">
+        <outgoingPath name="point-oldenzaal --- point-almelo"/>
+        <outgoingPath name="point-oldenzaal --- point-enschede"/>
+        <outgoingPath name="point-oldenzaal --- point-enschede-k"/>
+    </point>
+    <path name="point-almelo --- point-hengelo" sourcePoint="point-almelo" destinationPoint="point-hengelo" length="18533" routingCost="1" maxVelocity="1000" maxReverseVelocity="0" locked="false"/>
+    <path name="point-almelo --- point-oldenzaal" sourcePoint="point-almelo" destinationPoint="point-oldenzaal" length="25931" routingCost="1" maxVelocity="1000" maxReverseVelocity="0" locked="false"/>
+    <path name="point-enschede --- point-haaksbergen" sourcePoint="point-enschede" destinationPoint="point-haaksbergen" length="30237" routingCost="1" maxVelocity="1000" maxReverseVelocity="0" locked="false"/>
+    <path name="point-enschede --- point-oldenzaal" sourcePoint="point-enschede" destinationPoint="point-oldenzaal" length="29307" routingCost="1" maxVelocity="1000" maxReverseVelocity="0" locked="false"/>
+    <path name="point-enschede-k --- point-hengelo" sourcePoint="point-enschede-k" destinationPoint="point-hengelo" length="20977" routingCost="1" maxVelocity="1000" maxReverseVelocity="0" locked="false"/>
+    <path name="point-haaksbergen --- point-enschede" sourcePoint="point-haaksbergen" destinationPoint="point-enschede" length="30237" routingCost="1" maxVelocity="1000" maxReverseVelocity="0" locked="false"/>
+    <path name="point-hengelo --- point-almelo" sourcePoint="point-hengelo" destinationPoint="point-almelo" length="18533" routingCost="1" maxVelocity="1000" maxReverseVelocity="0" locked="false"/>
+    <path name="point-hengelo --- point-enschede-k" sourcePoint="point-hengelo" destinationPoint="point-enschede-k" length="20977" routingCost="1" maxVelocity="1000" maxReverseVelocity="0" locked="false"/>
+    <path name="point-oldenzaal --- point-almelo" sourcePoint="point-oldenzaal" destinationPoint="point-almelo" length="25931" routingCost="1" maxVelocity="1000" maxReverseVelocity="0" locked="false"/>
+    <path name="point-oldenzaal --- point-enschede" sourcePoint="point-oldenzaal" destinationPoint="point-enschede" length="29307" routingCost="1" maxVelocity="1000" maxReverseVelocity="0" locked="false"/>
+    <path name="point-oldenzaal --- point-enschede-k" sourcePoint="point-oldenzaal" destinationPoint="point-enschede-k" length="24111" routingCost="1" maxVelocity="1000" maxReverseVelocity="0" locked="false"/>
+    <vehicle name="Bus1" length="1000" energyLevelCritical="30" energyLevelGood="90" energyLevelFullyRecharged="30" energyLevelSufficientlyRecharged="90" maxVelocity="1000" maxReverseVelocity="1000" type="">
+        <property name="tcs:preferredAdapterClass" value="nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2CommAdapterFactory"/>
+    </vehicle>
+    <vehicle name="Bus2" length="1000" energyLevelCritical="30" energyLevelGood="90" energyLevelFullyRecharged="30" energyLevelSufficientlyRecharged="90" maxVelocity="1000" maxReverseVelocity="1000" type="">
+        <property name="tcs:preferredAdapterClass" value="nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2CommAdapterFactory"/>
+    </vehicle>
+    <vehicle name="Bus3" length="1000" energyLevelCritical="30" energyLevelGood="90" energyLevelFullyRecharged="30" energyLevelSufficientlyRecharged="90" maxVelocity="1000" maxReverseVelocity="1000" type="">
+        <property name="tcs:preferredAdapterClass" value="nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2CommAdapterFactory"/>
+    </vehicle>
+    <vehicle name="Train1" length="1000" energyLevelCritical="30" energyLevelGood="90" energyLevelFullyRecharged="30" energyLevelSufficientlyRecharged="90" maxVelocity="1000" maxReverseVelocity="1000" type="">
+        <property name="tcs:preferredAdapterClass" value="nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2CommAdapterFactory"/>
+    </vehicle>
+    <locationType name="Station">
+        <allowedOperation name="Load cargo"/>
+        <allowedOperation name="Unload cargo"/>
+        <property name="tcs:defaultLocationTypeSymbol" value="LOAD_TRANSFER_GENERIC"/>
+    </locationType>
+    <location name="Almelo" xPosition="-250" yPosition="4750" zPosition="0" type="Station">
+        <link point="point-almelo"/>
+    </location>
+    <location name="Enschede " xPosition="4750" yPosition="-4250" zPosition="0" type="Station">
+        <link point="point-enschede"/>
+    </location>
+    <location name="Enschede K" xPosition="2250" yPosition="-4750" zPosition="0" type="Station">
+        <link point="point-enschede-k"/>
+    </location>
+    <location name="Haaksbergen" xPosition="250" yPosition="-3750" zPosition="0" type="Station">
+        <link point="point-haaksbergen"/>
+    </location>
+    <location name="Hengelo" xPosition="-3750" yPosition="1250" zPosition="0" type="Station">
+        <link point="point-hengelo"/>
+    </location>
+    <location name="Oldenzaal" xPosition="2750" yPosition="5250" zPosition="0" type="Station">
+        <link point="point-oldenzaal"/>
+    </location>
+    <visualLayout name="VLayout-1" scaleX="50.0" scaleY="50.0">
+        <modelLayoutElement visualizedObjectName="Almelo" layer="0">
+            <property name="LABEL_OFFSET_X" value="-10"/>
+            <property name="LABEL_OFFSET_Y" value="-20"/>
+            <property name="POSITION_X" value="1750"/>
+            <property name="POSITION_Y" value="21250"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="Bus1" layer="0">
+            <property name="ROUTE_COLOR" value="#FFFF00"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="Bus2" layer="0">
+            <property name="ROUTE_COLOR" value="#00FFFF"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="Bus3" layer="0">
+            <property name="ROUTE_COLOR" value="#FF0000"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="Enschede " layer="0">
+            <property name="LABEL_OFFSET_X" value="-10"/>
+            <property name="LABEL_OFFSET_Y" value="-20"/>
+            <property name="POSITION_X" value="36750"/>
+            <property name="POSITION_Y" value="-9750"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="Enschede K" layer="0">
+            <property name="LABEL_OFFSET_X" value="-10"/>
+            <property name="LABEL_OFFSET_Y" value="-20"/>
+            <property name="POSITION_X" value="20750"/>
+            <property name="POSITION_Y" value="3250"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="Haaksbergen" layer="0">
+            <property name="LABEL_OFFSET_X" value="-10"/>
+            <property name="LABEL_OFFSET_Y" value="-20"/>
+            <property name="POSITION_X" value="7250"/>
+            <property name="POSITION_Y" value="-14250"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="Hengelo" layer="0">
+            <property name="LABEL_OFFSET_X" value="-10"/>
+            <property name="LABEL_OFFSET_Y" value="-20"/>
+            <property name="POSITION_X" value="-3750"/>
+            <property name="POSITION_Y" value="1250"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="Oldenzaal" layer="0">
+            <property name="LABEL_OFFSET_X" value="-10"/>
+            <property name="LABEL_OFFSET_Y" value="-20"/>
+            <property name="POSITION_X" value="27750"/>
+            <property name="POSITION_Y" value="22750"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="Train1" layer="0">
+            <property name="ROUTE_COLOR" value="#0000FF"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-almelo" layer="0">
+            <property name="LABEL_OFFSET_X" value="-10"/>
+            <property name="LABEL_OFFSET_Y" value="-20"/>
+            <property name="POSITION_X" value="4500"/>
+            <property name="POSITION_Y" value="19200"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-almelo --- point-hengelo" layer="0">
+            <property name="CONN_TYPE" value="BEZIER"/>
+            <property name="CONTROL_POINTS" value="66,-260;44,-142"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-almelo --- point-oldenzaal" layer="0">
+            <property name="CONN_TYPE" value="BEZIER"/>
+            <property name="CONTROL_POINTS" value="264,-401;432,-417"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-enschede" layer="0">
+            <property name="LABEL_OFFSET_X" value="30"/>
+            <property name="LABEL_OFFSET_Y" value="0"/>
+            <property name="POSITION_X" value="36700"/>
+            <property name="POSITION_Y" value="-6800"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-enschede --- point-haaksbergen" layer="0">
+            <property name="CONN_TYPE" value="BEZIER"/>
+            <property name="CONTROL_POINTS" value="533,166;337,196"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-enschede --- point-oldenzaal" layer="0">
+            <property name="CONN_TYPE" value="BEZIER"/>
+            <property name="CONTROL_POINTS" value="691,-55;649,-243"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-enschede-k" layer="0">
+            <property name="LABEL_OFFSET_X" value="0"/>
+            <property name="LABEL_OFFSET_Y" value="-20"/>
+            <property name="POSITION_X" value="21900"/>
+            <property name="POSITION_Y" value="-800"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-enschede-k --- point-hengelo" layer="0">
+            <property name="CONN_TYPE" value="BEZIER"/>
+            <property name="CONTROL_POINTS" value="297,4;161,-7"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-haaksbergen" layer="0">
+            <property name="LABEL_OFFSET_X" value="-120"/>
+            <property name="LABEL_OFFSET_Y" value="0"/>
+            <property name="POSITION_X" value="6800"/>
+            <property name="POSITION_Y" value="-11300"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-haaksbergen --- point-enschede" layer="0">
+            <property name="CONN_TYPE" value="BEZIER"/>
+            <property name="CONTROL_POINTS" value="337,196;533,166"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-hengelo" layer="0">
+            <property name="LABEL_OFFSET_X" value="-90"/>
+            <property name="LABEL_OFFSET_Y" value="20"/>
+            <property name="POSITION_X" value="1000"/>
+            <property name="POSITION_Y" value="1000"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-hengelo --- point-almelo" layer="0">
+            <property name="CONN_TYPE" value="BEZIER"/>
+            <property name="CONTROL_POINTS" value="44,-142;66,-260"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-hengelo --- point-enschede-k" layer="0">
+            <property name="CONN_TYPE" value="BEZIER"/>
+            <property name="CONTROL_POINTS" value="161,-7;297,4"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-oldenzaal" layer="0">
+            <property name="LABEL_OFFSET_X" value="25"/>
+            <property name="LABEL_OFFSET_Y" value="-10"/>
+            <property name="POSITION_X" value="30300"/>
+            <property name="POSITION_Y" value="21800"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-oldenzaal --- point-almelo" layer="0">
+            <property name="CONN_TYPE" value="BEZIER"/>
+            <property name="CONTROL_POINTS" value="432,-417;264,-401"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-oldenzaal --- point-enschede" layer="0">
+            <property name="CONN_TYPE" value="BEZIER"/>
+            <property name="CONTROL_POINTS" value="649,-243;691,-55"/>
+        </modelLayoutElement>
+        <modelLayoutElement visualizedObjectName="point-oldenzaal --- point-enschede-k" layer="0">
+            <property name="CONN_TYPE" value="DIRECT"/>
+        </modelLayoutElement>
+    </visualLayout>
+    <property name="tcs:modelFileLastModified" value="2020-04-23T09:51:56.392Z"/>
+</model>

@@ -4,7 +4,14 @@ OpenTCS and ROS2 are both open-source software packages. OpenTCS can be used as 
 
  At the moment of writing, there are no (open-source) software packages available to manage ROS2 robots from the OpenTCS Fleet Manager. The development of such a vehicle driver is part of my Bachelor Thesis.
 
+The following software and software libraries is used for developing the driver:
+* ROS 2 - dashing
+* [ROS2-java (rcljava)](https://github.com/ros2-java/ros2_java)
+* [OpenTCS](https://www.opentcs.org/en/index.html)
+
 ## Features
+**NOTE:** *The OpenTCS-ROS2 driver has only been tested on Ubuntu 18.04 in combination with the [Turtlebot 3](http://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_setup/)*.
+
 All the native OpenTCS features are implemented in this driver, which means that the driver is ready to be used.
 
 General features:
@@ -35,7 +42,7 @@ Todo:
 [![Alt text](openTCS-NeNa-Documentation/src/docs/img/youtube_embed.png)](https://youtu.be/x_Bjo7l0uc4)
 
 ## User Guide
-Here's [a guide about how to setup and use the ROS 2 Driver](openTCS-NeNa-Documentation/src/docs/user_guide/user_guide.adoc) ( [asciidoc](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.adoc) | [pdf](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.pdf) | [odt](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.odt) ).
+Here's [a guide about how to setup and use the ROS 2 Driver](openTCS-NeNa-Documentation/src/docs/user_guide/user_guide.adoc) ( [asciidoc](openTCS-NeNa-Documentation/src/docs/user_guide/user_guide.adoc) | [pdf](openTCS-NeNa-Documentation/src/docs/user_guide/user_guide.pdf) | [odt](openTCS-NeNa-Documentation/src/docs/user_guide/user_guide.odt) ).
 
 ## Developer Guide
 Here's [documentation about the development of the ROS 2 Driver](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.adoc) ( [asciidoc](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.adoc) | [pdf](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.pdf) | [odt](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.odt) ).
