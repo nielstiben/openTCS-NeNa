@@ -3,7 +3,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter;
 import com.google.inject.assistedinject.Assisted;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication.constants.NodeRunningStatus;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.ScaleCorrector;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.operation.OperationAllowedLib;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.OperationAllowedLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.transport_order.ExecuteTransportOrderWorkflow;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.drivers.vehicle.BasicVehicleCommAdapter;
@@ -40,9 +40,9 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
     @Inject
     public Ros2CommAdapter(@Nonnull Ros2CommAdapterConfiguration configuration, @Nonnull @Assisted Vehicle vehicle) {
         super(new Ros2ProcessModel(vehicle),
-                configuration.commandQueueCapacity(),
+                2,
                 1,
-                configuration.rechargeOperation());
+                "CHARGE");
         this.configuration = configuration;
     }
 

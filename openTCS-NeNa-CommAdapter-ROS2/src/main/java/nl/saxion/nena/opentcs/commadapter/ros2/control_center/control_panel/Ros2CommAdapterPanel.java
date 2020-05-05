@@ -1,13 +1,11 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.control_center.control_panel;
 
 import com.google.inject.assistedinject.Assisted;
-import nl.saxion.nena.opentcs.commadapter.ros2.control_center.commands.*;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.control_panel.commands.*;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.control_panel.gui_components.CoordinateInputPanel;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.control_panel.gui_components.InputDialog;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.control_panel.gui_components.InputPanel;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.control_panel.gui_components.PointListInputPanel;
-import nl.saxion.nena.opentcs.commadapter.ros2.control_center.gui_components.*;
 import nl.saxion.nena.opentcs.commadapter.ros2.control_center.control_panel.library.InputValidationLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.Ros2ProcessModelAttribute;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.Ros2ProcessModelTO;

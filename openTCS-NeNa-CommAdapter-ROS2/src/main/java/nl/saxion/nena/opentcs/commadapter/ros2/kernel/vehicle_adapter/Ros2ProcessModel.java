@@ -54,7 +54,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     @Getter
     private Triple estimatedPosition;
     @Setter
-    private String namespace;
+    private String namespace = "";
     @Setter
     private ExecuteTransportOrderWorkflow executeTransportOrderWorkflow;
     @Setter
@@ -75,7 +75,6 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     //================================================================================
 
     public void onDriverEnable() {
-        assert namespace != null;
         this.nodeManager.start(this, this, this.namespace);
     }
 

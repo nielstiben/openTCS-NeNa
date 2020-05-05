@@ -14,7 +14,7 @@ import java.time.Instant;
  *
  * @author Niels Tiben
  */
-public class OutgoingMessageLib {
+public abstract class OutgoingMessageLib {
     public static PoseWithCovarianceStamped generateInitialPoseMessageByPoint(@Nonnull Point point) {
         Pose pose = generatePoseMessageByPoint(point);
         Quaternion quaternion = new Quaternion();

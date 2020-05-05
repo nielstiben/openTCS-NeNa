@@ -107,6 +107,8 @@ public class NavigationGoalTracker {
             } else {
                 this.externalNavigationGoalListener.onExternalNavigationGoalSucceeded();
             }
+        } else {
+            // TODO implement handlers for other navigation goal statuses.
         }
     }
 

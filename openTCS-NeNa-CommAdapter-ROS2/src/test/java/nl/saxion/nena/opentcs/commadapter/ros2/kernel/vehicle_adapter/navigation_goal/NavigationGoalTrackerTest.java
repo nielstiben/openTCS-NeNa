@@ -3,7 +3,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.navigatio
 import action_msgs.msg.GoalStatusArray;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication.Node;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.navigation_goal.constants.NavigationGoalStatus;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.navigation_goal.test_library.NavigationGoalTestLib;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.NavigationGoalTestLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.point.CoordinatePoint;
 import org.junit.Before;
 import org.junit.Test;
