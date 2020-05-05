@@ -1,5 +1,7 @@
 = User Guide
 
+The end-user is expected to have basic knowledge of ROS2 and OpenTCS. This chapter only describes how to use the driver, but not how OpenTCS or ROS2 works. 
+
 [[setup]]
 [[anchor]]Setup
 ---------------
@@ -9,13 +11,11 @@ Dashing Diademata and with the
 http://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_setup/[TurtleBot3]
 robot.
 
-[[prerequisites]]
-[[anchor-1]]Prerequisites
-~~~~~~~~~~~~~~~~~~~~~~~~~
+[[prerequisite]]
+[[anchor-1]]Prerequisite
+~~~~~~~~~~~~~~~~~~~~~~~
 
-Install the Turtlebot 3 environment for ROS2
-(http://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_setup/[link])
-on your local machine.
+The local machine should have an installation of the Turtlebot 3 software and environment intended for ROS 2 Dashing (http://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_setup/[link]).
 
 [[setup-1-using-opentcs-binary-recommend]]
 [[anchor-2]]Setup (1) using OpenTCS Binary (recommend)
@@ -42,7 +42,7 @@ https://index.ros.org/doc/ros2/Tutorials/Configuring-ROS2-Environment/[ROS
 [[anchor-3]]Setup (2) using OpenTCS Extensions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-NOTE: Skip this setup if you ran the setup using an OpenTCS Binary
+NOTE: Skip this setup if you run the setup using an OpenTCS Binary
 (Setup 1).
 
 With this setup, an extension will be installed that only contains the
