@@ -1,4 +1,4 @@
-User Guide
+= User Guide
 
 [[setup]]
 [[anchor]]Setup
@@ -101,7 +101,7 @@ this could also be done in the Kernel Control Center Panel.
 Now our simulation with Gazebo and RViz with navigation has been
 started, we are ready to use the OpenTCS.
 
-1.  Download the example plant for the TurtleBot3 World link:openTCS-NeNa-Documentation/src/docs/turtlebot3_world_example_plant/example_model_scaled.xml[(link)].
+1.  Download the example plant for the TurtleBot3 World link:../turtlebot3_world_example_plant/example_model_scaled.xml[(link)].
 2.  Start OpenTCS Kernel and the OpenTCS Plant Overview.
 3.  Load the example plant in the Plant Overview (CTRL + L).
 4.  Persist the example plant to the Kernel. (ALT + P).
