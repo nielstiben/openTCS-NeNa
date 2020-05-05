@@ -235,7 +235,7 @@ application.
 
 [[software-domains]]
 [[anchor-8]]Software Domains
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
 
 The ROS2 vehicle driver is a modular software package. This approach
 means that a great deal of attention has been paid during its
