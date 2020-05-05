@@ -1,6 +1,6 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.operation.constants;
 
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.operation.OperationAllowedLib;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.OperationAllowedLib;
 
 /**
  * Constants for operation initiation conflicts that are raised in {@link OperationAllowedLib}.

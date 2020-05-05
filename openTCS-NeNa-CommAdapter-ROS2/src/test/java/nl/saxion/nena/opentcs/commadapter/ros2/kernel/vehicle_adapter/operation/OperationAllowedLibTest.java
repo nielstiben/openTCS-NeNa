@@ -1,6 +1,7 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.operation;
 
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.Ros2CommAdapter;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.OperationAllowedLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib;
 import org.junit.Test;
 import org.opentcs.util.ExplainedBoolean;

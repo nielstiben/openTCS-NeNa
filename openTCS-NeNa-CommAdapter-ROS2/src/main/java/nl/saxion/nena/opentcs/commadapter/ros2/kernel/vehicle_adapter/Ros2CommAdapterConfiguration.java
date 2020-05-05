@@ -24,16 +24,4 @@ public interface Ros2CommAdapterConfiguration {
             description = "The scale of the plant model. 1:x where x is the input. Provide a small scale for little plants.",
             orderKey = "plantModelScale")
     double plantModelScale();
-
-    @ConfigurationEntry(
-            type = "Integer",
-            description = "The adapter's command queue capacity.",
-            orderKey = "1_attributes_1")
-    int commandQueueCapacity();
-
-    @ConfigurationEntry(
-            type = "String",
-            description = "The string to be treated as a recharge operation.",
-            orderKey = "1_attributes_2")
-    String rechargeOperation();
 }

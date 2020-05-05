@@ -1,4 +1,4 @@
-package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.operation;
+package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library;
 
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.Ros2CommAdapter;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.operation.constants.LoadState;
@@ -18,7 +18,7 @@ import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.ope
  *
  * @author Niels Tiben
  */
-public class OperationAllowedLib {
+public abstract class OperationAllowedLib {
     private static LoadState lastKnownLoadState = LoadState.EMPTY;
 
     public static void setLastKnownLoadState(@Nonnull List<LoadHandlingDevice> loadHandlingDevices) {

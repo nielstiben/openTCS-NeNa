@@ -9,7 +9,7 @@ import org.opentcs.data.model.Vehicle;
  *
  * @author Niels Tiben
  */
-public class Ros2CommAdapterTestLib {
+public abstract class Ros2CommAdapterTestLib {
     public final static String DEFAULT_TESTING_NAMESPACE = "test";
     public final static int TIME_NEEDED_FOR_NODE_INITIALISATION = 600; // Maximum time needed for node to come online.
 

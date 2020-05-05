@@ -10,7 +10,7 @@ import javax.annotation.Nonnull;
  *
  * @author Niels Tiben
  */
-public class PointTestLib {
+public abstract class PointTestLib {
     public static Point generatePointByNameAndCoordinate(@Nonnull String name, @Nonnull Triple coordinate) {
         Point point = new Point(name);
 

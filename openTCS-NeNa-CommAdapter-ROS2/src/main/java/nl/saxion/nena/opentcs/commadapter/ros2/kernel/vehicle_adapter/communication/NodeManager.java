@@ -2,6 +2,7 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communica
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication.constants.NodeRunningStatus;
 import org.ros2.rcljava.RCLJava;
@@ -22,10 +23,8 @@ import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.com
 public class NodeManager implements NodeRunnableListener {
     private NodeRunningStatusListener nodeRunningStatusListener;
     private NodeRunnable nodeRunnable;
-    @Getter
-    private Node node;
-    @Getter
-    private NodeRunningStatus nodeRunningStatus = NOT_ACTIVE;
+    private @Getter Node node;
+    private @Getter NodeRunningStatus nodeRunningStatus = NOT_ACTIVE;
 
     /**
      * Start a node in a separate thread, that is responsible for communication with a ROS2 vehicle.
@@ -93,31 +92,14 @@ public class NodeManager implements NodeRunnableListener {
     /**
      * Runnable for the node instance.
      */
+    @RequiredArgsConstructor
     protected static class NodeRunnable implements Runnable {
-        @Getter
-        private Node node;
-        private SingleThreadedExecutor executor;
-
         private final NodeMessageListener nodeMessageListener;
         private final NodeRunnableListener nodeRunnableListener;
         private final String nodeNamespace;
 
-        /**
-         * Constructor
-         *
-         * @param nodeMessageListener  Listener for notifying about new incoming node messages (e.g. new amcl_pose).
-         * @param nodeRunnableListener Listener for notifying the NodeManager when a node has been effectively started or stopped.
-         * @param nodeNamespace        The ROS2 namespace that the node should use. Used for distinguishing multiple vehicles.
-         */
-        public NodeRunnable(
-                @Nonnull NodeMessageListener nodeMessageListener,
-                @Nonnull NodeRunnableListener nodeRunnableListener,
-                @Nonnull String nodeNamespace
-        ) {
-            this.nodeMessageListener = nodeMessageListener;
-            this.nodeRunnableListener = nodeRunnableListener;
-            this.nodeNamespace = nodeNamespace;
-        }
+        private SingleThreadedExecutor executor;
+        private @Getter Node node;
 
         @SneakyThrows
         @Override

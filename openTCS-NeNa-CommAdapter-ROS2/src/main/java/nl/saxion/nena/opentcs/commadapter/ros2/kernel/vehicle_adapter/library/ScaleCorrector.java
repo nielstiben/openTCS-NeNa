@@ -33,7 +33,7 @@ public class ScaleCorrector {
     }
 
     /**
-     * Scalar for OpenTCS => Vehicle
+     * Scalar for OpenTCS to Vehicle
      *
      * @param coordinates An array holding a xyz-coordinate submitted by the fleet manager (openTCS)
      * @return An array holding a scaled xyz-coordinate meant for the vehicle.
@@ -49,7 +49,7 @@ public class ScaleCorrector {
     }
 
     /**
-     * Scalar for Vehicle => OpenTCS
+     * Scalar for Vehicle to OpenTCS
      *
      * @param triple a Triple holding a xyz-coordinate submitted by the vehicle
      * @return An array holding a scaled xyz-coordinate meant for the fleet manager (openTCS)

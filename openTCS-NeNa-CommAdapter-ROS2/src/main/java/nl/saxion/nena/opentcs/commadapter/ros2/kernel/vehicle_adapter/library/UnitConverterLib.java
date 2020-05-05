@@ -10,7 +10,7 @@ import javax.annotation.Nonnull;
  *
  * @author Niels Tiben
  */
-public class UnitConverterLib {
+public abstract class UnitConverterLib {
     public static double convertMillimetersToMeters(long millimeters) {
         double millimetersDouble = (double) millimeters;
 
