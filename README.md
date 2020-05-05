@@ -48,6 +48,6 @@ Here's [a guide about how to setup and use the ROS 2 Driver](openTCS-NeNa-Docume
 Here's [documentation about the development of the ROS 2 Driver](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.adoc) ( [asciidoc](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.adoc) | [pdf](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.pdf) | [odt](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.odt) ).
 
 ## Other Documents
-Research ROS 2 communication (pdf).
+~~Research ROS 2 communication (pdf).~~ Will be uploaded soon.
 
-Bachelor Thesis (pdf).
+~~Bachelor Thesis: Fleet Management And Annotation Mapping For NeNa Robots (pdf).~~ Will be uploaded soon.
