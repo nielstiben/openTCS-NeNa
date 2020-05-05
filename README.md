@@ -4,9 +4,32 @@ OpenTCS and ROS2 are both open-source software packages. OpenTCS can be used as 
 
  At the moment of writing, there are no (open-source) software packages available to manage ROS2 robots from the OpenTCS Fleet Manager. The development of such a vehicle driver is part of my Bachelor Thesis.
 
-## Functionality
+## Features
+All the native OpenTCS features are implemented in this driver, which means that the driver is ready to be used.
 
-todo
+General features:
+* Support for OpenTCS Transport Orders.
+* Support for OpenTCS Operations.
+* Properly handle ROS2 AGV navigation failures, such an unreachable destination.
+* Track the live position of a ROS2 AGV for showing in the OpenTCS Plant Overview.
+* Live orientation of the ROS2 AGV for showing in the OpenTCS Plant Overview.
+* Adjustable ROS2 namespaces, which allows usage for multiple ROS2 AGVs simultaneously.
+* Dynamic ROS2 domain IDs.
+* Plant Model scaling, allowing better representation of tiny/huge plant maps.
+
+
+Control panel features:
+* Dispatch the ROS2 AGV to a user-defined coordinate in the control center pane.
+* Dispatch the ROS2 AGV to an OpenTCS Plant Model point.
+* Set the initial position of a ROS2 AGV.
+* Show a continuously updated ROS2 navigation status in the control center panel.
+* Show the connection status in the control center panel.
+
+Todo:
+
+* Implement smooth navigation: drive to a destination without stopping at passing points along the route.
+* Get a percentage of how much a current navigation goal has been completed.
+* Show a battery percentage of the vehicle in the OpenTCS Plant Overview.
 
 ## Demo
 [![Alt text](openTCS-NeNa-Documentation/src/docs/img/youtube_embed.png)](https://youtu.be/x_Bjo7l0uc4)
