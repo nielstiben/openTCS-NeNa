@@ -90,7 +90,7 @@ public class NavigationGoalTracker {
         list.sort(Map.Entry.comparingByValue());
         Collections.reverse(list);
 
-        // Put data from the sorted list back into hashmap
+        // Put data from the sorted list back into hash map
         HashMap<List<Byte>, NavigationGoal> temp = new LinkedHashMap<>();
         for (Map.Entry<List<Byte>, NavigationGoal> aa : list) {
             temp.put(aa.getKey(), aa.getValue());

@@ -7,5 +7,5 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.operation
  */
 public enum LoadState {
     EMPTY,
-    FULL;
+    FULL
 }

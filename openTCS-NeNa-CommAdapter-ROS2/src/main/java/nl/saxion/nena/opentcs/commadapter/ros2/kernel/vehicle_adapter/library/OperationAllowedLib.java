@@ -74,7 +74,7 @@ public abstract class OperationAllowedLib {
             case OperationConstants.UNLOAD_CARGO:
                 return isUnloadCargoAllowed();
             default:
-                return getUnkownOperation();
+                return getUnknownOperation();
         }
     }
 
@@ -118,7 +118,7 @@ public abstract class OperationAllowedLib {
         return isMoveAllowed(adapterInstance);
     }
 
-    private static ExplainedBoolean getUnkownOperation() {
+    private static ExplainedBoolean getUnknownOperation() {
         return notAllowed(UNKNOWN_OPERATION);
     }
 

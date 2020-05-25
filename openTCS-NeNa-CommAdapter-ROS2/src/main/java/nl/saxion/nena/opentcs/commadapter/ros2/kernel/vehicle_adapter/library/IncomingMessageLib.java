@@ -20,9 +20,8 @@ public class IncomingMessageLib {
                 amclPosePoint.getY(),
                 amclPosePoint.getZ()
         );
-        // Scale triple
-        Triple estimatedPostion = ScaleCorrector.getInstance().scaleTripleForFleetManager(estimatePositionUnscaled);
 
-        return estimatedPostion;
+        // Scale triple
+        return ScaleCorrector.getInstance().scaleTripleForFleetManager(estimatePositionUnscaled);
     }
 }
