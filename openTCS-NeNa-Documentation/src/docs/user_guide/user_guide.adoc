@@ -20,11 +20,11 @@ robot.
 
 - If you want to use the OpenTCS-ROS2 driver with a Turtlebot 3 Simulation, follow the setup guides for the https://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_simulation/#turtlebot3-simulation-using-gazebo[Turtlebot 3 Simulation with Gazebo]. It is crucial that that the robot supports Navigation2 and ROS2 default positioning channels such as `amcl_pose`. If you just follow the https://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_simulation/#turtlebot3-simulation-using-gazebo[simulation guide], it should be all good.
 
-[[setup]]
+[[setup_rcljava]]
 [[anchor-2]]Setup RCLJava
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The OpenTCS-ROS2 driver requires to have functional rcljava build. https://github.com/ros2-java/ros2_java/tree/dashing[RCLJava] is the Java client for ROS2. This software MUST be built on you local machine since it depends on certain system files.
+The OpenTCS-ROS2 driver requires to have functional rcljava build. https://github.com/ros2-java/ros2_java/tree/dashing[RCLJava] is the Java client for ROS2. This software *MUST* be built on you local machine since it depends on machine-specific system files.
 
 Download the Ament repositories in a ROS2 workspace. They are needed to build RCLJava
 ```
@@ -55,49 +55,33 @@ source ~/rcljava/ament_ws/install_isolated/local_setup.bash
 source ~/rcljava/ros2_java_ws/install_isolated/local_setup.bash
 
 ```
+Save the `.bashrc` file, and restart the terminal to apply the changes.
 
-1. https://github.com/ros2-java/ros2_java/tree/dashing
+[[setup_rcljava]]
+[[anchor-2]]Setup OpenTCS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-With this setup, the complete OpenTCS binary will be used that includes
-the ROS2 vehicle driver. This setup is recommended if you are not
-planning to use other vehicle drivers besides the ROS2 vehicle driver.
-
-1.  Download the latest binary from the https://github.com/nielstiben/openTCS-NeNa/releases/[release page].
-2.  Extract the binary to a location of choice.
-
-OpenTCS can now be started by executing the regular OpenTCS starter
-(`start_kernel.sh`).
-
-It is very important that you run OpenTCS in a
-https://index.ros.org/doc/ros2/Tutorials/Configuring-ROS2-Environment/[ROS
-2-sourced environment].
-
-[[setup-2-using-opentcs-extensions]]
-[[anchor-3]]Setup (2) using OpenTCS Extensions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-NOTE: Skip this setup if you ran the setup using an OpenTCS Binary
-(Setup 1).
-
-With this setup, an extension will be installed that only contains the
-ROS2-vehicle driver. You need to have an existing setup of OpenTCS. This
-setup is recommended if you intend to use other vehicle drivers within
-OpenTCS besides the ROS2 vehicle driver.
-
-1.  Download and extract the extension binary form the release page.
-2.  Copy `__openTCS-extensions__` to
-`__<open_tcs_binary>/openTCS-Kernel/lib__`.
-3.  Copy `__openTCS-extensions__` to
-`__<open_tcs_binary>/openTCS-KernelControlCenter/lib__`.
-4.  Copy `__config__` to `__<open_tcs_binary>/openTCS-Kernel/__`.
-
-OpenTCS can now be started by executing the regular OpenTCS starter
-(`start_kernel.sh`).
-
-It is very important that you run OpenTCS in a
-https://index.ros.org/doc/ros2/Tutorials/Configuring-ROS2-Environment/[ROS
-2-sourced environment].
+Download the openTCS-NeNa source code:
+```
+cd ~
+git clone https://github.com/nielstiben/openTCS-NeNa.git
+```
+*Very important!* Specify the _RCLJava workspace_ in `openTCS-NeNa-CommAdapter-ROS2/build.gradle`:
+```
+cd OpenTCS-NeNa
+gedit ./openTCS-NeNa-CommAdapter-ROS2/build.gradle
+```
+Change the directory to ROS2-java workspace on `your` machine. If you followed the steps above, it should look like this. Don't forget to change the `USER` placeholder.
+```
+// ================== Set HERE your Ros2-Java workspace path. ==================
+String ros2JavaPath = '/home/USER/rcljava/ros2_java_ws/'
+// =============================================================================
+```
+Build the project using Gradle:
+```
+gradle distZip
+```
+The softwre is now built.
 
 [[configuration-options]]
 [[anchor-4]]Configuration Options
@@ -116,7 +100,7 @@ is the input. Provide a small scale for little plants.
 |=======================================================================
 
 [[usage-with-example-project]]
-[[anchor-5]]Usage **W**ith Example **P**roject
+[[anchor-5]]Usage **With Example Project
 ----------------------------------------------
 
 The ROS2-driver is a multi-purpose driver and can (technically) be used
