@@ -41,6 +41,7 @@ Once we setup the build tool, we can download en build RCLJava:
 mkdir -p ~/rcljava/ros2_java_ws/src
 cd ~/rcljava/ros2_java_ws
 curl -skL https://raw.githubusercontent.com/ros2-java/ros2_java/dashing/ros2_java_desktop.repos -o ros2_java_desktop.repos
+vcs import src < ros2_java_desktop.repos
 . ../ament_ws/install_isolated/local_setup.sh
 ament build --symlink-install --isolated --only-packages rcljava rcljava_common std_msgs geometry_msgs builtin_interfaces action_msgs unique_identifier_msgs
 
