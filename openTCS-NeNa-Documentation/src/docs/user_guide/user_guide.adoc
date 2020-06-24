@@ -69,7 +69,7 @@ git clone https://github.com/nielstiben/openTCS-NeNa.git
 ```
 *Very important!* Specify the _RCLJava workspace_ in `openTCS-NeNa-CommAdapter-ROS2/build.gradle`. Change the directory to ROS2-java workspace on `your` machine. If you followed the steps above, it should look like this. Don't forget to change the `USER` placeholder:
 ```
-cd OpenTCS-NeNa
+cd openTCS-NeNa
 gedit ./openTCS-NeNa-CommAdapter-ROS2/build.gradle
 ```
 ./openTCS-NeNa-CommAdapter-ROS2/build.gradle:
