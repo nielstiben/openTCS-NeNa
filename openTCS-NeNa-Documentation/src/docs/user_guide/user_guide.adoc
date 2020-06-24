@@ -12,12 +12,13 @@ robot.
 [[prerequisites]]
 [[anchor-1]]Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~~~~
+- Install ROS2 Dashing, see instructions https://index.ros.org/doc/ros2/Installation/Dashing/Linux-Install-Debians/[here].
+- Install the Turtlebot 3 environment for ROS2 dashing, see instructions 
+(http://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_setup/[here]).
+- It is *mandatory* to have Gradle v5.x installed. Newer or older Gradle versions may cause problems. You can check your current Gradle version using `gradle -v`. Gradle v5.6.4 can be downloaded on the https://gradle.org/releases/[Gradle Releases] page.
+- it is *mandatory* to have JDK 8 or JRE 8 installed. Newer JRE/JDK editions do not work with OpenTCS 4.17.
 
-Install the Turtlebot 3 environment for ROS2 dashing
-(http://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_setup/[link])
-on your local machine.
-
-If you want to use the OpenTCS-ROS2 driver with a Turtlebot 3 Simulation, follow the setup guides for the https://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_simulation/#turtlebot3-simulation-using-gazebo[Turtlebot 3 Simulation with Gazebo]. It is crucial that that the robot supports Navigation2 and ROS2 default positioning channels such as `amcl_pose`. If you just follow the https://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_simulation/#turtlebot3-simulation-using-gazebo[simulation guide], it should be all good.
+- If you want to use the OpenTCS-ROS2 driver with a Turtlebot 3 Simulation, follow the setup guides for the https://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_simulation/#turtlebot3-simulation-using-gazebo[Turtlebot 3 Simulation with Gazebo]. It is crucial that that the robot supports Navigation2 and ROS2 default positioning channels such as `amcl_pose`. If you just follow the https://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_simulation/#turtlebot3-simulation-using-gazebo[simulation guide], it should be all good.
 
 [[setup-1-using-opentcs-binary-recommend]]
 [[anchor-2]]Setup (1) using OpenTCS Binary (recommend)
