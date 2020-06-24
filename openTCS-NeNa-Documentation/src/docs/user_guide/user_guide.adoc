@@ -72,6 +72,7 @@ git clone https://github.com/nielstiben/openTCS-NeNa.git
 cd OpenTCS-NeNa
 gedit ./openTCS-NeNa-CommAdapter-ROS2/build.gradle
 ```
+./openTCS-NeNa-CommAdapter-ROS2/build.gradle:
 ```
 // ================== Set HERE your Ros2-Java workspace path. ==================
 String ros2JavaPath = '/home/USER/rcljava/ros2_java_ws/'
