@@ -21,7 +21,7 @@ import java.util.Queue;
 /**
  * A workflow class used to sequentially execute a Transport Order.
  * Each function in this class belongs to a certain step in the workflow of executing a Transport Order.
- * TODO: Create a sequence diagram for this workflow.
+ * TODO: Create a Activity diagram for this workflow.
  *
  * @author Niels Tiben
  */

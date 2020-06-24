@@ -6,6 +6,6 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communica
  * @author Niels Tiben
  */
 public interface NodeRunnableListener {
-    void onNodeStarted(NodeManager.NodeRunnable nodeRunnable) throws InterruptedException;
+    void onNodeStarted(NodeManager.NodeRunnable nodeRunnable);
     void onNodeStopped();
 }

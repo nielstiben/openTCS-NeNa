@@ -57,7 +57,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
         }
         super.initialize();
 
-        ScaleCorrector.getInstance().setScale(configuration.plantModelScale()); // Activate scaler
+        ScaleCorrector.getInstance().setScale(configuration.plantModelScale()); // Activate scalar
         getProcessModel().setVehicleState(Vehicle.State.UNAVAILABLE); // The robot cannot pickup any task until it has reached a familiar position (plant model point).
     }
 
@@ -107,14 +107,14 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
 
     @Override
     public void processMessage(Object message) {
-        LOG.info("Incomming message: {}", message.toString());
+        LOG.info("Incoming message: {}", message.toString());
         LOG.warn("Message handlers are not implemented.");
     }
 
     @Nonnull
     @Override
     public synchronized ExplainedBoolean canProcess(@Nonnull List<String> operations) {
-        LOG.info("{}: Checking processability of {}...", getName(), operations);
+        LOG.info("{}: Checking if the following operations can be processed: {}.", getName(), operations);
         ExplainedBoolean areAllOperationsAllowed = OperationAllowedLib.areAllOperationsAllowed(operations, this);
 
         if (areAllOperationsAllowed.getValue()) {
