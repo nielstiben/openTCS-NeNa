@@ -22,7 +22,7 @@ robot.
 
 [[setup_rcljava]]
 [[anchor-2]]Setup RCLJava
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 The OpenTCS-ROS2 driver requires to have functional rcljava build. https://github.com/ros2-java/ros2_java/tree/dashing[RCLJava] is the Java client for ROS2. This software *MUST* be built on you local machine since it depends on machine-specific system files.
 
@@ -57,9 +57,9 @@ source ~/rcljava/ros2_java_ws/install_isolated/local_setup.bash
 ```
 Save the `.bashrc` file, and restart the terminal to apply the changes.
 
-[[setup_rcljava]]
+[[setup_opentcs]]
 [[anchor-2]]Setup OpenTCS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Download the openTCS-NeNa source code:
 ```
@@ -100,8 +100,8 @@ is the input. Provide a small scale for little plants.
 |=======================================================================
 
 [[usage-with-example-project]]
-[[anchor-5]]Usage **With Example Project
-----------------------------------------------
+[[anchor-5]]Usage With Example Project
+-------------------------------------
 
 The ROS2-driver is a multi-purpose driver and can (technically) be used
 for any ROS2-vehicle. This usage guide is made and tested for a
