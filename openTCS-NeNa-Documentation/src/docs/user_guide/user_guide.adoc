@@ -50,7 +50,7 @@ Now we add RCLJava to the `.bashrc` so each terminal instance will be have a RCL
 ```
 gedit ~/.bashrc
 ```
-Append the following two lines:
+Append the following two lines to the end of the file:
 ```
 source ~/rcljava/ament_ws/install_isolated/local_setup.bash
 source ~/rcljava/ros2_java_ws/install_isolated/local_setup.bash
