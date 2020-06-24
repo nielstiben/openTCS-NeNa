@@ -10,8 +10,8 @@ http://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_setup/[TurtleBot3]
 robot.
 
 [[prerequisites]]
-[[anchor-1]]Prerequisites
-~~~~~~~~~~~~~~~~~~~~~~~~~
+[[anchor-1]]1. Prerequisites
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Install ROS2 Dashing, see instructions https://index.ros.org/doc/ros2/Installation/Dashing/Linux-Install-Debians/[here].
 - Install the Turtlebot 3 environment for ROS2 dashing, see instructions 
 (http://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_setup/[here]).
@@ -21,8 +21,8 @@ robot.
 - If you want to use the OpenTCS-ROS2 driver with a Turtlebot 3 Simulation, follow the setup guides for the https://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_simulation/#turtlebot3-simulation-using-gazebo[Turtlebot 3 Simulation with Gazebo]. It is crucial that that the robot supports Navigation2 and ROS2 default positioning channels such as `amcl_pose`. If you just follow the https://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_simulation/#turtlebot3-simulation-using-gazebo[simulation guide], it should be all good.
 
 [[setup_rcljava]]
-[[anchor-2]]Setup RCLJava
-~~~~~~~~~~~~~~~~~~~~~~~~
+[[anchor-2]]2. Setup RCLJava
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The OpenTCS-ROS2 driver requires to have functional rcljava build. https://github.com/ros2-java/ros2_java/tree/dashing[RCLJava] is the Java client for ROS2. This software *MUST* be built on you local machine since it depends on machine-specific system files.
 
@@ -58,8 +58,8 @@ source ~/rcljava/ros2_java_ws/install_isolated/local_setup.bash
 Save the `.bashrc` file, and restart the terminal to apply the changes.
 
 [[setup_opentcs]]
-[[anchor-2]]Setup OpenTCS
-~~~~~~~~~~~~~~~~~~~~~~~~~
+[[anchor-2]]3. Setup OpenTCS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Download the openTCS-NeNa source code:
 ```
