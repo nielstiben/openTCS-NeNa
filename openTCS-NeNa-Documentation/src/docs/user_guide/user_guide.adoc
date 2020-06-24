@@ -85,22 +85,6 @@ gradle distZip
 ```
 The OpenTCS with ROS2 driver is now built.
 
-[[configuration-options]]
-[[anchor-4]]Configuration Options
----------------------------------
-
-If you followed the setup steps above, there is no need to explicitly
-set the configuration parameters unless you want to override them.
-
-[cols=",",]
-|=======================================================================
-|ros2.adapter.enable |Whether to disable / enable the ROS2 vehicle
-driver (`true` \|`false`)
-
-|ros2.adapter.plantModelScale |The scale of the plant model. 1:x where x
-is the input. Provide a small scale for little plants.
-|=======================================================================
-
 [[usage-with-example-project]]
 [[anchor-5]]Usage With Example Project
 -------------------------------------
@@ -143,3 +127,19 @@ started, we are ready to use the OpenTCS.
 10.  Enable the driver. You can specify a custom namespace if you have multiple ROS2 robot instances. If you only have one robot, you can leave it empty.
 11.  The AGV is now ready to be used. You can test it by pushing the
 ‘Dispatch to point’ button. For instance, if you select point 'Haaksbergen`, the simulated robot will move to a south-west position in the Turtlebot3-World.
+
+[[configuration-options]]
+[[anchor-4]]Configuration Options
+---------------------------------
+
+If you followed the setup steps above, there is no need to explicitly
+set the configuration parameters unless you want to override them.
+
+[cols=",",]
+|=======================================================================
+|ros2.adapter.enable |Whether to disable / enable the ROS2 vehicle
+driver (`true` \|`false`)
+
+|ros2.adapter.plantModelScale |The scale of the plant model. 1:x where x
+is the input. Provide a small scale for little plants.
+|=======================================================================
