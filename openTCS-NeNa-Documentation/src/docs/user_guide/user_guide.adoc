@@ -83,7 +83,7 @@ Build the project using Gradle:
 cd ~/openTCS-NeNa
 gradle distZip
 ```
-The softwre is now built.
+The OpenTCS with ROS2 driver is now built.
 
 [[configuration-options]]
 [[anchor-4]]Configuration Options
