@@ -80,6 +80,7 @@ String ros2JavaPath = '/home/USER/rcljava/ros2_java_ws/'
 ```
 Build the project using Gradle:
 ```
+cd ~/openTCS-NeNa
 gradle distZip
 ```
 The softwre is now built.
