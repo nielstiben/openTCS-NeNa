@@ -15,17 +15,49 @@ robot.
 - Install ROS2 Dashing, see instructions https://index.ros.org/doc/ros2/Installation/Dashing/Linux-Install-Debians/[here].
 - Install the Turtlebot 3 environment for ROS2 dashing, see instructions 
 (http://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_setup/[here]).
-- It is *mandatory* to have Gradle v5.x installed. Newer or older Gradle versions may cause problems. You can check your current Gradle version using `gradle -v`. Gradle v5.6.4 can be downloaded on the https://gradle.org/releases/[Gradle Releases] page.
-- it is *mandatory* to have JDK 8 or JRE 8 installed. Newer JRE/JDK editions do not work with OpenTCS 4.17.
+- It is *mandatory* to have Gradle v5.x installed. Newer or older Gradle versions may cause problems. You can check your current Gradle version using a linux command: `gradle -v`. Gradle v5.6.4 can be downloaded on the https://gradle.org/releases/[Gradle Releases] page.
+- it is *mandatory* to have JDK 8 or JRE 8 installed. Newer JRE/JDK editions do not work with OpenTCS 4.17. Oracle JDK and OpenJDK both work.
 
 - If you want to use the OpenTCS-ROS2 driver with a Turtlebot 3 Simulation, follow the setup guides for the https://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_simulation/#turtlebot3-simulation-using-gazebo[Turtlebot 3 Simulation with Gazebo]. It is crucial that that the robot supports Navigation2 and ROS2 default positioning channels such as `amcl_pose`. If you just follow the https://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_simulation/#turtlebot3-simulation-using-gazebo[simulation guide], it should be all good.
 
-[[setup-1-using-opentcs-binary-recommend]]
-[[anchor-2]]Setup (1) using OpenTCS Binary (recommend)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[[setup]]
+[[anchor-2]]Setup RCLJava
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-NOTE: Skip this setup if you want to set the driver up using extensions
-(Setup 2).
+The OpenTCS-ROS2 driver requires to have functional rcljava build. https://github.com/ros2-java/ros2_java/tree/dashing[RCLJava] is the Java client for ROS2. This software MUST be built on you local machine since it depends on certain system files.
+
+Download the Ament repositories in a ROS2 workspace. They are needed to build RCLJava
+```
+mkdir -p ~/rcljava/ament_ws/src
+cd ~/rcljava/ament_ws
+curl -skL https://raw.githubusercontent.com/esteve/ament_java/master/ament_java.repos -o ament_java.repos
+vcs import src < ament_java.repos
+src/ament/ament_tools/scripts/ament.py build --symlink-install --isolated
+```
+
+Once we setup the build tool, we can download en build RCLJava:
+
+```
+mkdir -p ~/rcljava/ros2_java_ws/src
+cd ~/rcljava/ros2_java_ws
+curl -skL https://raw.githubusercontent.com/ros2-java/ros2_java/dashing/ros2_java_desktop.repos -o ros2_java_desktop.repos
+. ../ament_ws/install_isolated/local_setup.sh
+ament build --symlink-install --isolated --only-packages rcljava rcljava_common std_msgs geometry_msgs builtin_interfaces action_msgs unique_identifier_msgs
+
+```
+Now we add RCLJava to the `.bashrc` so each terminal instance will be have a RCLJava sourced:
+```
+gedit ~/.bashrc
+```
+Append the following two lines:
+```
+source ~/rcljava/ament_ws/install_isolated/local_setup.bash
+source ~/rcljava/ros2_java_ws/install_isolated/local_setup.bash
+
+```
+
+1. https://github.com/ros2-java/ros2_java/tree/dashing
+
 
 With this setup, the complete OpenTCS binary will be used that includes
 the ROS2 vehicle driver. This setup is recommended if you are not
