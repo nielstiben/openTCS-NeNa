@@ -83,7 +83,7 @@ Build the project using Gradle:
 cd ~/openTCS-NeNa
 gradle distZip
 ```
-The OpenTCS with ROS2 driver is now built.
+The OpenTCS with ROS2 driver is now built. You can find a _distribution package_ at `~/openTCS-NeNa/build/distributions/`. 
 
 [[usage-with-example-project]]
 [[anchor-5]]Usage With Example Project
@@ -106,7 +106,8 @@ this could also be done in the Kernel Control Center Panel.
 Now our simulation with Gazebo and RViz with navigation has been
 started, we are ready to use the OpenTCS.
 
-1.  Download the example plant for the TurtleBot3 World link:../turtlebot3_world_example_plant/[(link)] to a location of choice on your local machine.
+1.  In the setup (see above), a distribution package is generated. Extract the distribution package to a location of choice on your local machine:
+    a. `unzip -d ~/ ~/openTCS-NeNa/build/distributions/openTCS-NeNa-<version>-bin.zip` (Change the <version> placeholder!).
 2.  Start the OpenTCS Kernel
     a. Open terminal: `CTRL + ALT + T`
     b. Change working directory to OpenTCS Kernel: `cd <opentcs_binary_path>/openTCS-NeNa-<version>-bin/openTCS-NeNa-Kernel/`
@@ -115,7 +116,9 @@ started, we are ready to use the OpenTCS.
     a. Open new terminal (`CTRL + ALT + T`)
     b. Change working directory to OpenTCS Plant Overview: `cd <opentcs_binary_path>/openTCS-NeNa-<version>-bin/openTCS-NeNa-PlantOverview/`
     c. Start PlantOverview: `sh startPlantOverview.sh`
-4.  In the Plant Overview, load the Turtlebot3 Example that you downloaded in step 1: `File`-> `Load Model...` (CTRL + L).
+4.  In the Plant Overview, load the Turtlebot3 Example Project
+    a. `File`-> `Load Model...` (CTRL + L).
+    b.  Look for the following file that is included in the code source base: `openTCS-NeNa-Documentation/src/docs/turtlebot3_world_example_plant/example_model_scaled.xml`. If you found it, open it!
 5.  Persist the loaded model to the OpenTCS Kernel: `File`-> `Persist model in the kernel` (ALT + P).
 6.  Switch the Plant Overview to ‘operating mode’: `File`-> `Mode`-> `Operating mode` (ALT + O).
 7.  Start the OpenTCS Kernel Control Center. Don't close the Kernel and Plant Overview!
