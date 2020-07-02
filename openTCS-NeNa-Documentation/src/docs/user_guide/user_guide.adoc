@@ -18,7 +18,9 @@ robot.
 - Install the Turtlebot 3 environment for ROS2 dashing, see instructions 
 (http://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_setup/[here]).
 - It is *mandatory* to have Gradle v5.x installed. Newer or older Gradle versions may cause problems. You can check your current Gradle version using a linux command: `gradle -v`. Gradle v5.6.4 can be downloaded on the https://gradle.org/releases/[Gradle Releases] page.
-- it is *mandatory* to have JDK 8 or JRE 8 installed. Newer JRE/JDK editions do not work with OpenTCS 4.17. Oracle JDK and OpenJDK both work.
+- it is *mandatory* to have JDK 8 installed. Newer JDK editions do not work with OpenTCS 4.17. Oracle JDK and OpenJDK both work. Make sure that *both* you Java executor (`java`) and Java compiler (`javac`) are set to JDK 8. 
+      * Check your Java executor with (`java -version`) and Java compiler (`javac -version`). Both should return version 8 or version 1.8.x.
+      * If you have a different Java version, you should install JDK 8 and set the default Java version (instructions https://askubuntu.com/questions/121654/how-to-set-default-java-version[here]).
 
 - If you want to use the OpenTCS-ROS2 driver with a Turtlebot 3 Simulation, follow the setup guides for the https://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_simulation/#turtlebot3-simulation-using-gazebo[Turtlebot 3 Simulation with Gazebo]. It is crucial that that the robot supports Navigation2 and ROS2 default positioning channels such as `amcl_pose`. If you just follow the https://emanual.robotis.com/docs/en/platform/turtlebot3/ros2_simulation/#turtlebot3-simulation-using-gazebo[simulation guide], it should be all good.
 
@@ -26,7 +28,7 @@ robot.
 [[anchor-2]]2. Setup RCLJava
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The OpenTCS-ROS2 driver requires to have functional rcljava build. https://github.com/ros2-java/ros2_java/tree/dashing[RCLJava] is the Java client for ROS2. This software *MUST* be built on you local machine since it depends on machine-specific system files.
+The OpenTCS-ROS2 driver requires to have functional rcljava build. https://github.com/ros2-java/ros2_java/tree/dashing[RCLJava] is the Java client for ROS2. This software *MUST* be built on your local machine since it depends on machine-specific system files.
 
 Download the Ament repositories in a ROS2 workspace. They are needed to build RCLJava
 ```
@@ -37,7 +39,7 @@ vcs import src < ament_java.repos
 src/ament/ament_tools/scripts/ament.py build --symlink-install --isolated
 ```
 
-Once we setup the build tool, we can download en build RCLJava:
+Once we setup the build tool, we can download and build RCLJava:
 
 ```
 mkdir -p ~/rcljava/ros2_java_ws/src
@@ -45,7 +47,7 @@ cd ~/rcljava/ros2_java_ws
 curl -skL https://raw.githubusercontent.com/ros2-java/ros2_java/dashing/ros2_java_desktop.repos -o ros2_java_desktop.repos
 vcs import src < ros2_java_desktop.repos
 . ../ament_ws/install_isolated/local_setup.sh
-ament build --symlink-install --isolated --only-packages rcljava rcljava_common std_msgs geometry_msgs builtin_interfaces action_msgs unique_identifier_msgs
+ament build --skip-packages rcljava_examples --symlink-install --isolated
 
 ```
 Now we add RCLJava to the `.bashrc` so each terminal instance will be have a RCLJava sourced:
@@ -112,11 +114,11 @@ started, we are ready to use the OpenTCS.
     a. `unzip -d ~/ ~/openTCS-NeNa/build/distributions/openTCS-NeNa-<version>-bin.zip` (Change the <version> placeholder!).
 2.  Start the OpenTCS Kernel
     a. Open terminal: `CTRL + ALT + T`
-    b. Change working directory to OpenTCS Kernel: `cd <opentcs_binary_path>/openTCS-NeNa-<version>-bin/openTCS-NeNa-Kernel/`
+    b. Change working directory to OpenTCS Kernel: `cd ~/openTCS-NeNa-<version>-bin/openTCS-NeNa-<version>-bin/openTCS-NeNa-Kernel/` (Change the <version> placeholder!).
     c. Start kernel: `sh startKernel.sh`
 3.  Start the OpenTCS Plant Overview:
     a. Open new terminal (`CTRL + ALT + T`)
-    b. Change working directory to OpenTCS Plant Overview: `cd <opentcs_binary_path>/openTCS-NeNa-<version>-bin/openTCS-NeNa-PlantOverview/`
+    b. Change working directory to OpenTCS Plant Overview: `cd ~/openTCS-NeNa-<version>-bin/openTCS-NeNa-PlantOverview/` (Change the <version> placeholder!).
     c. Start PlantOverview: `sh startPlantOverview.sh`
 4.  In the Plant Overview, load the Turtlebot3 Example Project
     a. `File`-> `Load Model...` (CTRL + L).
@@ -125,13 +127,20 @@ started, we are ready to use the OpenTCS.
 6.  Switch the Plant Overview to ‘operating mode’: `File`-> `Mode`-> `Operating mode` (ALT + O).
 7.  Start the OpenTCS Kernel Control Center. Don't close the Kernel and Plant Overview!
     a. Open new terminal (`CTRL + ALT + T`)
-    b. Change working directory to OpenTCS Kernel Control Center: `cd <opentcs_binary_path>/openTCS-NeNa-<version>-bin/openTCS-NeNa-KernelControlCenter/`
+    b. Change working directory to OpenTCS Kernel Control Center: `cd ~/openTCS-NeNa-<version>-bin/openTCS-NeNa-KernelControlCenter/` (Change the <version> placeholder!).
     c. Start kernel: `sh startKernelControlCenter.sh`
 8.  On the upper tab, select `Vehicle Driver`
 9.  Double click on the first vehicle in the list (‘Bus1’) and open the ‘ROS2 Options’ panel.
 10.  Enable the driver. You can specify a custom namespace if you have multiple ROS2 robot instances. If you only have one robot, you can leave it empty.
 11.  The AGV is now ready to be used. You can test it by pushing the
-‘Dispatch to point’ button. For instance, if you select point 'Haaksbergen`, the simulated robot will move to a south-west position in the Turtlebot3-World.
+‘Dispatch to coordinate’ button.
+12.  The final step you need to do, is to update the plant coordinates. Each point in your plant (e.g. `point_enschede`) has has a coordinate that specifies the _real world_ location of that point. 
+    a. Go back to the Plant Overview that you started in step 3. Do *NOT* close the Kernel or the Kernel Control Center!
+    b. Switch the Plant Overview to ‘modelling mode’: `File`-> `Mode`-> `Modelling mode` (ALT + M).
+    c. Click on the grey bullet icon that has label '_point almelo_'. This icon can be found on the big map (a.k.a. plant overview), it is the plant's upper-left point and has two black arrows pointing towards it.
+    d. Set the real-world position (in meters) in the `x-position` and `y-position` boxes. These boxes are visible on the _Properties_ pane on the left.
+    e. Repeat the above two steps for each point in the model. All points (e.g. `point_enschede`, `point_hengelo`) should have coordinates that can physically be reached by the TurtleBot3.
+    d. Once all coordinates are set, the model is ready to be used! You can now, for instance, https://www.opentcs.org/docs/4.17/user/opentcs-users-guide.html#_creating_a_transport_order[create a transport order].
 
 [[configuration-options]]
 [[anchor-4]]Configuration Options
