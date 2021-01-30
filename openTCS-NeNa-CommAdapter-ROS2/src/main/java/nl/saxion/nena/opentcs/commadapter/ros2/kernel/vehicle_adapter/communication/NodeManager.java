@@ -5,8 +5,6 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication.constants.NodeRunningStatus;
-import org.ros2.rcljava.RCLJava;
-import org.ros2.rcljava.executors.SingleThreadedExecutor;
 
 import javax.annotation.Nonnull;
 
@@ -41,7 +39,6 @@ public class NodeManager implements NodeRunnableListener {
         this.nodeRunningStatusListener = nodeRunningStatusListener;
 
         changeNodeStatus(INITIATING);
-
         NodeRunnable nodeRunnable = new NodeRunnable(nodeMessageListener, this, namespace);
         new Thread(nodeRunnable).start();
     }
@@ -64,7 +61,6 @@ public class NodeManager implements NodeRunnableListener {
     public void stop() {
         assert this.nodeRunningStatus == ACTIVE; // Only stopping active nodes can be stopped.
         changeNodeStatus(TERMINATING);
-
         this.nodeRunnable.stop();
 
     }
@@ -97,26 +93,17 @@ public class NodeManager implements NodeRunnableListener {
         private final NodeMessageListener nodeMessageListener;
         private final NodeRunnableListener nodeRunnableListener;
         private final String nodeNamespace;
-
-        private SingleThreadedExecutor executor;
         private @Getter Node node;
 
         @SneakyThrows
         @Override
         public void run() {
-            RCLJava.rclJavaInit();
-            this.executor = new SingleThreadedExecutor();
             this.node = new Node(this.nodeMessageListener, this.nodeNamespace);
-            this.executor.addNode(this.node);
             this.nodeRunnableListener.onNodeStarted(this);
-
-            // spin() is blocking and keeps running until stop() is called.
-            this.executor.spin();
         }
 
         public void stop() {
-            RCLJava.shutdown();
-            this.executor.removeNode(this.node); // Remove the (stopped) node, otherwise it is still shown in the node list.
+            this.node.getNode().destroy();
             this.nodeRunnableListener.onNodeStopped();
         }
     }

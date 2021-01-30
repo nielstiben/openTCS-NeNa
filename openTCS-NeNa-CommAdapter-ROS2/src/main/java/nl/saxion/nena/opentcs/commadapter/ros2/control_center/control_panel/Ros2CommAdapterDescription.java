@@ -19,4 +19,9 @@ public class Ros2CommAdapterDescription extends VehicleCommAdapterDescription {
     public String getDescription() {
         return ResourceBundle.getBundle(BUNDLE_PATH).getString("ros2CommAdapterDescription.description");
     }
+
+    @Override
+    public boolean isSimVehicleCommAdapter() {
+        return false;
+    }
 }

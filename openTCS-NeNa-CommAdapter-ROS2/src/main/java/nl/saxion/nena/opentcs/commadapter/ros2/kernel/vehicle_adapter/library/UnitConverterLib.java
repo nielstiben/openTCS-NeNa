@@ -1,7 +1,7 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library;
 
-import geometry_msgs.msg.Quaternion;
 import org.opentcs.data.model.Triple;
+import us.ihmc.euclid.tuple4D.Quaternion;
 
 import javax.annotation.Nonnull;
 

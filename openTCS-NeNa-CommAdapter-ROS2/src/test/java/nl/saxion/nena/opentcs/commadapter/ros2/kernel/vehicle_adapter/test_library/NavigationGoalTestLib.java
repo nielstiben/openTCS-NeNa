@@ -1,11 +1,14 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library;
 
-import action_msgs.msg.GoalInfo;
-import action_msgs.msg.GoalStatus;
-import action_msgs.msg.GoalStatusArray;
+import action_msgs.msg.dds.GoalInfo;
+import action_msgs.msg.dds.GoalStatus;
+import action_msgs.msg.dds.GoalStatusArray;
+import builtin_interfaces.msg.dds.Time;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication.Node;
-import org.ros2.rcljava.Time;
-import unique_identifier_msgs.msg.UUID;
+import unique_identifier_msgs.msg.dds.UUID;
+import us.ihmc.idl.IDLSequence;
+import us.ihmc.pubsub.TopicDataType;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,9 +28,9 @@ public class NavigationGoalTestLib {
         final byte LAST_BYTE_UUID = 1;
 
         GoalStatusArray goalStatusArray = new GoalStatusArray();
-        goalStatusArray.setStatusList(Collections.singletonList(
-                createDummyGoalStatus(LAST_BYTE_UUID, statusCode)
-        ));
+        IDLSequence.Object<GoalStatus> status_list = new IDLSequence.Object<>(20, GoalStatus.getPubSubType().get());
+        status_list.add(createDummyGoalStatus(LAST_BYTE_UUID, statusCode));
+        goalStatusArray.status_list_ = status_list;
 
         return goalStatusArray;
     }
@@ -44,11 +47,14 @@ public class NavigationGoalTestLib {
 
         // GoalInfo
         GoalInfo goalInfo = new GoalInfo();
-        goalInfo.setGoalId(createDummyUUID(uuidLastByte));
-        goalInfo.setStamp(Time.now());
+        goalInfo.goal_id_ = createDummyUUID(uuidLastByte);
+        Time stamp = new Time();
+        stamp.nanosec_ = 0;
+        stamp.sec_ = 1;
+        goalInfo.stamp_ = stamp;
 
-        dummyGoalStatus.setGoalInfo(goalInfo);
-        dummyGoalStatus.setStatus(status);
+        dummyGoalStatus.goal_info_ = goalInfo;
+        dummyGoalStatus.status_ = status;
 
         return dummyGoalStatus;
     }
@@ -60,15 +66,15 @@ public class NavigationGoalTestLib {
      * @return The full UUID
      */
     private static UUID createDummyUUID(byte lastByte) {
-        ArrayList<Byte> uuidList = new ArrayList<>(16);
+        byte[] uuidArray = new byte[16];
 
         for (int i = 0; i < 15; i++) {
-            uuidList.add((byte) 1);
+            uuidArray[i] = ((byte) 1);
         }
-        uuidList.add(lastByte);
+        uuidArray[15] = lastByte;
 
         UUID uuid = new UUID();
-        uuid.setUuid(uuidList);
+        uuid.uuid_ = uuidArray;
 
         return uuid;
     }

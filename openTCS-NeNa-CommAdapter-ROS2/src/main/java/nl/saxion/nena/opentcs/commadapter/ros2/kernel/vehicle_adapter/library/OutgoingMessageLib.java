@@ -1,10 +1,13 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library;
 
-import builtin_interfaces.msg.Time;
-import geometry_msgs.msg.*;
+import builtin_interfaces.msg.dds.Time;
+import geometry_msgs.msg.dds.PoseStamped;
+import geometry_msgs.msg.dds.PoseWithCovariance;
+import geometry_msgs.msg.dds.PoseWithCovarianceStamped;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Triple;
-import std_msgs.msg.Header;
+import std_msgs.msg.dds.Header;
+import us.ihmc.euclid.geometry.Pose3D;
 
 import javax.annotation.Nonnull;
 import java.time.Instant;
@@ -16,51 +19,53 @@ import java.time.Instant;
  */
 public abstract class OutgoingMessageLib {
     public static PoseWithCovarianceStamped generateInitialPoseMessageByPoint(@Nonnull Point point) {
-        Pose pose = generatePoseMessageByPoint(point);
-        Quaternion quaternion = new Quaternion();
-        quaternion.setW(1.0); // 1.0 = default value for ROS2; Mandatory field
-        pose.setOrientation(quaternion);
-
+        // Pose
+        Pose3D pose = generatePoseMessageByPoint(point);
         PoseWithCovariance poseWithCovariance = new PoseWithCovariance();
-        poseWithCovariance.setPose(pose);
+        poseWithCovariance.pose_ = pose;
 
+        // Pose Stamped
         PoseWithCovarianceStamped poseWithCovarianceStamped = new PoseWithCovarianceStamped();
-        poseWithCovarianceStamped.setPose(poseWithCovariance);
-
-        Header header = new Header();
-        header.setFrameId("map"); // Mandatory field
-
-        Time time = new Time();
-        time.setSec((int) Instant.now().getEpochSecond());
-        header.setStamp(time);
-
-        poseWithCovarianceStamped.setHeader(header);
+        poseWithCovarianceStamped.pose_ = poseWithCovariance;
+        poseWithCovarianceStamped.header_= generateMapHeader();
 
         return poseWithCovarianceStamped;
     }
 
     public static PoseStamped generateScaledNavigationMessageByPoint(@Nonnull Point point) {
-        Pose pose = generatePoseMessageByPoint(point);
+        // Pose
+        Pose3D pose = generatePoseMessageByPoint(point);
 
-        geometry_msgs.msg.PoseStamped poseStamped = new geometry_msgs.msg.PoseStamped();
-        poseStamped.setPose(pose);
+        // Pose Stamped
+        PoseStamped poseStamped = new PoseStamped();
+        poseStamped.pose_ = pose;
+        poseStamped.header_ = generateMapHeader();
 
         return poseStamped;
     }
 
-    private static Pose generatePoseMessageByPoint(@Nonnull Point point) {
+    private static Pose3D generatePoseMessageByPoint(@Nonnull Point point) {
         Triple triple = point.getPosition();
         double[] xyzUnscaled = UnitConverterLib.convertTripleToCoordinatesInMeter(triple);
         double[] xyzScaled = ScaleCorrector.getInstance().scaleCoordinatesForVehicle(xyzUnscaled);
 
-        geometry_msgs.msg.Point position = new geometry_msgs.msg.Point();
-        position.setX(xyzScaled[0]);
-        position.setY(xyzScaled[1]);
-        position.setZ(xyzScaled[2]);
+        return new Pose3D(
+                xyzScaled[0],
+                xyzScaled[1],
+                xyzScaled[2],
+                0,
+                0,
+                0
+        );
+    }
 
-        geometry_msgs.msg.Pose pose = new geometry_msgs.msg.Pose();
-        pose.setPosition(position);
+    private static Header generateMapHeader(){
+        Header header = new Header();
+        Time time = new Time();
+        time.setSec((int) Instant.now().getEpochSecond());
+        header.frame_id_ = new StringBuilder("map");
+        header.stamp_ = time;
 
-        return pose;
+        return header;
     }
 }

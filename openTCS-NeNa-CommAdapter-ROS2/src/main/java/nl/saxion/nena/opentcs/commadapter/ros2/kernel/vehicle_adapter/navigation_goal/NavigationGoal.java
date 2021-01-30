@@ -1,7 +1,7 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.navigation_goal;
 
-import action_msgs.msg.GoalStatus;
-import builtin_interfaces.msg.Time;
+import action_msgs.msg.dds.GoalStatus;
+import builtin_interfaces.msg.dds.Time;
 import lombok.Getter;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.navigation_goal.constants.NavigationGoalStatus;
 import org.opentcs.data.model.Point;
@@ -21,7 +21,7 @@ import java.util.List;
  */
 @Getter
 public class NavigationGoal implements Comparable<NavigationGoal> {
-    private final List<Byte> uuid;
+    private final byte[] uuid;
     private final ZonedDateTime created;
     private final Point destinationPoint;
     private ZonedDateTime lastUpdated;

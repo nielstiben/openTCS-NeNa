@@ -1,11 +1,11 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter;
 
-import action_msgs.msg.GoalStatusArray;
-import geometry_msgs.msg.PoseStamped;
-import geometry_msgs.msg.PoseWithCovarianceStamped;
-import geometry_msgs.msg.Quaternion;
+import action_msgs.msg.dds.GoalStatusArray;
+import geometry_msgs.msg.dds.PoseStamped;
+import geometry_msgs.msg.dds.PoseWithCovarianceStamped;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication.NodeManager;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication.NodeMessageListener;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication.constants.NodeRunningStatus;
@@ -25,6 +25,7 @@ import org.opentcs.data.model.Vehicle;
 import org.opentcs.drivers.vehicle.VehicleProcessModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import us.ihmc.euclid.tuple4D.Quaternion;
 
 import javax.annotation.Nonnull;
 
@@ -88,6 +89,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     // Navigation methods.
     //================================================================================
 
+    @SneakyThrows
     public void setInitialPoint(@Nonnull Point initialPoint) {
         final PoseWithCovarianceStamped message = OutgoingMessageLib.generateInitialPoseMessageByPoint(initialPoint);
         this.nodeManager.getNode().getInitialPosePublisher().publish(message);
@@ -98,6 +100,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
         dispatchToPoint(coordinatePoint);
     }
 
+    @SneakyThrows
     public void dispatchToPoint(@Nonnull Point point) {
         LOG.info("Dispatching vehicle to point '{}'", point.getName());
         PoseStamped message = OutgoingMessageLib.generateScaledNavigationMessageByPoint(point);

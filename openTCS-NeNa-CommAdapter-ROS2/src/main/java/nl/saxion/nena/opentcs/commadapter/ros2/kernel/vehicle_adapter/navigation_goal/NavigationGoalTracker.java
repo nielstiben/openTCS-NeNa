@@ -1,7 +1,7 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.navigation_goal;
 
-import action_msgs.msg.GoalStatus;
-import action_msgs.msg.GoalStatusArray;
+import action_msgs.msg.dds.GoalStatus;
+import action_msgs.msg.dds.GoalStatusArray;
 import lombok.Setter;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.Ros2ProcessModel;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication.Node;
@@ -69,7 +69,8 @@ public class NavigationGoalTracker {
     }
 
     private void processNavigationGoal(@Nonnull GoalStatus goalStatusToProcess) {
-        List<Byte> goalStatusToProcessUuid = goalStatusToProcess.getGoalInfo().getGoalId().getUuid();
+        byte[] goalStatusToProcessUuidRaw = goalStatusToProcess.getGoalInfo().getGoalId().getUuid();
+        List<Byte> goalStatusToProcessUuid = parseUuid(goalStatusToProcessUuidRaw);
 
         if (this.navigationGoalMap.containsKey(goalStatusToProcessUuid)) {
             // Existing goal status => update it.
@@ -117,7 +118,8 @@ public class NavigationGoalTracker {
     //================================================================================
 
     private void updateExistingNavigationGoal(@Nonnull GoalStatus goalStatusToProcess) {
-        List<Byte> goalStatusToProcessUuid = goalStatusToProcess.getGoalInfo().getGoalId().getUuid();
+        byte[] goalStatusToProcessUuidRaw = goalStatusToProcess.getGoalInfo().getGoalId().getUuid();
+        List<Byte> goalStatusToProcessUuid = parseUuid(goalStatusToProcessUuidRaw);
 
         // Get navigation goal
         NavigationGoal navigationGoalToUpdate = this.navigationGoalMap.get(goalStatusToProcessUuid);
@@ -136,7 +138,8 @@ public class NavigationGoalTracker {
 
             // Navigation goal initiated by OpenTCS => include the known destination.
             NavigationGoal navigationGoal = new NavigationGoal(goalStatusToProcess, this.destinationPointIncomingGoal);
-            this.navigationGoalMap.put(navigationGoal.getUuid(), navigationGoal);
+            List<Byte> uuid = parseUuid(navigationGoal.getUuid());
+            this.navigationGoalMap.put(uuid, navigationGoal);
 
             // Notify listeners
             this.navigationGoalListener.onNavigationGoalActive(this.destinationPointIncomingGoal);
@@ -148,7 +151,8 @@ public class NavigationGoalTracker {
         } else {
             // Navigation goal not initiated by OpenTCS => destination is not known.
             NavigationGoal navigationGoal = new NavigationGoal(goalStatusToProcess, null);
-            this.navigationGoalMap.put(navigationGoal.getUuid(), navigationGoal);
+            List<Byte> uuid = parseUuid(navigationGoal.getUuid());
+            this.navigationGoalMap.put(uuid, navigationGoal);
             this.externalNavigationGoalListener.onExternalNavigationGoalActive();
         }
     }
@@ -189,7 +193,7 @@ public class NavigationGoalTracker {
 
         for (NavigationGoal navigationGoal : this.navigationGoalMap.values()) {
             String[] navigationGoalRule = {
-                    Arrays.toString(navigationGoal.getUuid().toArray(new Byte[16])),
+                    Arrays.toString(navigationGoal.getUuid()),
                     DateTimeFormatter.ofPattern("HH:mm:ss").format(navigationGoal.getLastUpdated()),
                     parsePointNameByNavigationGoal(navigationGoal),
                     navigationGoal.getNavigationGoalStatus().name(),
@@ -208,6 +212,14 @@ public class NavigationGoalTracker {
         }
     }
 
+    private List<Byte> parseUuid(byte[] byteArray) {
+        List<Byte> byteList = new ArrayList<>();
+        for (byte element : byteArray) {
+            byteList.add(element);
+        }
+
+        return byteList;
+    }
     //================================================================================
     // Reset method
     //================================================================================

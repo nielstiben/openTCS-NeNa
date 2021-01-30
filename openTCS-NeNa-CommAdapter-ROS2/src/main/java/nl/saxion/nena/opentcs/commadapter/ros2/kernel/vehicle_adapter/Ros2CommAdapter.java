@@ -5,6 +5,7 @@ import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communicat
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.ScaleCorrector;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.OperationAllowedLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.transport_order.ExecuteTransportOrderWorkflow;
+import org.opentcs.customizations.kernel.KernelExecutor;
 import org.opentcs.data.model.Vehicle;
 import org.opentcs.drivers.vehicle.BasicVehicleCommAdapter;
 import org.opentcs.drivers.vehicle.MovementCommand;
@@ -17,6 +18,8 @@ import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.beans.PropertyChangeEvent;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 import static org.opentcs.drivers.vehicle.VehicleProcessModel.Attribute.LOAD_HANDLING_DEVICES;
 
@@ -38,11 +41,14 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
     //================================================================================
 
     @Inject
-    public Ros2CommAdapter(@Nonnull Ros2CommAdapterConfiguration configuration, @Nonnull @Assisted Vehicle vehicle) {
+    public Ros2CommAdapter(@Nonnull Ros2CommAdapterConfiguration configuration,
+                           @Nonnull @Assisted Vehicle vehicle,
+                           @Nonnull @KernelExecutor ExecutorService kernelExecutor) {
         super(new Ros2ProcessModel(vehicle),
                 2,
                 1,
-                "CHARGE");
+                "CHARGE",
+                kernelExecutor);
         this.configuration = configuration;
     }
 

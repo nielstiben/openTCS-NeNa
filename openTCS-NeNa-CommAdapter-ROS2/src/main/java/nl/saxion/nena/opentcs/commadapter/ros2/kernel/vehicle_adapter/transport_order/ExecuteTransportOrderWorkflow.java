@@ -1,6 +1,6 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.transport_order;
 
-import geometry_msgs.msg.PoseStamped;
+import geometry_msgs.msg.dds.PoseStamped;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.Ros2ProcessModel;
@@ -67,6 +67,7 @@ public class ExecuteTransportOrderWorkflow implements NavigationGoalListener, Op
     // 1: Initiate Movement Command.
     //================================================================================
 
+    @SneakyThrows
     public void processMovementCommand(MovementCommand movementCommand) {
         assert !this.isCommandExecutorActive;
         this.currentCommand = movementCommand;

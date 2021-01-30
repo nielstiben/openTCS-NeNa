@@ -24,20 +24,10 @@ public abstract class Ros2CommAdapterTestLib {
             public double plantModelScale() {
                 return 1;
             }
-
-            @Override
-            public int commandQueueCapacity() {
-                return 1;
-            }
-
-            @Override
-            public String rechargeOperation() {
-                return "TEST_RECHARGE";
-            }
         };
 
         Vehicle vehicle = new Vehicle("TestVehicle");
 
-        return new Ros2CommAdapter(config, vehicle);
+        return new Ros2CommAdapter(config, vehicle, null);
     }
 }

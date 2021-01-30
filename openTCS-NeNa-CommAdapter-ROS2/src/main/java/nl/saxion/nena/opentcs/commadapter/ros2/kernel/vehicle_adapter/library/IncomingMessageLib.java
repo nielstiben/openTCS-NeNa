@@ -1,8 +1,8 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library;
 
-import geometry_msgs.msg.Point;
-import geometry_msgs.msg.PoseWithCovarianceStamped;
+import geometry_msgs.msg.dds.PoseWithCovarianceStamped;
 import org.opentcs.data.model.Triple;
+import us.ihmc.euclid.tuple3D.Point3D;
 
 import javax.annotation.Nonnull;
 
@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
  */
 public class IncomingMessageLib {
     public static Triple generateTripleByAmclPose(@Nonnull PoseWithCovarianceStamped amclPose){
-        Point amclPosePoint = amclPose.getPose().getPose().getPosition();
+        Point3D amclPosePoint = amclPose.getPose().getPose().getPosition();
 
         Triple estimatePositionUnscaled = UnitConverterLib.convertCoordinatesInMeterToTriple(
                 amclPosePoint.getX(),

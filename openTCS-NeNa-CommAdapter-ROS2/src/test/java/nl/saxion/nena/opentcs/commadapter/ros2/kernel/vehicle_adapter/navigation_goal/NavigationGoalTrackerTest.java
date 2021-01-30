@@ -1,6 +1,7 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.navigation_goal;
 
-import action_msgs.msg.GoalStatusArray;
+import action_msgs.msg.dds.GoalStatus;
+import action_msgs.msg.dds.GoalStatusArray;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication.Node;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.navigation_goal.constants.NavigationGoalStatus;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.NavigationGoalTestLib;
@@ -9,9 +10,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Triple;
+import us.ihmc.idl.IDLSequence;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
 
 /**
  * Unit test to cover {@link NavigationGoalTracker}.
@@ -180,11 +181,11 @@ public class NavigationGoalTrackerTest {
      */
     private GoalStatusArray createDummyGoalStatusArray() {
         GoalStatusArray dummyGoalStatusArray = new GoalStatusArray();
-        dummyGoalStatusArray.setStatusList(Arrays.asList(
-                NavigationGoalTestLib.createDummyGoalStatus((byte) 2, NAV_SUCCEEDED),
-                NavigationGoalTestLib.createDummyGoalStatus((byte) 3, NAV_SUCCEEDED),
-                NavigationGoalTestLib.createDummyGoalStatus((byte) 1, NAV_ACTIVE)
-        ));
+        IDLSequence.Object<GoalStatus> status_list = new IDLSequence.Object<>(20, GoalStatus.getPubSubType().get());
+        status_list.add(NavigationGoalTestLib.createDummyGoalStatus((byte) 2, NAV_SUCCEEDED));
+        status_list.add(NavigationGoalTestLib.createDummyGoalStatus((byte) 3, NAV_SUCCEEDED));
+        status_list.add(NavigationGoalTestLib.createDummyGoalStatus((byte) 1, NAV_ACTIVE));
+        dummyGoalStatusArray.status_list_ = status_list;
 
         return dummyGoalStatusArray;
     }

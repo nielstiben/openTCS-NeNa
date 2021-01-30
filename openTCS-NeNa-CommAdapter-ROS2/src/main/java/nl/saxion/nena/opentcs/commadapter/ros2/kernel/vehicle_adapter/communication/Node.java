@@ -1,46 +1,61 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication;
 
-import action_msgs.msg.GoalStatusArray;
-import geometry_msgs.msg.PoseStamped;
-import geometry_msgs.msg.PoseWithCovarianceStamped;
+import action_msgs.msg.dds.GoalStatusArray;
+import geometry_msgs.msg.dds.PoseStamped;
+import geometry_msgs.msg.dds.PoseWithCovarianceStamped;
 import lombok.Getter;
-import org.ros2.rcljava.RCLJava;
-import org.ros2.rcljava.node.ComposableNode;
-import org.ros2.rcljava.publisher.Publisher;
+import us.ihmc.pubsub.DomainFactory;
+import us.ihmc.ros2.ROS2Node;
+import us.ihmc.ros2.ROS2Publisher;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 
-/**
- * Class that holds an an instances of a node and of all its publishers and subscriptions.
- * {@link org.ros2.rcljava.node.BaseComposableNode} does not support namespaces,
- * which is the reason for a the development of the Node class.
- *
- * @author Niels Tiben
- */
 @Getter
-public class Node implements ComposableNode {
-    private final org.ros2.rcljava.node.Node node;
-    private final Publisher<PoseWithCovarianceStamped> initialPosePublisher;
-    private final Publisher<PoseStamped> goalPublisher;
+public class Node {
+    private final ROS2Node node;
+    private final ROS2Publisher<PoseWithCovarianceStamped> initialPosePublisher;
+    private final ROS2Publisher<PoseStamped> goalPublisher;
 
-    public Node(@Nonnull NodeMessageListener nodeMessageListener, @Nonnull String namespace) {
-        this.node = RCLJava.createNode("opentcs", namespace, RCLJava.getDefaultContext());
+    public Node(@Nonnull NodeMessageListener nodeMessageListener, @Nonnull String namespace) throws IOException {
+        this.node = new ROS2Node(
+                DomainFactory.PubSubImplementation.FAST_RTPS,
+                "opentcs",
+                namespace,
+                30
+        );
 
         /* --------------- Publishers ---------------*/
         // Publisher for setting the initial pose
-        this.initialPosePublisher = node.createPublisher(PoseWithCovarianceStamped.class, namespace + "/initialpose");
-
+        this.initialPosePublisher = node.createPublisher(PoseWithCovarianceStamped.getPubSubType().get(), "/initialpose");
+        ;
         // Publisher for sending a navigation goal
-        this.goalPublisher = node.createPublisher(PoseStamped.class, namespace + "/move_base_simple/goal");
+        this.goalPublisher = node.createPublisher(PoseStamped.getPubSubType().get(), "/goal_pose");
 
         /* --------------- Subscriptions ---------------*/
         // Subscriber for navigation status
-        node.createSubscription(GoalStatusArray.class, namespace + "/NavigateToPose/_action/status",
-                nodeMessageListener::onNewGoalStatusArray);
+        this.node.createSubscription(
+                GoalStatusArray.getPubSubType().get(),
+                subscriber -> {
+                    GoalStatusArray message = new GoalStatusArray();
+                    if (subscriber.takeNextData(message, null)) {
+                        nodeMessageListener.onNewGoalStatusArray(message);
+                    }
+                },
+                "/navigate_to_pose/_action/status"
+        );
 
         // Subscription for current location
-        node.createSubscription(PoseWithCovarianceStamped.class, namespace + "/amcl_pose",
-                nodeMessageListener::onNewAmclPose);
+        this.node.createSubscription(
+                PoseWithCovarianceStamped.getPubSubType().get(),
+                subscriber -> {
+                    PoseWithCovarianceStamped message = new PoseWithCovarianceStamped();
+                    if (subscriber.takeNextData(message, null)) {
+                        nodeMessageListener.onNewAmclPose(message);
+                    }
+                },
+                "/amcl_pose"
+        );
 
         // TODO: Implement Subscription for battery data (TurtleBot3 specific)
 

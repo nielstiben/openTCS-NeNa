@@ -1,7 +1,3 @@
-// ================== Set HERE your Ros2-Java workspace path. ==================
-String ros2JavaPath = '/opt/ros2-java/ros2_java_ws/'
-// =============================================================================
-
 // JaCoCo
 apply plugin: 'jacoco'
 
@@ -21,31 +17,7 @@ jacocoTestReport {
 
 apply from: "${rootDir}/gradle/guice-project.gradle"
 
-String dir_rcljava = ros2JavaPath + 'install_isolated/rcljava/share/rcljava/java/'
-String dir_rcljava_common = ros2JavaPath + 'install_isolated/rcljava_common/share/rcljava_common/java/'
-String dir_std_msgs = ros2JavaPath + 'install_isolated/std_msgs/share/std_msgs/java/'
-String dir_geometry_msgs = ros2JavaPath + 'install_isolated/geometry_msgs/share/geometry_msgs/java/'
-String dir_builtin_interfaces = ros2JavaPath + 'install_isolated/builtin_interfaces/share/builtin_interfaces/java/'
-String dir_action_msgs = ros2JavaPath + 'install_isolated/action_msgs/share/action_msgs/java/'
-String dir_unique_identifier_msgs = ros2JavaPath + 'install_isolated/unique_identifier_msgs/share/unique_identifier_msgs/java/'
-
-task checkRos2JavaPath {
-    if (!new File(ros2JavaPath + 'install_isolated/local_setup.sh').exists())
-        throw new Exception("Ros2-Java not found OR not build. Specify the path in build.gradle.")
-}
-
 dependencies {
-    // Include 'local' ROS2-Java dependencies
-    checkRos2JavaPath
-    compile fileTree(include: ['*.jar'], dir: dir_rcljava)
-    compile fileTree(include: ['rcljava_common.jar', 'commons-lang3-3.7.jar','log4j-1.2.17.jar','slf4j-api-1.7.21.jar'], dir: dir_rcljava_common)
-//    compile fileTree(include: ['rcljava_common.jar', 'commons-lang3-3.7.jar','log4j-1.2.17.jar','slf4j-api-1.7.21.jar','slf4j-jdk14-1.7.21.jar'], dir: dir_rcljava_common)
-    compile fileTree(include: ['*.jar'], dir: dir_std_msgs)
-    compile fileTree(include: ['*.jar'], dir: dir_geometry_msgs)
-    compile fileTree(include: ['*.jar'], dir: dir_builtin_interfaces)
-    compile fileTree(include: ['*.jar'], dir: dir_action_msgs)
-    compile fileTree(include: ['*.jar'], dir: dir_unique_identifier_msgs)
-
     // Fixes Log4j error
 //    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.13.1'
 
@@ -72,4 +44,7 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok:1.18.12'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
 
+    // IHMC
+    compile group: "us.ihmc", name: "ihmc-ros2-library", version: "0.20.2" // publish/subscribe API
+    compile group: "us.ihmc", name: "ros2-common-interfaces", version: "0.20.2" // ROS2 common message library
 }
