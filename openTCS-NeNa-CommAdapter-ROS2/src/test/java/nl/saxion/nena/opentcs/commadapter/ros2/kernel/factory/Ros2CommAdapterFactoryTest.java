@@ -1,10 +1,8 @@
-/**
+/*
  * Copyright (c) Fraunhofer IML
  */
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory;
 
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2AdapterComponentsFactory;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.factory.Ros2CommAdapterFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.opentcs.data.model.Vehicle;

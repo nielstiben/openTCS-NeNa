@@ -17,18 +17,18 @@ public class Node {
     private final ROS2Publisher<PoseWithCovarianceStamped> initialPosePublisher;
     private final ROS2Publisher<PoseStamped> goalPublisher;
 
-    public Node(@Nonnull NodeMessageListener nodeMessageListener, @Nonnull String namespace) throws IOException {
+    public Node(@Nonnull NodeMessageListener nodeMessageListener, int domainId, @Nonnull String namespace) throws IOException {
         this.node = new ROS2Node(
                 DomainFactory.PubSubImplementation.FAST_RTPS,
                 "opentcs",
                 namespace,
-                30
+                domainId
         );
 
         /* --------------- Publishers ---------------*/
         // Publisher for setting the initial pose
         this.initialPosePublisher = node.createPublisher(PoseWithCovarianceStamped.getPubSubType().get(), "/initialpose");
-        ;
+
         // Publisher for sending a navigation goal
         this.goalPublisher = node.createPublisher(PoseStamped.getPubSubType().get(), "/goal_pose");
 

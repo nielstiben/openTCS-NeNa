@@ -8,6 +8,10 @@ public class InputValidationLib {
         return namespace.matches("(|(/[a-zA-Z0-9]+))");
     }
 
+    public static boolean isValidDomainId(String namespace) {
+        return namespace.matches("(^+?(0|[1-9]\\d*)$)");
+    }
+
     public static String getIsDoubleRegex(){
         return "[-+]?[0-9]*\\.?[0-9]+";
     }

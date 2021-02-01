@@ -1,8 +1,8 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication;
 
-import action_msgs.msg.GoalStatusArray;
-import geometry_msgs.msg.PoseStamped;
-import geometry_msgs.msg.PoseWithCovarianceStamped;
+import action_msgs.msg.dds.GoalStatusArray;
+import geometry_msgs.msg.dds.PoseStamped;
+import geometry_msgs.msg.dds.PoseWithCovarianceStamped;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.OutgoingMessageLib;
@@ -11,8 +11,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.opentcs.data.model.Triple;
-import org.ros2.rcljava.RCLJava;
-import org.ros2.rcljava.executors.SingleThreadedExecutor;
+import java.io.IOException;
 
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib.TIME_NEEDED_FOR_NODE_INITIALISATION;
 
@@ -25,6 +24,7 @@ import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.tes
  */
 public class NodeTest {
     private NodeMessageListener nodeMessageListener;
+    private Node node;
 
     //================================================================================
     // Callback variables.
@@ -61,12 +61,8 @@ public class NodeTest {
     //================================================================================
 
     @Test
-    public void testCreateNode() {
-        RCLJava.rclJavaInit();
-        assert RCLJava.ok();
-
-        Node node = new Node(this.nodeMessageListener, "test");
-        RCLJava.spinSome(node);
+    public void testCreateNode() throws IOException {
+        new Node(this.nodeMessageListener, 1, "test");
     }
 
     @Test
@@ -76,11 +72,14 @@ public class NodeTest {
         new Thread(nodeStarter).start();
         Thread.sleep(TIME_NEEDED_FOR_NODE_INITIALISATION); // wait until the node get's available.
 
+        // Set Node
+        this.node = nodeStarter.getNode();
+
         // Build message
         CoordinatePoint testPoint = new CoordinatePoint(new Triple(100, -150, 0));
 
         PoseStamped testMessage = OutgoingMessageLib.generateScaledNavigationMessageByPoint(testPoint);
-        nodeStarter.getNode().getGoalPublisher().publish(testMessage);
+        this.node.getGoalPublisher().publish(testMessage);
     }
 
     @Test
@@ -99,8 +98,10 @@ public class NodeTest {
     //================================================================================
 
     @After
-    public void shutdownRCLJava() {
-        RCLJava.shutdown();
+    public void shutdownNode() {
+        assert this.node != null;
+        this.node.getNode().destroy();
+        this.node = null;
     }
 
     //================================================================================
@@ -120,13 +121,10 @@ public class NodeTest {
             this.nodeMessageListener = nodeMessageListener;
         }
 
+        @SneakyThrows
         @Override
         public void run() {
-            RCLJava.rclJavaInit();
-            SingleThreadedExecutor executor = new SingleThreadedExecutor();
-            this.node = new Node(this.nodeMessageListener, "");
-            executor.addNode(node);
-            executor.spin();
+            this.node = new Node(this.nodeMessageListener, 1,"");
         }
     }
 }

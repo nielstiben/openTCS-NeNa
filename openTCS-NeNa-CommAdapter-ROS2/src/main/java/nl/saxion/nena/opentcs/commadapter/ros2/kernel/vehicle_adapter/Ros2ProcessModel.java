@@ -52,8 +52,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     private NodeManager nodeManager;
     @Getter
     private NavigationGoalTracker navigationGoalTracker;
-    @Getter
-    private Triple estimatedPosition;
+    @Setter
+    private int domainId;
     @Setter
     private String namespace = "";
     @Setter
@@ -76,7 +76,7 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     //================================================================================
 
     public void onDriverEnable() {
-        this.nodeManager.start(this, this, this.namespace);
+        this.nodeManager.start(this, this, this.domainId, this.namespace);
     }
 
     public void onDriverDisable() {
@@ -171,12 +171,8 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
 
     @Override
     public void onNewAmclPose(@Nonnull PoseWithCovarianceStamped amclPose) {
-        Triple oldEstimatePosition = this.estimatedPosition;
-        this.estimatedPosition = IncomingMessageLib.generateTripleByAmclPose(amclPose);
-
-        // Set precise position
-        setVehiclePrecisePosition(this.estimatedPosition);
-        getPropertyChangeSupport().firePropertyChange(POSITION_ESTIMATE.name(), oldEstimatePosition, this.estimatedPosition);
+        Triple newPrecisePosition = IncomingMessageLib.generateTripleByAmclPose(amclPose);
+        this.setVehiclePrecisePosition(newPrecisePosition);
 
         // Set orientation angle
         Quaternion orientationQuaternion = amclPose.getPose().getPose().getOrientation();

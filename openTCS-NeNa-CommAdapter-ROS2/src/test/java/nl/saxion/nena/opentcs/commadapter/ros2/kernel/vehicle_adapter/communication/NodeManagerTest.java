@@ -1,9 +1,8 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication;
 
-
-import action_msgs.msg.GoalStatusArray;
-import geometry_msgs.msg.PoseStamped;
-import geometry_msgs.msg.PoseWithCovarianceStamped;
+import action_msgs.msg.dds.GoalStatusArray;
+import geometry_msgs.msg.dds.PoseStamped;
+import geometry_msgs.msg.dds.PoseWithCovarianceStamped;
 import lombok.SneakyThrows;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication.constants.NodeRunningStatus;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.OutgoingMessageLib;
@@ -62,7 +61,7 @@ public class NodeManagerTest {
         assert this.lastKnownNodeRunningStatus.equals(NodeRunningStatus.NOT_ACTIVE);
 
         // 2: Start the node
-        nodeManager.start(this.nodeRunningStatusListener, this.nodeMessageListener, "test");
+        nodeManager.start(this.nodeRunningStatusListener, this.nodeMessageListener,1, "test");
         assert this.lastKnownNodeRunningStatus.equals(NodeRunningStatus.INITIATING);
 
         // 3: Node (should) have been active.
@@ -73,6 +72,7 @@ public class NodeManagerTest {
         assert this.lastKnownNodeRunningStatus.equals(NodeRunningStatus.NOT_ACTIVE);
     }
 
+    @SneakyThrows
     @Test(expected = NullPointerException.class)
     public void testNodeUsageFailsOnNotActive(){
         // 1: Create the node

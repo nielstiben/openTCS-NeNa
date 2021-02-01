@@ -1,6 +1,6 @@
 // If we do not have a build number, we're building on a developer's system, so
 // mark the artifact as a snapshot build.
-def versionBuild = System.env.BUILD_NUMBER ? "b" + System.env.BUILD_NUMBER : "RELEASE_1.0"
+def versionBuild = System.env.BUILD_NUMBER ? "b" + System.env.BUILD_NUMBER : "RELEASE_2.0"
 // Semantic versioning:
 // - The major version number should be incremented with major API-breaking
 //   changes.

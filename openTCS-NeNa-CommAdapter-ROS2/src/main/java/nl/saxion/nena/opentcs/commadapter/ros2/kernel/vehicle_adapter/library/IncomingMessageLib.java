@@ -7,7 +7,7 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import javax.annotation.Nonnull;
 
 /**
- * Library class for parsing incoming rcljava messages
+ * Library class for parsing incoming ROS2 messages
  *
  * @author Niels Tiben
  */

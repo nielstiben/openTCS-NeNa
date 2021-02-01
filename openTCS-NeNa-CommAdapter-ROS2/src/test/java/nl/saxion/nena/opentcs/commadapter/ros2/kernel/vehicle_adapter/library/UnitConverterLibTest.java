@@ -1,8 +1,9 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library;
 
-import geometry_msgs.msg.Quaternion;
+import org.junit.Assert;
 import org.junit.Test;
 import org.opentcs.data.model.Triple;
+import us.ihmc.euclid.tuple4D.Quaternion;
 
 import java.util.Arrays;
 
@@ -23,7 +24,7 @@ public class UnitConverterLibTest {
         Triple tripleInMillimeter = new Triple(1010, 2020, 3030);
         double[] coordinatesInMeter = UnitConverterLib.convertTripleToCoordinatesInMeter(tripleInMillimeter);
 
-        assert Arrays.equals(coordinatesInMeter, new double[]{1.01, 2.02, 3.03});
+        Assert.assertEquals(coordinatesInMeter, new double[]{1.01, 2.02, 3.03});
     }
 
     @Test
@@ -39,25 +40,25 @@ public class UnitConverterLibTest {
     }
 
     @Test
-    public void testQuaternionToAngleDegreeNorth(){
-        Quaternion quaternionTowardsNorth = new Quaternion()
-                .setX(0)
-                .setY(0)
-                .setZ(0.71) // approximate north
-                .setW(0.71); // approximate north
+    public void testQuaternionToAngleDegreeNorth() {
+        double x = 0;
+        double y = 0;
+        double z = 0.71; // approximate north
+        double w = 0.71; // approximate north
+        Quaternion quaternionTowardsNorth = new Quaternion(x,y,z,w);
 
         double angleTowardsNorth = UnitConverterLib.quaternionToAngleDegree(quaternionTowardsNorth);
         assert angleTowardsNorth > 89 && angleTowardsNorth < 91; // approximate north
     }
 
     @Test
-    public void testQuaternionToAngleDegreeWest(){
-        Quaternion quaternionTowardsNorth = new Quaternion()
-                .setX(0)
-                .setY(0)
-                .setZ(1) // exact west
-                .setW(0); // exact west
+    public void testQuaternionToAngleDegreeWest() {
+        double x = 0;
+        double y = 0;
+        double z = 1; // exact west
+        double w = 0; // exact west
 
+        Quaternion quaternionTowardsNorth = new Quaternion(x,y,z,w);
         double angleTowardsWest = UnitConverterLib.quaternionToAngleDegree(quaternionTowardsNorth);
         assert angleTowardsWest == 180; // exact west
     }

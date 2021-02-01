@@ -14,7 +14,7 @@ import java.util.List;
 
 /**
  * Class for holding a single Navigation Goal, which consist of
- * ROS2 (rcljava)-provided data (such as the UUID and parsed status)
+ * ROS2-provided data (such as the UUID and parsed status)
  * and OpenTCS-provided data (destination point)
  *
  * @author Niels Tiben

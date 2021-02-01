@@ -10,5 +10,4 @@ import nl.saxion.nena.opentcs.commadapter.ros2.control_center.control_panel.Ros2
 public enum Ros2ProcessModelAttribute {
     NODE_STATUS,
     NAVIGATION_GOALS,
-    POSITION_ESTIMATE,
 }

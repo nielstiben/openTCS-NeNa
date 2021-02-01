@@ -1,10 +1,11 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library;
 
-import geometry_msgs.msg.PoseWithCovarianceStamped;
+import geometry_msgs.msg.dds.PoseWithCovarianceStamped;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.PointTestLib;
 import org.junit.Test;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Triple;
+import us.ihmc.euclid.tuple3D.Point3D;
 
 /**
  * Unit test to cover {@link IncomingMessageLib}.
@@ -22,7 +23,7 @@ public class IncomingMessageLibTest {
         // amcl pose message, So we use the OutGoingMessageLib for creating a dummy incoming amcl message.
         PoseWithCovarianceStamped amclPose = OutgoingMessageLib.generateInitialPoseMessageByPoint(pointForAmclPose);
 
-        geometry_msgs.msg.Point amclPosePosition = amclPose.getPose().getPose().getPosition();
+        Point3D amclPosePosition = amclPose.getPose().getPose().getPosition();
         System.out.println(amclPosePosition.getX());
         System.out.println(amclPosePosition.getY());
         assert amclPosePosition.getX() == 1.5;

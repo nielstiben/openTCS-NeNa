@@ -53,7 +53,7 @@ public class NavigationGoalTracker {
     //================================================================================
 
     /**
-     * Update the Navigation Goal Tracker by a (new) incoming GoalStatusArray from rcljava.
+     * Update the Navigation Goal Tracker by a (new) incoming GoalStatusArray from ROS2.
      *
      * @param goalStatusArray The ros2 navigation stack..
      */

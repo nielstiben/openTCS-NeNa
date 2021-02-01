@@ -1,8 +1,7 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter;
 
-import action_msgs.msg.GoalStatusArray;
-import geometry_msgs.msg.PoseWithCovarianceStamped;
-import geometry_msgs.msg.Quaternion;
+import action_msgs.msg.dds.GoalStatusArray;
+import geometry_msgs.msg.dds.PoseWithCovarianceStamped;
 import lombok.SneakyThrows;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.OutgoingMessageLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.NavigationGoalTestLib;
@@ -12,6 +11,7 @@ import org.junit.Test;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Triple;
 import org.opentcs.data.model.Vehicle;
+import us.ihmc.euclid.tuple4D.Quaternion;
 
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib.DEFAULT_TESTING_NAMESPACE;
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib.TIME_NEEDED_FOR_NODE_INITIALISATION;
@@ -120,12 +120,12 @@ public class Ros2ProcessModelTest {
         PoseWithCovarianceStamped pose = OutgoingMessageLib.generateInitialPoseMessageByPoint(pointForAmclPose);
 
         // Set orientation too.
-        pose.getPose().getPose().setOrientation(getQuaternionTowardsWest());
+        pose.getPose().getPose().getOrientation().set(getQuaternionTowardsWest());
 
         return pose;
     }
 
     private Quaternion getQuaternionTowardsWest() {
-        return new Quaternion().setX(0).setY(0).setZ(1).setW(0);
+        return new Quaternion(0,0,1,0);
     }
 }

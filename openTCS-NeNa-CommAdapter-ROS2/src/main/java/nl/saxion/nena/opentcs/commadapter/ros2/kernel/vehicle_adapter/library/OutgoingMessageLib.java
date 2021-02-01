@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
 import java.time.Instant;
 
 /**
- * Library class for parsing outgoing rcljava messages
+ * Library class for parsing outgoing ROS2 messages
  *
  * @author Niels Tiben
  */

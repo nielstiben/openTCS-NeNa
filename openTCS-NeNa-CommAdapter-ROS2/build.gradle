@@ -1,27 +1,30 @@
 // JaCoCo
-apply plugin: 'jacoco'
+//apply plugin: 'jacoco'
 
-jacocoTestReport {
-    reports {
-        xml.enabled false
-        csv.enabled false
-    }
-
-    afterEvaluate {
-        classDirectories = files(classDirectories.files.collect {
-            // Exclude Control Center components
-            fileTree(dir: it, exclude: 'nl/saxion/nena/opentcs/commadapter/ros2/control_center/*')
-        })
-    }
-}
+//jacocoTestReport {
+//    reports {
+//        xml.enabled false
+//        csv.enabled false
+//    }
+//
+//    afterEvaluate {
+//        classDirectories = files(classDirectories.files.collect {
+//            // Exclude Control Center components
+//            fileTree(dir: it, exclude: 'nl/saxion/nena/opentcs/commadapter/ros2/control_center/*')
+//        })
+//    }
+//}
+//sourceSets {
+//    test {
+//        java {
+//            srcDirs = ["test/saxion/nena/opentcs/commadapter"]
+//        }
+//    }
+//}
 
 apply from: "${rootDir}/gradle/guice-project.gradle"
 
 dependencies {
-    // Fixes Log4j error
-//    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.13.1'
-
-
     // OpenTCS
     compile project(':openTCS-NeNa-Common')
 
@@ -41,10 +44,13 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
 
-    testCompileOnly 'org.projectlombok:lombok:1.18.12'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
-
     // IHMC
     compile group: "us.ihmc", name: "ihmc-ros2-library", version: "0.20.2" // publish/subscribe API
     compile group: "us.ihmc", name: "ros2-common-interfaces", version: "0.20.2" // ROS2 common message library
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.12'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+
+    testCompile group: 'org.opentcs', name: 'opentcs-kernel', version: openTcsBaselineVersion
+    testCompileOnly group: 'org.opentcs', name: 'opentcs-kernel', version: openTcsBaselineVersion, classifier: 'sources'
 }

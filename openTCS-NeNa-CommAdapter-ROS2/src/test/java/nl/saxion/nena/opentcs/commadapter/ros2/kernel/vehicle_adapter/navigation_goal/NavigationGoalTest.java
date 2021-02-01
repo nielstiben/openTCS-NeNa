@@ -1,6 +1,6 @@
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.navigation_goal;
 
-import action_msgs.msg.GoalStatus;
+import action_msgs.msg.dds.GoalStatus;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.navigation_goal.constants.NavigationGoalStatus;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.NavigationGoalTestLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.point.CoordinatePoint;
@@ -30,7 +30,7 @@ public class NavigationGoalTest {
         assert dummyNavigationGoal.getDestinationPoint() == null;
 
         // Assert UUID matches.
-        assert dummyNavigationGoal.getUuid().get(15) == UUID_LAST_BYTE;
+        assert dummyNavigationGoal.getUuid()[15] == UUID_LAST_BYTE;
     }
 
     @Test
@@ -60,6 +60,6 @@ public class NavigationGoalTest {
         assert dummyNavigationGoal.getDestinationPoint() != null;
 
         // Assert UUID matches.
-        assert dummyNavigationGoal.getUuid().get(15) == UUID_LAST_BYTE;
+        assert dummyNavigationGoal.getUuid()[15] == UUID_LAST_BYTE;
     }
 }

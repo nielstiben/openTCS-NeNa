@@ -113,6 +113,7 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
 
     @Override
     public void processMessage(Object message) {
+        assert message != null;
         LOG.info("Incoming message: {}", message.toString());
         LOG.warn("Message handlers are not implemented.");
     }
@@ -175,7 +176,6 @@ public class Ros2CommAdapter extends BasicVehicleCommAdapter {
         Ros2ProcessModelTO ros2ProcessModelTO = new Ros2ProcessModelTO();
         ros2ProcessModelTO.setNodeStatus(getProcessModel().getNodeManager().getNodeRunningStatus().name());
         ros2ProcessModelTO.setNavigationGoalTable(getProcessModel().getNavigationGoalTracker().toStringTable());
-        ros2ProcessModelTO.setEstimatePosition(getProcessModel().getEstimatedPosition());
 
         return ros2ProcessModelTO;
     }

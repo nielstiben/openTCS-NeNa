@@ -34,12 +34,13 @@ public class NodeManager implements NodeRunnableListener {
     public void start(
             @Nonnull NodeRunningStatusListener nodeRunningStatusListener,
             @Nonnull NodeMessageListener nodeMessageListener,
+            int domainId,
             @Nonnull String namespace) {
         assert this.nodeRunningStatus == NodeRunningStatus.NOT_ACTIVE;
         this.nodeRunningStatusListener = nodeRunningStatusListener;
 
         changeNodeStatus(INITIATING);
-        NodeRunnable nodeRunnable = new NodeRunnable(nodeMessageListener, this, namespace);
+        NodeRunnable nodeRunnable = new NodeRunnable(nodeMessageListener, this, domainId, namespace);
         new Thread(nodeRunnable).start();
     }
 
@@ -92,13 +93,14 @@ public class NodeManager implements NodeRunnableListener {
     protected static class NodeRunnable implements Runnable {
         private final NodeMessageListener nodeMessageListener;
         private final NodeRunnableListener nodeRunnableListener;
+        private final int domainId;
         private final String nodeNamespace;
         private @Getter Node node;
 
         @SneakyThrows
         @Override
         public void run() {
-            this.node = new Node(this.nodeMessageListener, this.nodeNamespace);
+            this.node = new Node(this.nodeMessageListener, this.domainId, this.nodeNamespace);
             this.nodeRunnableListener.onNodeStarted(this);
         }
 

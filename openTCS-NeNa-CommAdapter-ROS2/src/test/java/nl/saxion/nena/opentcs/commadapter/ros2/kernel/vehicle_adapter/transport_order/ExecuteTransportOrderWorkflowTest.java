@@ -9,8 +9,11 @@ import org.junit.Test;
 import org.opentcs.data.model.*;
 import org.opentcs.data.order.Route;
 import org.opentcs.drivers.vehicle.MovementCommand;
+import org.opentcs.kernel.vehicles.MovementCommandImpl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib.DEFAULT_TESTING_NAMESPACE;
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib.TIME_NEEDED_FOR_NODE_INITIALISATION;
@@ -75,7 +78,8 @@ public class ExecuteTransportOrderWorkflowTest {
     //================================================================================
 
     private MovementCommand generateDummyMovementCommand(Point startPoint, Point destinationPoint) {
-        return new MovementCommand(
+        return new MovementCommandImpl(
+                generateDummyRoute(startPoint, destinationPoint),
                 generateDummyStep(startPoint, destinationPoint),
                 OperationConstants.NOP,
                 generateLocationByPoint(0),
@@ -87,11 +91,15 @@ public class ExecuteTransportOrderWorkflowTest {
         );
     }
 
-    private Route.Step generateDummyStep(Point startPoint, Point destinationPoint) {
-        Path path = new Path("test_path", startPoint.getReference(), destinationPoint.getReference());
+    private Route generateDummyRoute(Point startPoint, Point destinationPoint) {
+        List<Route.Step> routeSteps = new ArrayList<>();
+        routeSteps.add(generateDummyStep(startPoint, destinationPoint));
+        return new Route(routeSteps, 0);
+    }
 
+    private Route.Step generateDummyStep(Point startPoint, Point destinationPoint) {
         return new Route.Step(
-                path,
+                generatePath(startPoint, destinationPoint),
                 startPoint,
                 destinationPoint,
                 Vehicle.Orientation.FORWARD,
@@ -104,5 +112,9 @@ public class ExecuteTransportOrderWorkflowTest {
         String locationName = String.format("test_location_%d", index);
 
         return new Location(locationName, locationType.getReference());
+    }
+
+    private Path generatePath(Point startPoint, Point destinationPoint) {
+        return new Path("test_path", startPoint.getReference(), destinationPoint.getReference());
     }
 }
