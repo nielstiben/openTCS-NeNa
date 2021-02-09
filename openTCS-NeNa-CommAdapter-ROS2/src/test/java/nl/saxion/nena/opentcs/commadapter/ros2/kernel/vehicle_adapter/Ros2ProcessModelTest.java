@@ -4,17 +4,18 @@ import action_msgs.msg.dds.GoalStatusArray;
 import geometry_msgs.msg.dds.PoseWithCovarianceStamped;
 import lombok.SneakyThrows;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.OutgoingMessageLib;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.ScaleCorrector;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.NavigationGoalTestLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.point.CoordinatePoint;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.PointTestLib;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib;
 import org.junit.Test;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Triple;
 import org.opentcs.data.model.Vehicle;
 import us.ihmc.euclid.tuple4D.Quaternion;
 
-import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib.DEFAULT_TESTING_NAMESPACE;
-import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib.TIME_NEEDED_FOR_NODE_INITIALISATION;
+import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib.*;
 
 /**
  * Unit test to cover {@link Ros2ProcessModel}.
@@ -38,6 +39,7 @@ public class Ros2ProcessModelTest {
 
         // Enable process model
         ros2ProcessModel.setNamespace(DEFAULT_TESTING_NAMESPACE);
+        ros2ProcessModel.setDomainId(DEFAULT_TESTING_DOMAIN_ID);
         ros2ProcessModel.onDriverEnable();
 
 //        assert ros2ProcessModel.getVehicleState().equals(Vehicle.State.UNAVAILABLE);
@@ -105,9 +107,11 @@ public class Ros2ProcessModelTest {
     //================================================================================
 
     private Ros2ProcessModel generateRos2ProcessModelEnabled(int index) {
+        ScaleCorrector.getInstance().setScale(1);
         Vehicle vehicle = new Vehicle(String.format("test_vehicle_%d", index));
         Ros2ProcessModel ros2ProcessModel = new Ros2ProcessModel(vehicle);
-        ros2ProcessModel.setNamespace("");
+        ros2ProcessModel.setDomainId(Ros2CommAdapterTestLib.DEFAULT_TESTING_DOMAIN_ID);
+        ros2ProcessModel.setNamespace(DEFAULT_TESTING_NAMESPACE);
         ros2ProcessModel.onDriverEnable();
 
         return ros2ProcessModel;

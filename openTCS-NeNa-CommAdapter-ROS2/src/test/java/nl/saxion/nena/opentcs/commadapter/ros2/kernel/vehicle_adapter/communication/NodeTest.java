@@ -6,13 +6,16 @@ import geometry_msgs.msg.dds.PoseWithCovarianceStamped;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.OutgoingMessageLib;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.ScaleCorrector;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.point.CoordinatePoint;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.opentcs.data.model.Triple;
 import java.io.IOException;
 
+import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib.DEFAULT_TESTING_DOMAIN_ID;
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib.TIME_NEEDED_FOR_NODE_INITIALISATION;
 
 /**
@@ -60,17 +63,19 @@ public class NodeTest {
     // Tests
     //================================================================================
 
+    @SneakyThrows
     @Test
-    public void testCreateNode() throws IOException {
-        new Node(this.nodeMessageListener, 1, "test");
+    public void testCreateNode() {
+        this.node = new Node(this.nodeMessageListener, 1, "/test");
     }
 
     @Test
     @SneakyThrows
     public void testPublishNavigationMessage() {
+        ScaleCorrector.getInstance().setScale(1);
         NodeStarterForTesting nodeStarter = new NodeStarterForTesting(this.nodeMessageListener);
         new Thread(nodeStarter).start();
-        Thread.sleep(TIME_NEEDED_FOR_NODE_INITIALISATION); // wait until the node get's available.
+        Thread.sleep(TIME_NEEDED_FOR_NODE_INITIALISATION); // wait until the node gets available.
 
         // Set Node
         this.node = nodeStarter.getNode();
@@ -89,7 +94,7 @@ public class NodeTest {
         assert this.lastReceivedGoalStatusArray == null;
         testPublishNavigationMessage();
 
-        Thread.sleep(TIME_NEEDED_FOR_NODE_INITIALISATION); // Give the vehicle 600 milliseconds to send its navigation stack.
+        Thread.sleep(TIME_NEEDED_FOR_NODE_INITIALISATION); // Give the vehicle time to send its navigation stack.
         assert lastReceivedGoalStatusArray != null;
     }
 
@@ -124,7 +129,7 @@ public class NodeTest {
         @SneakyThrows
         @Override
         public void run() {
-            this.node = new Node(this.nodeMessageListener, 1,"");
+            this.node = new Node(this.nodeMessageListener, DEFAULT_TESTING_DOMAIN_ID,"");
         }
     }
 }

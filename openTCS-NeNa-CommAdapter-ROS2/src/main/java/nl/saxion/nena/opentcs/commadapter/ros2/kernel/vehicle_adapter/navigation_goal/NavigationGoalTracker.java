@@ -100,7 +100,8 @@ public class NavigationGoalTracker {
     }
 
     private void notifyListenersIfNeeded(@Nonnull NavigationGoal navigationGoal) {
-        if (navigationGoal.getNavigationGoalStatus().equals(NavigationGoalStatus.SUCCEEDED)) {
+        NavigationGoalStatus goalStatus = navigationGoal.getNavigationGoalStatus();
+        if (goalStatus.equals(NavigationGoalStatus.SUCCEEDED)) {
             Point destinationPoint = navigationGoal.getDestinationPoint();
             if (destinationPoint != null) {
                 this.navigationGoalListener.onNavigationGoalSucceeded(destinationPoint);
@@ -108,7 +109,16 @@ public class NavigationGoalTracker {
             } else {
                 this.externalNavigationGoalListener.onExternalNavigationGoalSucceeded();
             }
-        } else {
+        } else if (goalStatus.equals(NavigationGoalStatus.REJECTED)){
+            Point destinationPoint = navigationGoal.getDestinationPoint();
+            if (destinationPoint != null) {
+                this.navigationGoalListener.onNavigationGoalSucceeded(destinationPoint);
+                this.commandExecutorListener.onNavigationGoalSucceeded(destinationPoint);
+            } else {
+                this.externalNavigationGoalListener.onExternalNavigationGoalSucceeded();
+            }
+        }
+        else {
             // TODO implement handlers for other navigation goal statuses.
         }
     }

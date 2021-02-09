@@ -8,6 +8,6 @@ package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.navigatio
  */
 public interface ExternalNavigationGoalListener {
     void onExternalNavigationGoalActive();
-
     void onExternalNavigationGoalSucceeded();
+    void onExternalNavigationGoalRejected();
 }

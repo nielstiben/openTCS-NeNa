@@ -142,7 +142,16 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
         }
     }
 
-    /* --------------- Navigation goals initiated an external application ---------------*/
+    @Override
+    public void onNavigationGoalRejected(@Nonnull Point point) {
+        if (executeTransportOrderWorkflow != null && executeTransportOrderWorkflow.isCommandExecutorActive()) {
+            // Vehicle state is set by the ExecuteCommandWorkflow
+        } else {
+            setVehicleState(Vehicle.State.IDLE);
+        }
+    }
+
+    /* --------------- Navigation goals initiated by an external application ---------------*/
     @Override
     public void onExternalNavigationGoalActive() {
         setVehiclePosition(null); // Because we are at a given coordinate, which is an unknown position for our plant.
@@ -153,6 +162,12 @@ public class Ros2ProcessModel extends VehicleProcessModel implements
     public void onExternalNavigationGoalSucceeded() {
         setVehiclePosition(null); // Because we are at a given coordinate, which is an unknown position for our plant.
         setVehicleState(Vehicle.State.UNAVAILABLE);
+    }
+
+    @Override
+    public void onExternalNavigationGoalRejected() {
+        setVehiclePosition(null); // Because we are at a given coordinate, which is an unknown position for our plant.
+        setVehicleState(Vehicle.State.IDLE);
     }
 
     //================================================================================

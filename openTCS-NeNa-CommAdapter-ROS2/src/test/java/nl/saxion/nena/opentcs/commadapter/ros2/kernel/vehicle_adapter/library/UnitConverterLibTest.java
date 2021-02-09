@@ -24,7 +24,8 @@ public class UnitConverterLibTest {
         Triple tripleInMillimeter = new Triple(1010, 2020, 3030);
         double[] coordinatesInMeter = UnitConverterLib.convertTripleToCoordinatesInMeter(tripleInMillimeter);
 
-        Assert.assertEquals(coordinatesInMeter, new double[]{1.01, 2.02, 3.03});
+        boolean arraysAreTheSame = Arrays.equals(coordinatesInMeter, new double[]{1.01, 2.02, 3.03});
+        assert arraysAreTheSame;
     }
 
     @Test

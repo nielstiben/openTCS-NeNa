@@ -116,6 +116,7 @@ public class ExecuteTransportOrderWorkflow implements NavigationGoalListener, Op
     // 3: Received callback from NavigationGoalTracker that Movement Command has been finished.
     //================================================================================
 
+    /* --------------- 3a: NavigationGoal has succeeded ---------------*/
     @Override
     public void onNavigationGoalSucceeded(@Nonnull Point arrivedPoint) {
         if (this.isCommandExecutorActive) {
@@ -134,7 +135,27 @@ public class ExecuteTransportOrderWorkflow implements NavigationGoalListener, Op
         } else {
             // Not intended for CommandExecutor so we don't care, just proceed.
         }
+    }
 
+    /* --------------- 3b: NavigationGoal has been rejected ---------------*/
+    @Override
+    public void onNavigationGoalRejected(@Nonnull Point rejectedPoint) {
+        if (this.isCommandExecutorActive) {
+            Point currentDestination = this.currentCommand.getStep().getDestinationPoint();
+
+            // Callback that a new navigation goal has been activated: let's check if its point equals our destination point.
+            if (currentDestination.equals(rejectedPoint)) {
+                // Vehicle rejected its intended destination
+                String reason = "Processing MovementCommand Failed: Vehicle rejected intended destination";
+                onOperationExecutionFailed(reason);
+            } else {
+                // Vehicle rejected unknown destination.
+                String reason = String.format("Processing MovementCommand Failed: Vehicle rejected an unexpected destination '%s'. The intended destination is '%s'", rejectedPoint.toString(), currentDestination.toString());
+                onOperationExecutionFailed(reason);
+            }
+        } else {
+            // Not intended for CommandExecutor so we don't care, just proceed.
+        }
     }
     // Next step (4) is activated by step 3 on success.
 

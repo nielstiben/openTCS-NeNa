@@ -29,7 +29,8 @@ public class NavigationGoalTestLib {
 
         GoalStatusArray goalStatusArray = new GoalStatusArray();
         IDLSequence.Object<GoalStatus> status_list = new IDLSequence.Object<>(20, GoalStatus.getPubSubType().get());
-        status_list.add(createDummyGoalStatus(LAST_BYTE_UUID, statusCode));
+        GoalStatus goalStatus = status_list.add();
+        setDummyGoalStatusData(goalStatus, LAST_BYTE_UUID, statusCode);
         goalStatusArray.status_list_ = status_list;
 
         return goalStatusArray;
@@ -44,13 +45,24 @@ public class NavigationGoalTestLib {
      */
     public static GoalStatus createDummyGoalStatus(byte uuidLastByte, byte status) {
         GoalStatus dummyGoalStatus = new GoalStatus();
+        return setDummyGoalStatusData(dummyGoalStatus, uuidLastByte, status);
+    }
 
+    /**
+     * Fills the parameters of {@link GoalStatus}
+     *
+     * @param uuidLastByte The last byte of the object's UUID
+     * @param status       The status byte code
+     * @param order        An integer to define the order if multiple Navigation Goals are used.
+     * @return A dummy GoalStatus
+     */
+    public static GoalStatus setDummyGoalStatusData(GoalStatus dummyGoalStatus, byte uuidLastByte, byte status) {
         // GoalInfo
         GoalInfo goalInfo = new GoalInfo();
         goalInfo.goal_id_ = createDummyUUID(uuidLastByte);
         Time stamp = new Time();
         stamp.nanosec_ = 0;
-        stamp.sec_ = 1;
+        stamp.sec_ = uuidLastByte; // Use UUID last byte as timestamp to define order if multiple goals are used in test.
         goalInfo.stamp_ = stamp;
 
         dummyGoalStatus.goal_info_ = goalInfo;

@@ -13,6 +13,8 @@ import org.opentcs.data.model.Triple;
 import us.ihmc.idl.IDLSequence;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Unit test to cover {@link NavigationGoalTracker}.
@@ -51,6 +53,11 @@ public class NavigationGoalTrackerTest {
             public void onNavigationGoalSucceeded(@Nonnull Point point) {
                 latestNavigationGoalSucceededPoint = point;
             }
+
+            @Override
+            public void onNavigationGoalRejected(@Nonnull Point point) {
+                latestNavigationGoalSucceededPoint = point;
+            }
         };
         this.externalNavigationGoalListener = new ExternalNavigationGoalListener() {
             @Override
@@ -60,6 +67,11 @@ public class NavigationGoalTrackerTest {
 
             @Override
             public void onExternalNavigationGoalSucceeded() {
+                externalNavigationGoalSucceededCallbackIsCalled = true;
+            }
+
+            @Override
+            public void onExternalNavigationGoalRejected() {
                 externalNavigationGoalSucceededCallbackIsCalled = true;
             }
         };
@@ -181,11 +193,13 @@ public class NavigationGoalTrackerTest {
      */
     private GoalStatusArray createDummyGoalStatusArray() {
         GoalStatusArray dummyGoalStatusArray = new GoalStatusArray();
-        IDLSequence.Object<GoalStatus> status_list = new IDLSequence.Object<>(20, GoalStatus.getPubSubType().get());
-        status_list.add(NavigationGoalTestLib.createDummyGoalStatus((byte) 2, NAV_SUCCEEDED));
-        status_list.add(NavigationGoalTestLib.createDummyGoalStatus((byte) 3, NAV_SUCCEEDED));
-        status_list.add(NavigationGoalTestLib.createDummyGoalStatus((byte) 1, NAV_ACTIVE));
-        dummyGoalStatusArray.status_list_ = status_list;
+        GoalStatus first = dummyGoalStatusArray.status_list_.add();
+        GoalStatus second = dummyGoalStatusArray.status_list_.add();
+        GoalStatus third = dummyGoalStatusArray.status_list_.add();
+
+        NavigationGoalTestLib.setDummyGoalStatusData(first, (byte) 1, NAV_SUCCEEDED);
+        NavigationGoalTestLib.setDummyGoalStatusData(second, (byte) 2, NAV_SUCCEEDED);
+        NavigationGoalTestLib.setDummyGoalStatusData(third, (byte) 3, NAV_ACTIVE);
 
         return dummyGoalStatusArray;
     }

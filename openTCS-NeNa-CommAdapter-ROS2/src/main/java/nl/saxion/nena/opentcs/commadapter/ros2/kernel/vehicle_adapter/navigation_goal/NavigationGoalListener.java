@@ -13,4 +13,5 @@ import javax.annotation.Nonnull;
 public interface NavigationGoalListener {
     void onNavigationGoalActive(@Nonnull Point point);
     void onNavigationGoalSucceeded(@Nonnull Point point);
+    void onNavigationGoalRejected(@Nonnull Point point);
 }

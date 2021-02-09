@@ -13,8 +13,7 @@ import java.util.List;
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication.constants.NodeRunningStatus.NOT_ACTIVE;
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.operation.constants.OperationConstants.LOAD_CARGO;
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.operation.constants.OperationConstants.UNLOAD_CARGO;
-import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib.DEFAULT_TESTING_NAMESPACE;
-import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib.TIME_NEEDED_FOR_NODE_INITIALISATION;
+import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib.*;
 
 /**
  * Unit test to cover {@link Ros2CommAdapter}.
@@ -32,11 +31,10 @@ public class Ros2CommAdapterTest {
         assert adapter.isInitialized();
 
         assert !adapter.isEnabled();
-        adapter.getProcessModel().setNamespace(DEFAULT_TESTING_NAMESPACE);
         adapter.enable();
         Thread.sleep(TIME_NEEDED_FOR_NODE_INITIALISATION);
         assert adapter.isEnabled();
-
+        Thread.sleep(TIME_NEEDED_FOR_NODE_INITIALISATION);
         adapter.disable();
         assert !adapter.isEnabled();
 
