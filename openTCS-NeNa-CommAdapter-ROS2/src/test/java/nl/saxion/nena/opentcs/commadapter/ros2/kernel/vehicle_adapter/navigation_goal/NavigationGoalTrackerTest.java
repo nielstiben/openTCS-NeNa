@@ -1,20 +1,20 @@
+/**
+ * Copyright (c) Niels Tiben (nielstiben@outlook.com)
+ */
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.navigation_goal;
 
 import action_msgs.msg.dds.GoalStatus;
 import action_msgs.msg.dds.GoalStatusArray;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication.Node;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.navigation_goal.constants.NavigationGoalStatus;
-import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.NavigationGoalTestLib;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.point.CoordinatePoint;
+import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.NavigationGoalTestLib;
 import org.junit.Before;
 import org.junit.Test;
 import org.opentcs.data.model.Point;
 import org.opentcs.data.model.Triple;
-import us.ihmc.idl.IDLSequence;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Unit test to cover {@link NavigationGoalTracker}.
@@ -26,8 +26,8 @@ public class NavigationGoalTrackerTest {
     private NavigationGoalListener navigationGoalListener;
     private ExternalNavigationGoalListener externalNavigationGoalListener;
 
-    private final byte NAV_ACTIVE = 2;
-    private final byte NAV_SUCCEEDED = 4;
+    private static final byte NAV_ACTIVE = 2;
+    private static final byte NAV_SUCCEEDED = 4;
 
     //================================================================================
     // Callback variables.
@@ -115,13 +115,15 @@ public class NavigationGoalTrackerTest {
         navigationGoalTracker.setDestinationPointIncomingGoal(destinationActiveGoal);
 
         // Add a single entry (status ACTIVE) to the Goal Navigation Tracker.
-        GoalStatusArray initialGoalStatusArray = NavigationGoalTestLib.createDummyGoalStatusArraySingleEntry(NAV_ACTIVE);
+        GoalStatusArray initialGoalStatusArray =
+                NavigationGoalTestLib.createDummyGoalStatusArraySingleEntry(NAV_ACTIVE);
         navigationGoalTracker.updateByGoalStatusArray(initialGoalStatusArray);
         assert this.latestNavigationGoalActivePoint != null;
         assert this.latestNavigationGoalSucceededPoint == null; // The goal has not succeeded yet!
 
         // Update the same entry from 'ACTIVE' to 'SUCCEEDED'
-        GoalStatusArray updatedGoalStatusArray = NavigationGoalTestLib.createDummyGoalStatusArraySingleEntry(NAV_SUCCEEDED);
+        GoalStatusArray updatedGoalStatusArray =
+                NavigationGoalTestLib.createDummyGoalStatusArraySingleEntry(NAV_SUCCEEDED);
         navigationGoalTracker.updateByGoalStatusArray(updatedGoalStatusArray);
 
         // The newest entry of the dummy data had status ACTIVE => check if callback has been made
@@ -136,18 +138,20 @@ public class NavigationGoalTrackerTest {
         );
 
         // Add a single entry (status ACTIVE) to the Goal Navigation Tracker.
-        GoalStatusArray initialGoalStatusArray = NavigationGoalTestLib.createDummyGoalStatusArraySingleEntry(NAV_ACTIVE);
+        GoalStatusArray initialGoalStatusArray =
+                NavigationGoalTestLib.createDummyGoalStatusArraySingleEntry(NAV_ACTIVE);
         navigationGoalTracker.updateByGoalStatusArray(initialGoalStatusArray);
         assert this.externalNavigationGoalActiveCallbackIsCalled;
         assert !this.externalNavigationGoalSucceededCallbackIsCalled; // The goal has not succeeded yet!
 
         // Update the same entry from 'ACTIVE' to 'SUCCEEDED'
-        GoalStatusArray updatedGoalStatusArray = NavigationGoalTestLib.createDummyGoalStatusArraySingleEntry(NAV_SUCCEEDED);
+        GoalStatusArray updatedGoalStatusArray =
+                NavigationGoalTestLib.createDummyGoalStatusArraySingleEntry(NAV_SUCCEEDED);
         navigationGoalTracker.updateByGoalStatusArray(updatedGoalStatusArray);
 
         // The newest entry of the dummy data had status ACTIVE => check if callback has been made
         assert this.externalNavigationGoalSucceededCallbackIsCalled;
-        ; // The goal has now been succeeded.
+        // The goal has now been succeeded.
     }
 
     @Test

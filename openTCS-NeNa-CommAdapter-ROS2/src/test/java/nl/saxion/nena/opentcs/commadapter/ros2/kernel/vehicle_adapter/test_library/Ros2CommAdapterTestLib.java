@@ -1,3 +1,6 @@
+/**
+ * Copyright (c) Niels Tiben (nielstiben@outlook.com)
+ */
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library;
 
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.Ros2CommAdapter;
@@ -5,7 +8,6 @@ import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.Ros2CommAd
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.ScaleCorrector;
 import org.opentcs.data.model.Vehicle;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**

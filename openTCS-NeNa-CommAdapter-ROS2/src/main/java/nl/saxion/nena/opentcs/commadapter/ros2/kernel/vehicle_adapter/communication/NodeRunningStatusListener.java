@@ -1,3 +1,6 @@
+/**
+ * Copyright (c) Niels Tiben (nielstiben@outlook.com)
+ */
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication;
 
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication.constants.NodeRunningStatus;

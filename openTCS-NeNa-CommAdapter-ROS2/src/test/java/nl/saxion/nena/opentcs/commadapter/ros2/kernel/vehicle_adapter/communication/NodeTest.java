@@ -1,3 +1,6 @@
+/**
+ * Copyright (c) Niels Tiben (nielstiben@outlook.com)
+ */
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication;
 
 import action_msgs.msg.dds.GoalStatusArray;
@@ -9,11 +12,9 @@ import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.Ou
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library.ScaleCorrector;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.point.CoordinatePoint;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.opentcs.data.model.Triple;
-import java.io.IOException;
 
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib.DEFAULT_TESTING_DOMAIN_ID;
 import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library.Ros2CommAdapterTestLib.TIME_NEEDED_FOR_NODE_INITIALISATION;

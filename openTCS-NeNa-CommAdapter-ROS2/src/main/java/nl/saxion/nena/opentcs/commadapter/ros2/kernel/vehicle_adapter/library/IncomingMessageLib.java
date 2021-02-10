@@ -1,3 +1,6 @@
+/**
+ * Copyright (c) Niels Tiben (nielstiben@outlook.com)
+ */
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library;
 
 import geometry_msgs.msg.dds.PoseWithCovarianceStamped;
@@ -12,6 +15,10 @@ import javax.annotation.Nonnull;
  * @author Niels Tiben
  */
 public class IncomingMessageLib {
+    private IncomingMessageLib() {
+        // Empty Constructor
+    }
+
     public static Triple generateTripleByAmclPose(@Nonnull PoseWithCovarianceStamped amclPose){
         Point3D amclPosePoint = amclPose.getPose().getPose().getPosition();
 

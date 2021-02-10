@@ -1,27 +1,3 @@
-// JaCoCo
-//apply plugin: 'jacoco'
-
-//jacocoTestReport {
-//    reports {
-//        xml.enabled false
-//        csv.enabled false
-//    }
-//
-//    afterEvaluate {
-//        classDirectories = files(classDirectories.files.collect {
-//            // Exclude Control Center components
-//            fileTree(dir: it, exclude: 'nl/saxion/nena/opentcs/commadapter/ros2/control_center/*')
-//        })
-//    }
-//}
-//sourceSets {
-//    test {
-//        java {
-//            srcDirs = ["test/saxion/nena/opentcs/commadapter"]
-//        }
-//    }
-//}
-
 apply from: "${rootDir}/gradle/guice-project.gradle"
 
 dependencies {
@@ -40,7 +16,6 @@ dependencies {
     compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
     compileOnly group: 'commons-codec', name: 'commons-codec', version: '1.10', classifier: 'sources'
 
-    // Lombok todo: Handle Lombok related warning "warning: No processor claimed any of these annotations: javax.inject.Inject,com.google.inject.assistedinject.Assisted,org.opentcs.customizations.kernel.KernelExecutor,org.opentcs.configuration.ConfigurationEntry,org.opentcs.configuration.ConfigurationPrefix,javax.annotation.Nonnull,javax.annotation.Nullable,org.opentcs.customizations.ServiceCallWrapper"
     compileOnly 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
 

@@ -1,3 +1,6 @@
+/**
+ * Copyright (c) Niels Tiben (nielstiben@outlook.com)
+ */
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter;
 
 import action_msgs.msg.dds.GoalStatusArray;
@@ -23,6 +26,7 @@ import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.tes
  * @author Niels Tiben
  */
 public class Ros2ProcessModelTest {
+    private final static byte NAV_ACTIVE = 2;
 
     //================================================================================
     // Tests
@@ -73,7 +77,6 @@ public class Ros2ProcessModelTest {
         Ros2ProcessModel processModel = generateRos2ProcessModelEnabled(1);
 
         // Generate GoalStatusArray with one entry
-        byte NAV_ACTIVE = 2;
         GoalStatusArray goalStatusArray = NavigationGoalTestLib.createDummyGoalStatusArraySingleEntry(NAV_ACTIVE);
 
         // Update process model

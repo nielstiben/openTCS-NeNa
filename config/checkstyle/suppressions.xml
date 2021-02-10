@@ -11,5 +11,7 @@
             checks="JavadocMethod"/>
   <suppress files="org.opentcs.kernel.extensions.rmi.StandardRemoteKernel.java"
             checks="JavadocMethod"/>
+  <suppress files="nl.saxion.nena.opentcs.commadapter.ros2.control_center.control_panel.Ros2CommAdapterPanel.java"
+            checks="[a-zA-Z0-9]*"/>
 
 </suppressions>

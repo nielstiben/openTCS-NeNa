@@ -1,3 +1,6 @@
+/**
+ * Copyright (c) Niels Tiben (nielstiben@outlook.com)
+ */
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication;
 
 import lombok.Getter;
@@ -21,8 +24,10 @@ import static nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.com
 public class NodeManager implements NodeRunnableListener {
     private NodeRunningStatusListener nodeRunningStatusListener;
     private NodeRunnable nodeRunnable;
-    private @Getter Node node;
-    private @Getter NodeRunningStatus nodeRunningStatus = NOT_ACTIVE;
+    private @Getter
+    Node node;
+    private @Getter
+    NodeRunningStatus nodeRunningStatus = NOT_ACTIVE;
 
     /**
      * Start a node in a separate thread, that is responsible for communication with a ROS2 vehicle.
@@ -40,8 +45,13 @@ public class NodeManager implements NodeRunnableListener {
         this.nodeRunningStatusListener = nodeRunningStatusListener;
 
         changeNodeStatus(INITIATING);
-        NodeRunnable nodeRunnable = new NodeRunnable(nodeMessageListener, this, domainId, namespace);
-        new Thread(nodeRunnable).start();
+        NodeRunnable initiatingNodeRunnable = new NodeRunnable(
+                nodeMessageListener,
+                this,
+                domainId,
+                namespace
+        );
+        new Thread(initiatingNodeRunnable).start();
     }
 
     /**
@@ -95,7 +105,8 @@ public class NodeManager implements NodeRunnableListener {
         private final NodeRunnableListener nodeRunnableListener;
         private final int domainId;
         private final String nodeNamespace;
-        private @Getter Node node;
+        private @Getter
+        Node node;
 
         @SneakyThrows
         @Override

@@ -1,3 +1,6 @@
+/**
+ * Copyright (c) Niels Tiben (nielstiben@outlook.com)
+ */
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.transport_order;
 
 import geometry_msgs.msg.dds.PoseStamped;
@@ -21,7 +24,7 @@ import java.util.Queue;
 /**
  * A workflow class used to sequentially execute a Transport Order.
  * Each function in this class belongs to a certain step in the workflow of executing a Transport Order.
- * TODO: Create a Activity diagram for this workflow.
+ * TODO|Create a Activity diagram for this workflow.
  *
  * @author Niels Tiben
  */

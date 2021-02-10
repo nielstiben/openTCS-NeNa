@@ -1,3 +1,6 @@
+/**
+ * Copyright (c) Niels Tiben (nielstiben@outlook.com)
+ */
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.navigation_goal;
 
 import action_msgs.msg.dds.GoalStatus;
@@ -13,9 +16,9 @@ import org.opentcs.data.model.Triple;
  * @author Niels Tiben
  */
 public class NavigationGoalTest {
-    private final byte UUID_LAST_BYTE = 1;
-    private final byte NAV_ACTIVE = 2;
-    private final byte NAV_SUCCEEDED = 4;
+    private static final byte UUID_LAST_BYTE = 1;
+    private static final byte NAV_ACTIVE = 2;
+    private static final byte NAV_SUCCEEDED = 4;
 
     @Test
     public void testParseGoalStatus() {

@@ -99,11 +99,6 @@
       <property name="severity" value="error"/>
     </module>
     
-    <module name="RightCurly">
-      <property name="option" value="alone"/>
-      <property name="severity" value="error"/>
-    </module>
-    
     <module name="CovariantEquals">
       <property name="severity" value="error"/>
     </module>
@@ -193,7 +188,7 @@
     </module>
 
     <module name="LineLength">
-      <property name="max" value="100"/>
+      <property name="max" value="120"/>
       <property name="ignorePattern" value="^ *\* *[^ ]+$"/>
       <property name="severity" value="warning"/>
     </module>

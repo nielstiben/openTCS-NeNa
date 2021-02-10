@@ -1,3 +1,6 @@
+/**
+ * Copyright (c) Niels Tiben (nielstiben@outlook.com)
+ */
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter;
 
 import com.google.inject.assistedinject.Assisted;
@@ -18,7 +21,6 @@ import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.beans.PropertyChangeEvent;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 import static org.opentcs.drivers.vehicle.VehicleProcessModel.Attribute.LOAD_HANDLING_DEVICES;

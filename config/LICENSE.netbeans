@@ -1,7 +1,7 @@
 <#if licenseFirst??>
 ${licenseFirst}
 </#if>
-${licensePrefix}Copyright (c) Fraunhofer IML
+${licensePrefix}Copyright (c) Niels Tiben (nielstiben@outlook.com)
 <#if licenseLast??>
 ${licenseLast}
 </#if>

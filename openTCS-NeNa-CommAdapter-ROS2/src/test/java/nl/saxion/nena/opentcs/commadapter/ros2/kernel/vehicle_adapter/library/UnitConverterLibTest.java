@@ -1,6 +1,8 @@
+/**
+ * Copyright (c) Niels Tiben (nielstiben@outlook.com)
+ */
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.library;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.opentcs.data.model.Triple;
 import us.ihmc.euclid.tuple4D.Quaternion;

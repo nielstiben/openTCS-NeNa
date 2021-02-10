@@ -1,3 +1,6 @@
+/**
+ * Copyright (c) Niels Tiben (nielstiben@outlook.com)
+ */
 package nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.test_library;
 
 import action_msgs.msg.dds.GoalInfo;
@@ -7,11 +10,6 @@ import builtin_interfaces.msg.dds.Time;
 import nl.saxion.nena.opentcs.commadapter.ros2.kernel.vehicle_adapter.communication.Node;
 import unique_identifier_msgs.msg.dds.UUID;
 import us.ihmc.idl.IDLSequence;
-import us.ihmc.pubsub.TopicDataType;
-
-
-import java.util.ArrayList;
-import java.util.Collections;
 
 /**
  * Library class for creating GoalStatus dummies.
@@ -19,19 +17,25 @@ import java.util.Collections;
  * @author Niels Tiben
  */
 public class NavigationGoalTestLib {
+    private NavigationGoalTestLib() {
+        // Private constructor
+    }
+
+    private final static byte LAST_BYTE_UUID = 1;
+
     /**
      * Mocks a {@link GoalStatusArray} that could come from the {@link Node} amcl_pose subscriber.
      *
      * @return A GoalStatusArray holding one goal status with the given status code.
      */
     public static GoalStatusArray createDummyGoalStatusArraySingleEntry(byte statusCode) {
-        final byte LAST_BYTE_UUID = 1;
+
 
         GoalStatusArray goalStatusArray = new GoalStatusArray();
-        IDLSequence.Object<GoalStatus> status_list = new IDLSequence.Object<>(20, GoalStatus.getPubSubType().get());
-        GoalStatus goalStatus = status_list.add();
+        IDLSequence.Object<GoalStatus> statusList = new IDLSequence.Object<>(20, GoalStatus.getPubSubType().get());
+        GoalStatus goalStatus = statusList.add();
         setDummyGoalStatusData(goalStatus, LAST_BYTE_UUID, statusCode);
-        goalStatusArray.status_list_ = status_list;
+        goalStatusArray.status_list_ = statusList;
 
         return goalStatusArray;
     }
@@ -51,9 +55,9 @@ public class NavigationGoalTestLib {
     /**
      * Fills the parameters of {@link GoalStatus}
      *
-     * @param uuidLastByte The last byte of the object's UUID
-     * @param status       The status byte code
-     * @param order        An integer to define the order if multiple Navigation Goals are used.
+     * @param dummyGoalStatus Goal Status object in wich the Data will be set
+     * @param uuidLastByte    The last byte of the object's UUID
+     * @param status          The status byte code
      * @return A dummy GoalStatus
      */
     public static GoalStatus setDummyGoalStatusData(GoalStatus dummyGoalStatus, byte uuidLastByte, byte status) {
