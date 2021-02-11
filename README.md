@@ -99,4 +99,3 @@ New in RELEASE 2.0:
 * Support for Domain IDs.
 * Simplified installation steps.
 * Refresh the Control Center GUI panel and place reference to this GitHub repository.
-* 
