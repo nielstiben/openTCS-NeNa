@@ -87,7 +87,7 @@ What to do next? You can now, for instance, [create a transport order](https://w
 
 ## Developer Guide
 The Developer Guide is written for persons who would like to continue working on this software, or for those who are just curious. It describes the architecture, development paradigms and elaborations about decisions.
-Here's [documentation about the development of the ROS 2 Driver](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.adoc) ([pdf](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.pdf) | [odt](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.odt) ).
+Here's [documentation about the development of the ROS 2 Driver](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.pdf) ( [pdf](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.pdf) | [odt](openTCS-NeNa-Documentation/src/docs/developers_guide/developers_guide.odt) ).
 
 
 ## Changelog
