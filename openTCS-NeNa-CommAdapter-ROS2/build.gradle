@@ -19,9 +19,13 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
 
-    // IHMC
-    compile group: "us.ihmc", name: "ihmc-ros2-library", version: "0.20.2" // publish/subscribe API
-    compile group: "us.ihmc", name: "ros2-common-interfaces", version: "0.20.2" // ROS2 common message library
+    // IHMC (publish/subscribe API)
+    compile ("us.ihmc:ihmc-ros2-library:0.20.2") {
+        exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
+    }
+    compile ("us.ihmc:ros2-common-interfaces:0.20.2") {
+        exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
+    }
 
     testCompileOnly 'org.projectlombok:lombok:1.18.12'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'

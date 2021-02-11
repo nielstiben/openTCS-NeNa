@@ -34,7 +34,7 @@ public class ExecuteTransportOrderWorkflowTest {
     //================================================================================
 
     @Test
-    public void testExecuteValidTransportOrder() {
+    public synchronized void testExecuteValidTransportOrder() {
         Ros2CommAdapter adapter = generateRos2CommAdapter();
 
         // Setup start and end point
@@ -76,7 +76,7 @@ public class ExecuteTransportOrderWorkflowTest {
 
     @SneakyThrows
     @Test
-    public void testExecuteUnreachableTransportOrder() {
+    public synchronized void testExecuteUnreachableTransportOrder() {
         Ros2CommAdapter adapter = generateRos2CommAdapter();
 
         // Setup start and end point
