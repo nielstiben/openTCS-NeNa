@@ -26,6 +26,7 @@ dependencies {
     compile ("us.ihmc:ros2-common-interfaces:0.20.2") {
         exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
     }
+    compile ("us.ihmc:euclid-geometry:0.16.2")
 
     testCompileOnly 'org.projectlombok:lombok:1.18.12'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
