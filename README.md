@@ -5,7 +5,7 @@ OpenTCS and ROS2 are both open-source software packages. OpenTCS can be used as 
 The OpenTCS-NeNa software is an OpenTCS vehicle driver that fits the link between ROS2 robots and the OpenTCS Fleet Manager. The initial development of this vehicle driver was part of my Bachelor Thesis at Saxion University, and is part of project NeNa. Ever since, I continued developing this software to what is today.
 
 - [RELEASE 1.1](https://github.com/nielstiben/openTCS-NeNa/tree/RELEASE1.1) is compatible with OpenTCS 4.17 and ROS 2 Dashing.
-- [RELEASE 2.0](https://github.com/nielstiben/openTCS-NeNa/tree/RELEASE2.0) is compatible with OpenTCS 5.0 and ROS 2 Foxy.
+- [RELEASE 2.0.1](https://github.com/nielstiben/openTCS-NeNa/tree/RELEASE2.0) is compatible with OpenTCS 5.0 and ROS 2 Foxy.
 
 The following software and software libraries are used for developing the driver:
 
@@ -53,18 +53,18 @@ __Prerequisites:__
 
 __Install:__
 
-1. Download the OpenTCS-NeNa RELEASE 2.0 binary at the [releases page](https://github.com/nielstiben/openTCS-NeNa/releases).
-2. Extract the binary to a location of choice: `unzip -d ~/ ./openTCS-NeNa-5.0.0-RELEASE_2.0-bin.zip`
+1. Download the OpenTCS-NeNa RELEASE 2.0.1 binary at the [releases page](https://github.com/nielstiben/openTCS-NeNa/releases).
+2. Extract the binary to a location of choice: `unzip -d ~/ ./openTCS-NeNa-5.0.0-RELEASE_2.0.1-bin.zip`
 
 __Run Example Plant (as shown in the demo video):__
 
 1.  Start the OpenTCS Kernel
     * Open new terminal: `CTRL + ALT + T`
-    * Change working directory to the OpenTCS Kernel: `cd ~/openTCS-NeNa-5.0.0-RELEASE_2.0-bin/openTCS-NeNa-Kernel`.
+    * Change working directory to the OpenTCS Kernel: `cd ~/openTCS-NeNa-5.0.0-RELEASE_2.0.1-bin/openTCS-NeNa-Kernel`.
     * Start kernel: `sh startKernel.sh`
 2.  Start the OpenTCS Plant Overview:
     * Open new terminal: `CTRL + ALT + T`
-    * Change working directory to OpenTCS Plant Overview: `cd ~/openTCS-NeNa-5.0.0-RELEASE_2.0-bin/openTCS-NeNa-PlantOverview/`.
+    * Change working directory to OpenTCS Plant Overview: `cd ~/openTCS-NeNa-5.0.0-RELEASE_2.0.1-bin/openTCS-NeNa-PlantOverview/`.
     * Start PlantOverview: `sh startPlantOverview.sh`
 3.  In the Plant Overview, load the Turtlebot3 Example Project
     * `File`-> `Load Model...` (CTRL + L).
@@ -73,7 +73,7 @@ __Run Example Plant (as shown in the demo video):__
 5.  Switch the Plant Overview to ‘operating mode’: `File`-> `Mode`-> `Operating mode` (ALT + O).
 6.  Start the OpenTCS Kernel Control Center. Don't close the Kernel and Plant Overview!
     * Open new terminal (`CTRL + ALT + T`)
-    * Change working directory to OpenTCS Kernel Control Center: `cd ~/openTCS-NeNa-5.0.0-RELEASE_2.0-bin/openTCS-NeNa-KernelControlCenter/`.
+    * Change working directory to OpenTCS Kernel Control Center: `cd ~/openTCS-NeNa-5.0.0-RELEASE_2.0.1-bin/openTCS-NeNa-KernelControlCenter/`.
     * Start kernel: `sh startKernelControlCenter.sh`
 7.  On the upper tab, select `Vehicle Driver`
 8.  Double click on the first vehicle in the list (‘Bus1’) and open the ‘ROS2 Options’ panel.
@@ -91,6 +91,9 @@ Here's [documentation about the development of the ROS 2 Driver](openTCS-NeNa-Do
 
 
 ## Changelog
+New in RELEASE 2.0.1:
+* Resolved issue with package dependencies. The repository now works with MavenCentral, as Bintray has ceased services. (See [issue#13](https://github.com/nielstiben/openTCS-NeNa/issues/13))
+
 New in RELEASE 2.0:
 
 * Support for ROS 2 Foxy.

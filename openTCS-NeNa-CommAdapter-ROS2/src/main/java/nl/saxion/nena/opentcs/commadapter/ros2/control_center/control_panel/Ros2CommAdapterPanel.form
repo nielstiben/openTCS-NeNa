@@ -316,7 +316,7 @@
                 </Component>
                 <Component class="javax.swing.JLabel" name="versionLabel">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Release 2.0"/>
+                    <Property name="text" type="java.lang.String" value="Release 2.0.1"/>
                   </Properties>
                   <Events>
                     <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="versionLabelMouseClicked"/>
