@@ -99,10 +99,10 @@ public abstract class OperationAllowedLib {
 
         if (isVehicleLoaded) {
             // Allowed
+            lastKnownLoadState = LoadState.EMPTY; // After unloading, our vehicle will be EMPTY.
             return allowed();
         } else {
             // Vehicle already unloaded
-            lastKnownLoadState = LoadState.EMPTY; // After unloading, our vehicle will be EMPTY.
             return notAllowed(UNLOAD_OPERATION_CONFLICT);
         }
     }
